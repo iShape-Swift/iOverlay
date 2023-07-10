@@ -1,2 +1,3 @@
 # iOverlay
-Polygon Bool operations
+
+A description of this package.
