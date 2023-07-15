@@ -78,7 +78,6 @@ public extension Array where Element == FixVec {
             if (p1 - p0).unsafeCrossProduct(p2 - p1) == 0 {
                 nodes.remove(node: node)
                 n -= 1
-                i = 0
                 if node.index == first {
                     first = node.next
                 }

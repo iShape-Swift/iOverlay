@@ -1,10 +1,10 @@
 //
-//  SegmentGraph.swift
+//  SGraph.swift
 //  
 //
-//  Created by Nail Sharipov on 11.07.2023.
+//  Created by Nail Sharipov on 14.07.2023.
 //
-/*
+
 import iFixFloat
 
 private struct Handle {
@@ -28,7 +28,7 @@ public struct GraphLink {
     public let power: Int
 }
 
-public struct SegmentGraph {
+public struct SGraph {
 
     public let links: [GraphLink]
     public let nodes: [GraphNode]
@@ -165,4 +165,3 @@ public struct SegmentGraph {
     }
     
 }
-*/

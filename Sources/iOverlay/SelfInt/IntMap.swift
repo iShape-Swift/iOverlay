@@ -15,12 +15,7 @@ struct IntMap {
     subscript(key: Int) -> Int {
         get {
             assert(0 <= key && key <= maxValue)
-            let a = values[key]
-            if a == Int.min {
-                return 0
-            } else {
-                return a
-            }
+            return values[key]
         }
         
         set {
@@ -32,6 +27,18 @@ struct IntMap {
             values[key] = newValue
         }
     }
+    
+    @inlinable
+    func get(key: Int, def: Int) -> Int {
+        assert(0 <= key && key <= maxValue)
+        let a = values[key]
+        if a == Int.min {
+            return def
+        } else {
+            return values[key]
+        }
+    }
+
     
     @inlinable
     init(maxValue: Int) {

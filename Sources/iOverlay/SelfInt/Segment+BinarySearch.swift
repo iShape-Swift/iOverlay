@@ -7,16 +7,16 @@
 
 import iShape
 
-// array must be descending
+// array must be ascending by a
 extension Array where Element == Segment {
-
-    // sorted by a
     
-    /// Find edge with a equal or first less
+    private static let binaryRange = 8
+    
+    /// Find segment with a equal or first greater
     /// - Parameters:
     ///   - value: place
-    /// - Returns: edge index
-    func findIndexA(_ value: Int64) -> Int {
+    /// - Returns: segment index
+    func findIndexByA(_ value: Int64) -> Int {
         guard !self.isEmpty else {
             return 0
         }
@@ -24,86 +24,74 @@ extension Array where Element == Segment {
         var lt = 0
         var rt = count - 1
         
-        while rt - lt > 0 {
+        while rt - lt >= Self.binaryRange {
             let i = (rt + lt) / 2
             let a = self[i].a.bitPack
             if a == value {
                 return i
-            } else if a > value {
+            } else if a < value {
                 lt = i + 1
             } else {
                 rt = i - 1
             }
         }
-
-        let last = self[lt].a.bitPack
-        if last > value {
-            return lt + 1
-        } else {
-            return lt
+        
+        var i = lt
+        while i <= rt && self[i].a.bitPack < value {
+            i += 1
         }
+        
+        return i
     }
     
-    mutating func addA(_ seg: Segment) {
-        let index = self.findIndexA(seg.a.bitPack)
+    mutating func insertSegmentSortedByA(_ seg: Segment) {
+        let index = self.findIndexByA(seg.a.bitPack)
         self.insert(seg, at: index)
     }
     
-    // sorted by b
-    
-    /// Find edge with b equal or first less
+    /// Find segment by Id
     /// - Parameters:
-    ///   - value: place
-    /// - Returns: edge index
-    func findIndexB(_ value: Int64) -> Int {
-        guard !self.isEmpty else {
-            return 0
+    ///   - id: segment id
+    ///   - value: segment a value
+    /// - Returns: segment index
+    func findById(_ id: Int, value: Int64) -> Int {
+        assert(!self.isEmpty)
+        
+        let i0 = self.findIndexByA(value)
+        
+        guard self[i0].id != id else {
+            return i0
         }
         
-        var lt = 0
-        var rt = count - 1
-        
-        while rt - lt > 0 {
-            let i = (rt + lt) / 2
-            let a = self[i].b.bitPack
-            if a == value {
-                return i
-            } else if a > value {
-                lt = i + 1
-            } else {
-                rt = i - 1
+        var i = i0 - 1
+        while i >= 0 {
+            let e = self[i]
+            if e.a.bitPack != value {
+                break
             }
-        }
+            
+            if e.id == id {
+                return i
+            }
 
-        let last = self[lt].b.bitPack
-        if last > value {
-            return lt + 1
-        } else {
-            return lt
-        }
-    }
-
-    mutating func removeAllB(before: Int64) {
-        let n = allB(before: before)
-        if n > 0 {
-            self.removeLast(n)
-        }
-    }
-    
-    func allB(before: Int64) -> Int {
-        guard !self.isEmpty else { return 0 }
-        var i = count - 1
-        
-        while i >= 0 && self[i].b.bitPack < before {
             i -= 1
         }
 
-        return count - i - 1
-    }
+        i = i0 + 1
+        while i < count {
+            let e = self[i]
+            if e.a.bitPack != value {
+                break
+            }
+            
+            if e.id == id {
+                return i
+            }
 
-    
-    mutating func addB(_ seg: Segment) {
-        let i = self.findIndexB(seg.b.bitPack)
-        self.insert(seg, at: i)
+            i += 1
+        }
+
+        return -1
     }
+    
 }

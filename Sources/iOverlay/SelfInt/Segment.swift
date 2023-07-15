@@ -8,28 +8,38 @@
 import iFixFloat
 import iShape
 
-struct Segment {
+public struct Segment {
 
-    static let zero = Segment(isDirect: true, a: .zero, b: .zero)
+    @usableFromInline
+    static let empty = Segment(id: -1, isDirect: true, a: .zero, b: .zero)
+    
+    @usableFromInline
+    static let zero = Segment(id: 0, isDirect: true, a: .zero, b: .zero)
     
     @inlinable
     var edge: FixEdge { FixEdge(e0: a, e1: b) }
     
-    let isDirect: Bool
+    @inlinable
+    var bound: FixBnd { FixBnd(p0: a, p1: b) }
+    
+    public let id: Int
+    public let isDirect: Bool
     
     // start < end
-    let a: FixVec  // start
-    let b: FixVec  // end
+    public let a: FixVec  // start
+    public let b: FixVec  // end
 
     @inlinable
-    init(isDirect: Bool, a: FixVec, b: FixVec) {
+    init(id: Int, isDirect: Bool, a: FixVec, b: FixVec) {
+        self.id = id
         self.isDirect = isDirect
         self.a = a
         self.b = b
     }
 
     @inlinable
-    init(a: FixVec, b: FixVec) {
+    init(id: Int, a: FixVec, b: FixVec) {
+        self.id = id
         isDirect = a.bitPack < b.bitPack
         if isDirect {
             self.a = a
