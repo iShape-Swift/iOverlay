@@ -6,162 +6,139 @@
 //
 
 import iFixFloat
+import iShape
 
-private struct Handle {
-    let segId: Int
-    let vec: FixVec
-    let isStart: Bool
+private struct VConter {
+    let vert: Int
+    let count: Int
 }
 
-private struct Connection {
-    var a: Int
-    var b: Int
+private struct VPntCnt {
+    let index: Int
+    let count: Int
+    let point: FixVec
 }
 
-public struct GraphNode {
-    public let offset: Int
-    public let count: Int
+public struct Pointer {
+    public let linkId: Int
+    public let vIndex: Int
+    public let count: Int // is positive it's direct else it's reverse
 }
 
-public struct GraphLink {
-    public let nodeIndex: Int
-    public let power: Int
+struct Link {
+    var left: Int
+    var right: Int
+}
+
+public struct DeepIndex {
+    public let index: Int      // index in pointer array
+    public let count: Int      // length of direct points in Pointer offset..<offset + directCount
 }
 
 public struct SGraph {
-
-    public let links: [GraphLink]
-    public let nodes: [GraphNode]
+    
     public let verts: [FixVec]
+    public let dir: [Pointer]
+    public let dirIndex: [DeepIndex]
     
-    init(segments: [Segment]) {
-        guard !segments.isEmpty else {
-            links = []
-            nodes = []
-            verts = []
-            return
-        }
-
-        let handles = Self.handles(segments: segments)
-        let conRes = Self.connections(handles: handles)
-        let nodeRes = Self.nodes(handles: handles, conRes: conRes)
+//    let all: [Pointer]
+    
+    init(segments: [Segment], vertices: [FixVec]) {
+        let n = vertices.count
         
-        self.links = nodeRes.links
-        self.nodes = nodeRes.nodes
-        self.verts = conRes.verts
-    }
-    
-    private static func handles(segments: [Segment]) -> [Handle] {
-        let n = 2 * segments.count
-        var handles = [Handle](repeating: .init(segId: 0, vec: .zero, isStart: false), count: n)
-
-        var j = 0
-        for i in 0..<segments.count {
-            let s = segments[i]
-            
-            handles[j] = Handle(segId: i, vec: s.a, isStart: s.isDirect)
-            j += 1
-            
-            handles[j] = Handle(segId: i, vec: s.b, isStart: !s.isDirect)
-            j += 1
+        // collect how many direct links from this vertex
+        var verDirCnt = [Int](repeating: 0, count: n)
+        
+        for seg in segments {
+            verDirCnt[seg.a.index] += 1
         }
         
-        handles.sort(by: { $0.vec.bitPack < $1.vec.bitPack })
-        
-        return handles
-    }
-    
-    private struct ConRes {
-        let verts: [FixVec]
-        let cons: [Connection]
-    }
-    
-    private static func connections(handles: [Handle]) -> ConRes {
-        var verts = [FixVec]()
-        var cons = [Connection](repeating: Connection(a: 0, b: 0), count: handles.count / 2)
+        var offset = [Int](repeating: 0, count: n)
+        var s = 0
+        for i in 0..<n {
+            offset[i] = s
+            s += verDirCnt[i]
+        }
 
-        var v0 = handles[0].vec
-        var vi = 0
-        verts.append(v0)
+        var vCnt = [VConter](repeating: VConter(vert: -1, count: 0), count: s)
         
-        var i = 0
-        while i < handles.count {
-            let h = handles[i]
-            if v0 != h.vec {
-                verts.append(h.vec)
-                v0 = h.vec
-                vi += 1
+        for seg in segments {
+            let a = seg.a.index
+            let b = seg.b.index
+            let aStart = offset[a]
+            let aLength = verDirCnt[a]
+            let inc = seg.isDirect ? 1 : -1
+            vCnt.add(start: aStart, length: aLength, vert: b, inc: inc)
+        }
+
+        var dir = [Pointer]()
+        dir.reserveCapacity(s)
+        
+        var dirIndex = [DeepIndex](repeating: .init(index: 0, count: 0), count: n)
+        var vPntCnt = [VPntCnt]()
+        vPntCnt.reserveCapacity(8)
+        var index = 0
+        for a in 0..<n {
+            let aStart = offset[a]
+            let aEnd = aStart + verDirCnt[a]
+            var j = aStart
+            vPntCnt.removeAll(keepingCapacity: true)
+            while j < aEnd {
+                let v = vCnt[j]
+                if v.count != 0 {
+                    vPntCnt.append(VPntCnt(index: v.vert, count: v.count, point: vertices[v.vert]))
+                }
+                j += 1
             }
             
-            var con = cons[h.segId]
-            if h.isStart {
-                con.a = vi
-            } else {
-                con.b = vi
+            if vPntCnt.count != 0 {
+                vPntCnt.sort(start: vertices[a])
             }
-            cons[h.segId] = con
             
+            dirIndex[a] = DeepIndex(index: index, count: vPntCnt.count)
+            for v in vPntCnt {
+                let linkId = dir.count
+                dir.append(Pointer(linkId: linkId, vIndex: v.index, count: v.count))
+            }
+            
+            index += vPntCnt.count
+        }
+
+        self.verts = vertices
+        self.dir = dir
+        self.dirIndex = dirIndex
+    }
+
+}
+
+private extension Array where Element == VConter {
+
+    mutating func add(start: Int, length: Int, vert: Int, inc: Int) {
+        var i = start
+        let end = start + length
+        while i < end {
+            let v = self[i]
+            if v.vert == -1 {
+                self[i] = VConter(vert: vert, count: inc)
+                return
+            } else if v.vert == vert {
+                self[i] = VConter(vert: vert, count: v.count + inc)
+                return
+            }
             i += 1
         }
-        
-        return ConRes(verts: verts, cons: cons)
     }
-    
-    private struct NodeRes {
-        let links: [GraphLink]
-        let nodes: [GraphNode]
-    }
-    
-    private static func nodes(handles: [Handle], conRes: ConRes) -> NodeRes {
-        var links = [GraphLink]()
-        links.reserveCapacity(conRes.cons.count)
-        
-        var nodes = [GraphNode](repeating: .init(offset: 0, count: 0), count: conRes.verts.count)
+}
 
-        var iMap = IntMap(maxValue: conRes.verts.count - 1)
-        
-        var j = 0
-        var i = 0
-        var offset = 0
-        while j < conRes.verts.count {
-            let v = conRes.verts[j]
-            
-            var h = handles[i]
-            while h.vec == v {
-                let con = conRes.cons[h.segId]
-                if h.isStart {
-                    iMap[con.b] = iMap.get(key: con.b, def: 0) + 1
-                } else {
-                    iMap[con.a] = iMap.get(key: con.a, def: 0) - 1
-                }
+private extension Array where Element == VPntCnt {
 
-                i += 1
-                if i >= handles.count {
-                    break
-                }
-                h = handles[i]
+    mutating func sort(start: FixVec) {
+        self.sort(by: {
+            if $0.point.x == $1.point.x {
+                return $0.point.y < $1.point.y
+            } else {
+                return Triangle.isClockwise(p0: start, p1: $1.point, p2: $0.point)
             }
-            // new round
-            
-            var n = 0
-            for key in iMap.keys {
-                let power = iMap[key]
-                if power > 0 {
-                    n += 1
-                    links.append(GraphLink(nodeIndex: key, power: power))
-                }
-            }
-
-            nodes[j] = GraphNode(offset: offset, count: n)
-            offset += n
-            
-            iMap.removeAll()
-
-            j += 1
-        }
-        
-        return NodeRes(links: links, nodes: nodes)
-        
+        })
     }
-    
 }

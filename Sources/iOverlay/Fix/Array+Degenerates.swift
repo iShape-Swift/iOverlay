@@ -76,11 +76,15 @@ public extension Array where Element == FixVec {
             let p2 = self[node.next]
 
             if (p1 - p0).unsafeCrossProduct(p2 - p1) == 0 {
-                nodes.remove(node: node)
                 n -= 1
+                if n < 3 {
+                    return []
+                }
+                nodes.remove(node: node)
                 if node.index == first {
                     first = node.next
                 }
+                i -= 1
             } else {
                 i += 1
             }

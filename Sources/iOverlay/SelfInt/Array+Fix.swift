@@ -8,25 +8,47 @@
 import iFixFloat
 import iShape
 
-private struct Path {
-    var top: Segment = .empty
-    var btm: Segment = .empty
-    
-    var topPoints: [FixVec] = []
-    var btmPoints: [FixVec] = []
+private struct SegmentResult {
+    let segments: [Segment]
+    let vertices: [FixVec]
 }
 
 public extension Array where Element == FixVec {
-
-    private func createSegments() -> [Segment] {
+    
+    private func createSegments() -> SegmentResult {
         var segs = [Segment](repeating: .zero, count: count)
-        var a = self[count - 1]
+
+        let i0 = count - 1
+        var iCounter = 0
+        var map = [FixVec: Int]()
+        map.reserveCapacity(count)
+        
+        var a = IndexPoint(index: iCounter, point: self[i0])
+        map[a.point] = a.index
+        iCounter += 1
+        
         for i in 0..<count {
-            let b = self[i]
+            let p = self[i]
+            let index: Int
+            if let j = map[p] {
+                index = j
+            } else {
+                index = iCounter
+                map[p] = iCounter
+                iCounter += 1
+            }
+            
+            let b = IndexPoint(index: index, point: p)
             segs[i] = Segment(id: i, a: a, b: b)
             a = b
         }
-        return segs
+        
+        var vertices = [FixVec](repeating: .zero, count: iCounter)
+        for item in map {
+            vertices[item.value] = item.key
+        }
+
+        return SegmentResult(segments: segs, vertices: vertices)
     }
     
     func split() -> [FixVec] {
@@ -34,62 +56,41 @@ public extension Array where Element == FixVec {
         guard clean.count > 2 else {
             return []
         }
-        let segs = clean.createSegments().split()
-        var st = Set<FixVec>()
-        for seg in segs {
-            st.insert(seg.a)
-            st.insert(seg.b)
-        }
+        let segRes = clean.createSegments()
+        let splitRes = segRes.segments.split(pointsCount: segRes.vertices.count)
         
-        return Array(st)
-    }
-    
-    func fix() -> [FixShape] {
-        let segments = self.split()
-        
-        var paths = [Path]()
-        
-        var i = 0
-        while i < segments.count {
-            let seg = segments[i]
-            
-            var j = 0
-            while j < paths.count {
-                
-                
-                
-            }
-            
-            i += 1
-        }
-        
-        
-        
-        
-        
-        
-        return []
-    }
-    
-}
-//
-//private enum JoinResult {
-//    case joined
-//    case closed
-//    case skipped
-//    
-//}
-
-
-private extension Path {
-    
-    func join(_ segment: Segment) -> Bool {
-        if segment.a == top.a {
-
+        var vertices = segRes.vertices
+        for _ in 0..<splitRes.newVerts.count {
+            vertices.append(.zero)
         }
 
-        return false
+        for v in splitRes.newVerts {
+            vertices[v.index] = v.point
+        }
+
+        return vertices
     }
     
     
+    func graph() -> SGraph? {
+        let clean = self.removedDegenerates()
+        guard clean.count > 2 else {
+            return nil
+        }
+        
+        let segRes = clean.createSegments()
+        let splitRes = segRes.segments.split(pointsCount: segRes.vertices.count)
+        
+        var vertices = segRes.vertices
+        for _ in 0..<splitRes.newVerts.count {
+            vertices.append(.zero)
+        }
+
+        for v in splitRes.newVerts {
+            vertices[v.index] = v.point
+        }
+        
+        return SGraph(segments: splitRes.segments, vertices: vertices)
+    }
+
 }
