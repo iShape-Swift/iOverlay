@@ -8,26 +8,19 @@
 import iFixFloat
 import iShape
 
-struct SplitResult {
-    let segments: [Segment]
-    let newVerts: [IndexPoint]
-}
-
 extension Array where Element == Segment {
     
-    func split(pointsCount: Int) -> SplitResult {
-        var segments = self.sorted(by: { $0.a.point.bitPack < $1.a.point.bitPack })
+    func split() -> [Segment] {
+        var segments = self.sorted(by: { $0.a.bitPack < $1.a.bitPack })
         
         var scanList = ScanList()
         
         var segIndex = 0
-        
-        var xStore = IndexPointStore(count: pointsCount)
     mainLoop:
         while segIndex < segments.count {
             let thisSeg = segments[segIndex]
             
-            let scanPos = thisSeg.a.point.bitPack
+            let scanPos = thisSeg.a.bitPack
 
             scanList.removeAllFromLeft(scanPos)
             
@@ -43,7 +36,6 @@ extension Array where Element == Segment {
                     break
                 case .pure:
                     let x = cross.point
-                    let ix = xStore.getIndex(x)
                     
                     // devide segments
 
@@ -53,13 +45,13 @@ extension Array where Element == Segment {
                     let scanId = scanSeg.id
                     
                     // scan index in segments array
-                    let sIndex = segments.findById(scanId, value: scanSeg.a.point.bitPack)
+                    let sIndex = segments.findById(scanId, value: scanSeg.a.bitPack)
                     
-                    let thisLt = Segment(id: thisId, isDirect: thisSeg.isDirect, a: thisSeg.a, b: ix)
-                    let thisRt = Segment(id: nextId, isDirect: thisSeg.isDirect, a: ix, b: thisSeg.b)
+                    let thisLt = Segment(id: thisId, isDirect: thisSeg.isDirect, a: thisSeg.a, b: x)
+                    let thisRt = Segment(id: nextId, isDirect: thisSeg.isDirect, a: x, b: thisSeg.b)
                     
-                    let scanLt = Segment(id: scanId, isDirect: scanSeg.isDirect, a: scanSeg.a, b: ix)
-                    let scanRt = Segment(id: nextId + 1, isDirect: scanSeg.isDirect, a: ix, b: scanSeg.b)
+                    let scanLt = Segment(id: scanId, isDirect: scanSeg.isDirect, a: scanSeg.a, b: x)
+                    let scanRt = Segment(id: nextId + 1, isDirect: scanSeg.isDirect, a: x, b: scanSeg.b)
                     
                     segments[segIndex] = thisLt
                     segments.insertSegmentSortedByA(thisRt)
@@ -68,15 +60,15 @@ extension Array where Element == Segment {
                     segments.insertSegmentSortedByA(scanRt)
 
                     // new point must be exactly on the same line
-                    let isBend = Triangle.isNotLine(p0: thisSeg.a.point, p1: thisSeg.b.point, p2: x) || Triangle.isNotLine(p0: scanSeg.a.point, p1: scanSeg.b.point, p2: x)
+                    let isBend = Triangle.isNotLine(p0: thisSeg.a, p1: thisSeg.b, p2: x) || Triangle.isNotLine(p0: scanSeg.a, p1: scanSeg.b, p2: x)
                     
                     if isBend {
                         // changed segments could overlap with previous segments
                         
-                        assert(scanLt.a.point.bitPack < thisLt.a.point.bitPack)
+                        assert(scanLt.a.bitPack < thisLt.a.bitPack)
                         
                         // roll back before scanLt.a
-                        let newScanPos = scanLt.a.point.bitPack - 1
+                        let newScanPos = scanLt.a.bitPack - 1
                         segIndex = segments.findIndexByA(newScanPos)
 
                         // add all segments which can overlap newScanPos
@@ -91,27 +83,26 @@ extension Array where Element == Segment {
                     continue mainLoop
                 case .end_b:
                     let x = cross.point
-                    let ix = x == scanSeg.a.point ? scanSeg.a : scanSeg.b
 
                     // devide this segment
 
                     let thisId = thisSeg.id
                     let nextId = segments.count
                     
-                    let thisLt = Segment(id: thisId, isDirect: thisSeg.isDirect, a: thisSeg.a, b: ix)
-                    let thisRt = Segment(id: nextId, isDirect: thisSeg.isDirect, a: ix, b: thisSeg.b)
+                    let thisLt = Segment(id: thisId, isDirect: thisSeg.isDirect, a: thisSeg.a, b: x)
+                    let thisRt = Segment(id: nextId, isDirect: thisSeg.isDirect, a: x, b: thisSeg.b)
 
                     segments[segIndex] = thisLt
                     segments.insertSegmentSortedByA(thisRt)
 
                     // new point must be exactly on the same line
-                    let isBend = Triangle.isNotLine(p0: thisSeg.a.point, p1: thisSeg.b.point, p2: x)
+                    let isBend = Triangle.isNotLine(p0: thisSeg.a, p1: thisSeg.b, p2: x)
                     
                     if isBend {
                         // changed segments could overlap with previous segments
 
                         // roll back before thisLt.a
-                        let newScanPos = thisLt.a.point.bitPack - 1
+                        let newScanPos = thisLt.a.bitPack - 1
                         segIndex = segments.findIndexByA(newScanPos)
 
                         // add all segments which can overlap newScanPos
@@ -123,7 +114,7 @@ extension Array where Element == Segment {
                     continue mainLoop
                 case .end_a:
                     let x = cross.point
-                    let ix = x == thisSeg.a.point ? thisSeg.a : thisSeg.b
+                    let ix = x == thisSeg.a ? thisSeg.a : thisSeg.b
 
                     // devide scan segment
 
@@ -131,7 +122,7 @@ extension Array where Element == Segment {
                     let nextId = segments.count
                     
                     // scan index in segments array
-                    let sIndex = segments.findById(scanId, value: scanSeg.a.point.bitPack)
+                    let sIndex = segments.findById(scanId, value: scanSeg.a.bitPack)
                     
                     let scanLt = Segment(id: scanId, isDirect: scanSeg.isDirect, a: scanSeg.a, b: ix)
                     let scanRt = Segment(id: nextId, isDirect: scanSeg.isDirect, a: ix, b: scanSeg.b)
@@ -140,13 +131,13 @@ extension Array where Element == Segment {
                     segments.insertSegmentSortedByA(scanRt)
 
                     // new point must be exactly on the same line
-                    let isBend = Triangle.isNotLine(p0: scanSeg.a.point, p1: scanSeg.b.point, p2: x)
+                    let isBend = Triangle.isNotLine(p0: scanSeg.a, p1: scanSeg.b, p2: x)
                     
                     if isBend {
                         // changed segments could overlap with previous segments
                         
                         // roll back before scanLt.a
-                        let newScanPos = scanLt.a.point.bitPack - 1
+                        let newScanPos = scanLt.a.bitPack - 1
                         segIndex = segments.findIndexByA(newScanPos)
 
                         // add all segments which can overlap newScanPos
@@ -169,7 +160,7 @@ extension Array where Element == Segment {
             
         } // while queue
 
-        return SplitResult(segments: segments, newVerts: xStore.points)
+        return segments
     }
     
 }
@@ -187,7 +178,7 @@ private struct ScanList {
     
     mutating func add(_ segment: Segment) {
         segments.append(segment)
-        minEnd = min(minEnd, segment.b.point.bitPack)
+        minEnd = min(minEnd, segment.b.bitPack)
     }
     
     mutating func removeAllFromLeft(_ pos: Int64) {
@@ -198,7 +189,7 @@ private struct ScanList {
         var n = 0
         while i <= j {
             let seg = segments[i]
-            let bPos = seg.b.point.bitPack
+            let bPos = seg.b.bitPack
             if bPos <= pos {
                 segments[i] = segments[j]
                 j -= 1
@@ -217,43 +208,11 @@ private struct ScanList {
         self.minEnd = .max
         for i in 0..<count {
             let seg = list[i]
-            let bPos = seg.b.point.bitPack
+            let bPos = seg.b.bitPack
             if bPos > pos {
                 segments.append(seg)
                 minEnd = min(minEnd, bPos)
             }
         }
     }
-}
-
-private struct IndexPointStore {
-    
-    private var map: [FixVec: Int]
-    private (set) var count: Int
-    
-    var points: [IndexPoint] {
-        var result = [IndexPoint]()
-        result.reserveCapacity(map.count)
-        for item in map {
-            result.append(IndexPoint(index: item.value, point: item.key))
-        }
-        return result
-    }
-    
-    mutating func getIndex(_ point: FixVec) -> IndexPoint {
-        if let i = map[point] {
-            return IndexPoint(index: i, point: point)
-        } else {
-            map[point] = count
-            let ip = IndexPoint(index: count, point: point)
-            count += 1
-            return ip
-        }
-    }
-    
-    init(count: Int) {
-        self.count = count
-        map = [:]
-    }
-    
 }

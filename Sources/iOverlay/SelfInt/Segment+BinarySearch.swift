@@ -26,7 +26,7 @@ extension Array where Element == Segment {
         
         while rt - lt >= Self.binaryRange {
             let i = (rt + lt) / 2
-            let a = self[i].a.point.bitPack
+            let a = self[i].a.bitPack
             if a == value {
                 return i
             } else if a < value {
@@ -37,7 +37,7 @@ extension Array where Element == Segment {
         }
         
         var i = lt
-        while i <= rt && self[i].a.point.bitPack < value {
+        while i <= rt && self[i].a.bitPack < value {
             i += 1
         }
         
@@ -45,7 +45,7 @@ extension Array where Element == Segment {
     }
     
     mutating func insertSegmentSortedByA(_ seg: Segment) {
-        let index = self.findIndexByA(seg.a.point.bitPack)
+        let index = self.findIndexByA(seg.a.bitPack)
         self.insert(seg, at: index)
     }
     
@@ -66,7 +66,7 @@ extension Array where Element == Segment {
         var i = i0 - 1
         while i >= 0 {
             let e = self[i]
-            if e.a.point.bitPack != value {
+            if e.a.bitPack != value {
                 break
             }
             
@@ -80,7 +80,7 @@ extension Array where Element == Segment {
         i = i0 + 1
         while i < count {
             let e = self[i]
-            if e.a.point.bitPack != value {
+            if e.a.bitPack != value {
                 break
             }
             

@@ -17,20 +17,20 @@ public struct Segment {
     static let zero = Segment(id: 0, isDirect: true, a: .zero, b: .zero)
     
     @inlinable
-    var edge: FixEdge { FixEdge(e0: a.point, e1: b.point) }
+    var edge: FixEdge { FixEdge(e0: a, e1: b) }
     
     @inlinable
-    var bound: FixBnd { FixBnd(p0: a.point, p1: b.point) }
+    var bound: FixBnd { FixBnd(p0: a, p1: b) }
     
     public let id: Int
     public let isDirect: Bool
     
     // start < end
-    public let a: IndexPoint  // start
-    public let b: IndexPoint  // end
+    public let a: FixVec  // start
+    public let b: FixVec  // end
 
     @inlinable
-    init(id: Int, isDirect: Bool, a: IndexPoint, b: IndexPoint) {
+    init(id: Int, isDirect: Bool, a: FixVec, b: FixVec) {
         self.id = id
         self.isDirect = isDirect
         self.a = a
@@ -38,9 +38,9 @@ public struct Segment {
     }
 
     @inlinable
-    init(id: Int, a: IndexPoint, b: IndexPoint) {
+    init(id: Int, a: FixVec, b: FixVec) {
         self.id = id
-        isDirect = a.point.bitPack < b.point.bitPack
+        isDirect = a.bitPack < b.bitPack
         if isDirect {
             self.a = a
             self.b = b

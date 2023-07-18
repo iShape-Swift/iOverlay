@@ -25,32 +25,28 @@ public struct Pointer {
     public let count: Int // is positive it's direct else it's reverse
 }
 
-struct Link {
-    var left: Int
-    var right: Int
-}
-
 public struct DeepIndex {
     public let index: Int      // index in pointer array
     public let count: Int      // length of direct points in Pointer offset..<offset + directCount
 }
 
 public struct SGraph {
-    
+
     public let verts: [FixVec]
     public let dir: [Pointer]
     public let dirIndex: [DeepIndex]
     
 //    let all: [Pointer]
     
-    init(segments: [Segment], vertices: [FixVec]) {
-        let n = vertices.count
+    init(segments: [Segment]) {
+        let flat = segments.flat()
+        let n = flat.verts.count
         
         // collect how many direct links from this vertex
         var verDirCnt = [Int](repeating: 0, count: n)
         
-        for seg in segments {
-            verDirCnt[seg.a.index] += 1
+        for ab in flat.abs {
+            verDirCnt[ab.a] += 1
         }
         
         var offset = [Int](repeating: 0, count: n)
@@ -62,12 +58,12 @@ public struct SGraph {
 
         var vCnt = [VConter](repeating: VConter(vert: -1, count: 0), count: s)
         
-        for seg in segments {
-            let a = seg.a.index
-            let b = seg.b.index
+        for ab in flat.abs {
+            let a = ab.a
+            let b = ab.b
             let aStart = offset[a]
             let aLength = verDirCnt[a]
-            let inc = seg.isDirect ? 1 : -1
+            let inc = ab.isDirect ? 1 : -1
             vCnt.add(start: aStart, length: aLength, vert: b, inc: inc)
         }
 
@@ -86,13 +82,13 @@ public struct SGraph {
             while j < aEnd {
                 let v = vCnt[j]
                 if v.count != 0 {
-                    vPntCnt.append(VPntCnt(index: v.vert, count: v.count, point: vertices[v.vert]))
+                    vPntCnt.append(VPntCnt(index: v.vert, count: v.count, point: flat.verts[v.vert]))
                 }
                 j += 1
             }
             
             if vPntCnt.count != 0 {
-                vPntCnt.sort(start: vertices[a])
+                vPntCnt.sort(start: flat.verts[a])
             }
             
             dirIndex[a] = DeepIndex(index: index, count: vPntCnt.count)
@@ -103,8 +99,8 @@ public struct SGraph {
             
             index += vPntCnt.count
         }
-
-        self.verts = vertices
+        
+        self.verts = flat.verts
         self.dir = dir
         self.dirIndex = dirIndex
     }
@@ -140,5 +136,55 @@ private extension Array where Element == VPntCnt {
                 return Triangle.isClockwise(p0: start, p1: $1.point, p2: $0.point)
             }
         })
+    }
+}
+
+private struct FlatResult {
+    let abs: [AB]
+    let verts: [FixVec]
+}
+
+private struct AB {
+    let a: Int
+    let b: Int
+    let isDirect: Bool
+}
+
+private extension Array where Element == Segment {
+
+    func flat() -> FlatResult {
+        var map = [FixVec: Int]()
+        map.reserveCapacity(count)
+        
+        var abs = [AB]()
+        abs.reserveCapacity(count)
+        
+        var counter = 0
+        for s in self {
+            let a: Int
+            let b: Int
+            if let i = map[s.a] {
+                a = i
+            } else {
+                a = counter
+                map[s.a] = a
+                counter += 1
+            }
+            if let i = map[s.b] {
+                b = i
+            } else {
+                b = counter
+                map[s.b] = b
+                counter += 1
+            }
+            abs.append(AB(a: a, b: b, isDirect: s.isDirect))
+        }
+
+        var verts = [FixVec](repeating: .zero, count: map.count)
+        for item in map {
+            verts[item.value] = item.key
+        }
+        
+        return FlatResult(abs: abs, verts: verts)
     }
 }
