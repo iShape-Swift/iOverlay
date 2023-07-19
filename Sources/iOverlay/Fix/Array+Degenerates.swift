@@ -58,6 +58,7 @@ public extension Array where Element == FixVec {
         var n = count
         
         var nodes = [Node](repeating: .init(next: .zero, index: .zero, prev: .zero), count: n)
+        var validated = [Bool](repeating: false, count: n)
         var i0 = n - 2
         var i1 = n - 1
         for i2 in 0..<n {
@@ -71,6 +72,11 @@ public extension Array where Element == FixVec {
         var node = nodes[first]
         var i = 0
         while i < n {
+            guard !validated[node.index] else {
+                node = nodes[node.next]
+                continue
+            }
+            
             let p0 = self[node.prev]
             let p1 = self[node.index]
             let p2 = self[node.next]
@@ -80,19 +86,33 @@ public extension Array where Element == FixVec {
                 if n < 3 {
                     return []
                 }
+
                 nodes.remove(node: node)
                 if node.index == first {
                     first = node.next
                 }
-                i -= 1
+
+                node = nodes[node.prev]
+                
+                if validated[node.prev] {
+                    i -= 1
+                    validated[node.prev] = false
+                }
+                
+                if validated[node.next] {
+                    i -= 1
+                    validated[node.next] = false
+                }
+                
+                if validated[node.index] {
+                    i -= 1
+                    validated[node.index] = false
+                }
             } else {
+                validated[node.index] = true
                 i += 1
+                node = nodes[node.next]
             }
-            node = nodes[node.next]
-        }
-        
-        guard n > 2 else {
-            return []
         }
         
         i = 0

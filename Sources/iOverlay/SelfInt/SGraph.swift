@@ -37,7 +37,7 @@ public struct SGraph {
     public let dirIndex: [DeepIndex]
     
 //    let all: [Pointer]
-    
+    /*
     init(segments: [Segment]) {
         let flat = segments.flat()
         let n = flat.verts.count
@@ -104,7 +104,7 @@ public struct SGraph {
         self.dir = dir
         self.dirIndex = dirIndex
     }
-
+*/
 }
 
 private extension Array where Element == VConter {
@@ -149,7 +149,7 @@ private struct AB {
     let b: Int
     let isDirect: Bool
 }
-
+/*
 private extension Array where Element == Segment {
 
     func flat() -> FlatResult {
@@ -188,3 +188,4 @@ private extension Array where Element == Segment {
         return FlatResult(abs: abs, verts: verts)
     }
 }
+*/

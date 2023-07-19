@@ -9,50 +9,41 @@ import iFixFloat
 import iShape
 
 public struct Segment {
-
-    @usableFromInline
-    static let empty = Segment(id: -1, isDirect: true, a: .zero, b: .zero)
     
     @usableFromInline
-    static let zero = Segment(id: 0, isDirect: true, a: .zero, b: .zero)
+    static let zero = Segment(a: .zero, b: .zero)
     
     @inlinable
-    var edge: FixEdge { FixEdge(e0: a, e1: b) }
+    var edge: FixEdge { FixEdge(e0: a.point, e1: b.point) }
     
     @inlinable
-    var bound: FixBnd { FixBnd(p0: a, p1: b) }
-    
-    public let id: Int
-    public let isDirect: Bool
+    var bound: FixBnd { FixBnd(p0: a.point, p1: b.point) }
     
     // start < end
-    public let a: FixVec  // start
-    public let b: FixVec  // end
-
+    public let a: IndexPoint  // start
+    public let b: IndexPoint  // end
+    
     @inlinable
-    init(id: Int, isDirect: Bool, a: FixVec, b: FixVec) {
-        self.id = id
-        self.isDirect = isDirect
+    init(a: IndexPoint, b: IndexPoint) {
         self.a = a
         self.b = b
-    }
-
-    @inlinable
-    init(id: Int, a: FixVec, b: FixVec) {
-        self.id = id
-        isDirect = a.bitPack < b.bitPack
-        if isDirect {
-            self.a = a
-            self.b = b
-        } else {
-            self.a = b
-            self.b = a
-        }
     }
     
     @inlinable
     func cross(_ other: Segment) -> EdgeCross {
         edge.cross(other.edge)
     }
+}
 
+extension Segment: Equatable, Hashable {
+    
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.a.index == rhs.a.index && lhs.b.index == rhs.b.index
+    }
+    
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(a.index)
+        hasher.combine(b.index)
+    }
+    
 }
