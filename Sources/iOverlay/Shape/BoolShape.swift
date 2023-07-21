@@ -34,21 +34,27 @@ public struct BoolShape {
         }
 
         edges.sort(by: { $0.isLess($1) })
-        edges.eliminateSame()
-        
-        assert(edges.isAsscending())
-        
-        edges.split()
-        
-        
-        // TODO wright more fast version to sort only by b
-        edges.sort(by: { $0.isLess($1) })
-        edges.eliminateSame()
-        
-        assert(edges.isAsscending())
+        _ = self.fix()
         
         isFixed = true
     }
+    
+    mutating func fix() -> Bool {
+        edges.eliminateSame()
+        
+        assert(edges.isAsscending())
+
+        let splitResult = edges.split()
+
+        if splitResult.isModified {
+            edges.eliminateSame()
+        }
+        
+        assert(edges.isAsscending())
+        
+        return splitResult.isGeometryModified
+    }
+    
    
 }
 
