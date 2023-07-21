@@ -9,9 +9,9 @@ public typealias ShapeMask = Int
 
 public extension ShapeMask {
     
-    static let empty = 0
-    static let a = 0b01
-    static let b = 0b10
-    static let ab = 0b11
+    static let empty    = 0
+    static let subject  = 0b01
+    static let clip     = 0b10
+    static let common   = 0b11
     
 }

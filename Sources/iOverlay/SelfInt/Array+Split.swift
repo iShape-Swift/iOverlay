@@ -4,7 +4,7 @@
 //
 //  Created by Nail Sharipov on 13.07.2023.
 //
-
+/*
 import iFixFloat
 import iShape
 
@@ -262,3 +262,4 @@ private extension Segment {
     }
     
 }
+*/

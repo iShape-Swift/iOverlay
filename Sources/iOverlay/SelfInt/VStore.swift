@@ -29,24 +29,6 @@ struct VStore {
         mPnts.reserveCapacity(capacity)
     }
 
-//    @inlinable
-//    init(points: [FixVec]) {
-//        map = [FixVec: Int]()
-//        map.reserveCapacity(points.count)
-//        
-//        mPnts = [MPoint]()
-//        mPnts.reserveCapacity(points.count)
-//        
-//        self.add(points: points, mask: 0)
-//    }
-//    
-//    @inlinable
-//    mutating func add(points: [FixVec], mask: Int) {
-//        for p in points {
-//            self.put(point: p, mask: mask)
-//        }
-//    }
-    
     @inlinable
     mutating func put(point: FixVec, mask: Int) -> Int {
         let index: Int
@@ -63,20 +45,6 @@ struct VStore {
         }
         return index
     }
-    
-//    @inlinable
-//    mutating func put(point: FixVec, mask: Int) {
-//        if let i = map[point] {
-//            let mPnt = mPnts[i]
-//            if mPnt.mask != mask {
-//                mPnts[i] = MPoint(mask: mPnt.mask | mask, point: mPnt.point)
-//            }
-//        } else {
-//            map[point] = mPnts.count
-//            mPnts.append(MPoint(mask: mask, point: point))
-//        }
-//    }
-//    
 
     @inlinable
     func point(index: Int) -> MPoint {

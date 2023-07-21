@@ -28,7 +28,7 @@ extension Array where Element == Segment {
         // Perform binary search until the remaining range is below the threshold
         while rt - lt >= Self.binaryRange {
             let i = (rt + lt) / 2
-            let a = self[i].a.point.bitPack
+            let a = self[i].a.bitPack
             if a == value {
                 return i
             } else if a < value {
@@ -40,7 +40,7 @@ extension Array where Element == Segment {
         
         // Perform linear search within the remaining range
         var i = lt
-        while i <= rt && self[i].a.point.bitPack < value {
+        while i <= rt && self[i].a.bitPack < value {
             i += 1
         }
         
@@ -51,7 +51,7 @@ extension Array where Element == Segment {
     /// - Parameters:
     ///   - segment: Segment to insert
     mutating func insertIfNotExist(_ segment: Segment) {
-        let start = self.findIndexByA(segment.a.point.bitPack)
+        let start = self.findIndexByA(segment.a.bitPack)
         if !self.isContain(segment, searchAnchor: start) {
             self.insert(segment, at: start)
         }
@@ -81,7 +81,7 @@ extension Array where Element == Segment {
     
     // Find the index of a given segment, asserts that segment must exist in array
     func segmentIndex(_ seg: Segment) -> Int {
-        let searchAnchor = self.findIndexByA(seg.a.point.bitPack)
+        let searchAnchor = self.findIndexByA(seg.a.bitPack)
         let index = self.segmentIndex(seg, searchAnchor: searchAnchor)
         assert(index != -1)
         return index
@@ -94,8 +94,8 @@ extension Array where Element == Segment {
         var i = searchAnchor
         while i < count {
             let s = self[i]
-            if s.a.index == seg.a.index {
-                if s.b.index == seg.b.index {
+            if s.a == seg.a {
+                if s.b == seg.b {
                     return i
                 }
                 i += 1
@@ -108,8 +108,8 @@ extension Array where Element == Segment {
         i = searchAnchor - 1
         while i >= 0 {
             let s = self[i]
-            if s.a.index == seg.a.index {
-                if s.b.index == seg.b.index {
+            if s.a == seg.a {
+                if s.b == seg.b {
                     return i
                 }
                 i -= 1

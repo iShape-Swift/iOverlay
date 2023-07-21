@@ -1,5 +1,5 @@
 //
-//  IEdge.swift
+//  Segment.swift
 //  
 //
 //  Created by Nail Sharipov on 11.07.2023.
@@ -11,22 +11,24 @@ import iShape
 public struct Segment {
     
     @usableFromInline
-    static let zero = Segment(a: .zero, b: .zero)
+    static let zero = Segment(a: .zero, b: .zero, shapeMask: .empty)
     
     @inlinable
-    var edge: FixEdge { FixEdge(e0: a.point, e1: b.point) }
+    var edge: FixEdge { FixEdge(e0: a, e1: b) }
     
     @inlinable
-    var bound: FixBnd { FixBnd(p0: a.point, p1: b.point) }
+    var bound: FixBnd { FixBnd(p0: a, p1: b) }
     
     // start < end
-    public let a: IndexPoint  // start
-    public let b: IndexPoint  // end
+    public let a: FixVec        // start
+    public let b: FixVec        // end
+    public let m: ShapeMask
     
     @inlinable
-    init(a: IndexPoint, b: IndexPoint) {
+    init(a: FixVec, b: FixVec, shapeMask: ShapeMask) {
         self.a = a
         self.b = b
+        self.m = shapeMask
     }
     
     @inlinable
@@ -38,12 +40,12 @@ public struct Segment {
 extension Segment: Equatable, Hashable {
     
     public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.a.index == rhs.a.index && lhs.b.index == rhs.b.index
+        lhs.a == rhs.a && lhs.b == rhs.b
     }
     
     public func hash(into hasher: inout Hasher) {
-        hasher.combine(a.index)
-        hasher.combine(b.index)
+        hasher.combine(a.bitPack)
+        hasher.combine(b.bitPack)
     }
     
 }
