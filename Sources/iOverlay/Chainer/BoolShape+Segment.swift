@@ -8,35 +8,57 @@
 import iShape
 import iFixFloat
 
-extension BoolShape {
+public extension BoolShape {
     
     func buildSegments() -> [Segment] {
         assert(edges.isAsscending())
-        var segments = self.buildSegments()
+        var segments = self.sortedSegments()
         let n = segments.count
         
         var scanList = SegmentScanList()
 
         var i = 0
+        var s = segments[0]
         while i < n {
-            let s = segments[i]
+            let x = s.a.x
 
-            scanList.removeSegmentsEndingBeforePosition(s.a)
+            scanList.move(x)
 
-            if edges.isStartNode(index: i) {
-
-
-            } else {
-
-
-
-            }
-
-
-            i += 1
+            // loop for same x
+            repeat {
+                var fill = scanList.fill(s.a.y)
+                let i1 = segments.lastNodeIndex(index: i)
+                
+                let len = i1 - i
+                if len == 1 {
+                    s.isFillTop = fill
+                    segments[i] = s
+                    scanList.add(s)
+                } else {
+                    var list = [Segment](repeating: .zero, count: len)
+                    for j in 0..<len {
+                        let k = i + j
+                        s = segments[k]
+                        s.isFillTop = fill
+                        segments[k] = s
+                        fill = !fill
+                        list[j] = s
+                    }
+                    
+                    scanList.add(list: list)
+                }
+                
+                i = i1
+                
+                if i < n {
+                    s = segments[i]
+                } else {
+                    break
+                }
+            } while s.a.x == x
         }
 
-        return []
+        return segments
     }
     
     
@@ -68,10 +90,10 @@ extension BoolShape {
 
                 for j in i0..<i {
                     let b = points[j - i0]
-                    segments[j] = Segment(a: e.a, b: b, fill: 0)
+                    segments[j] = Segment(a: e.a, b: b, isFillTop: false)
                 }
             } else {
-                segments[i0] = Segment(a: e.a, b: e.b, fill: 0)
+                segments[i0] = Segment(a: e.a, b: e.b, isFillTop: false)
             }
         }
         
@@ -82,9 +104,16 @@ extension BoolShape {
 
 extension Array where Element == Segment {
     
-    func isStartNode(index: Int) -> Bool {
-        guard index + 1 < count else { return false }
-        return self[index].a == self[index + 1].a
+    func lastNodeIndex(index: Int) -> Int {
+        let a = self[index].a
+        var i = index + 1
+        while i < count {
+            if a != self[i].a {
+                return i
+            }
+            i += 1
+        }
+        return i
     }
 
 }

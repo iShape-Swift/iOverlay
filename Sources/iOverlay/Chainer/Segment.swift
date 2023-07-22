@@ -8,19 +8,10 @@
 import iFixFloat
 import iShape
 
-public typealias FillMask = Int
-
-public extension FillMask {
-    
-    static let top      = 0b01
-    static let bottom   = 0b10
-    
-}
-
 public struct Segment {
     
     @usableFromInline
-    static let zero = Segment(a: .zero, b: .zero, fill: 0)
+    static let zero = Segment(a: .zero, b: .zero, isFillTop: false)
     
     @inlinable
     var edge: FixEdge { FixEdge(e0: a, e1: b) }
@@ -29,12 +20,12 @@ public struct Segment {
     // start < end
     public let a: FixVec        // start
     public let b: FixVec        // end
-    public var fill: FillMask
+    public var isFillTop: Bool
     
     @inlinable
-    init(a: FixVec, b: FixVec, fill: FillMask) {
+    init(a: FixVec, b: FixVec, isFillTop: Bool) {
         self.a = a
         self.b = b
-        self.fill = fill
+        self.isFillTop = isFillTop
     }
 }
