@@ -26,7 +26,7 @@ public extension BoolShape {
 
             // loop for same x
             repeat {
-                var fill = scanList.fill(s.a.y)
+                var fill = scanList.fill(s.a)
                 let i1 = segments.lastNodeIndex(index: i)
                 
                 let len = i1 - i
