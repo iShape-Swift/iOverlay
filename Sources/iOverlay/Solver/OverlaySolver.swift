@@ -21,8 +21,8 @@ public struct OverlaySolver {
     public static func overlay(subject: inout BoolShape, clip: inout BoolShape) -> OverlaySolution {
         cross(subject: &subject, clip: &clip)
         
-        let subSegments = subject.buildSegments()
-        let clipSegments = clip.buildSegments()
+//        let subSegments = subject.buildSegments(fillTop: .subjectTop, fillBottom: .subjectBottom)
+//        let clipSegments = clip.buildSegments(fillTop: .clipTop, fillBottom: .clipBottom)
 
         return OverlaySolution()
     }

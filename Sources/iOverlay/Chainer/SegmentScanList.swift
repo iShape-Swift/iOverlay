@@ -10,67 +10,64 @@ import iFixFloat
 
 struct SegmentScanList {
     
-    private static let emptySegment = Segment(a: FixVec(.max, .max), b: FixVec(.max, .max), isFillTop: false)
-    
     private (set) var segments: [Segment]
-    private var xbMin: Int64
+    private var minBx: Int64
     
     init() {
         segments = [Segment]()
         segments.reserveCapacity(8)
-        xbMin = Int64.max
+        minBx = Int64.max
     }
 
     mutating func add(_ segment: Segment) {
-        if !segment.isParallelOY {
-            xbMin = min(xbMin, segment.b.x)
+        if !segment.isVertical {
+            minBx = min(minBx, segment.b.x)
             segments.append(segment)
         }
     }
     
     mutating func add(list: [Segment]) {
-        let last = list.lastElement
-
-        let n = last.isParallelOY ? list.count - 1 : list.count
+        var n = list.count
+        if list[n - 1].isVertical {
+            n -= 1
+        }
         
         for i in 0..<n {
             let s = list[i]
-            xbMin = min(xbMin, s.b.x)
+            minBx = min(minBx, s.b.x)
             segments.append(s)
         }
     }
 
     func fill(_ p: FixVec) -> Bool {
-        var n = 0
+        var isFill = true
         for s in segments {
             if s.isUnder(p) {
-                n += 1
+                isFill = !isFill
             }
         }
-        
-        let isFillTop = n % 2 == 0
-        
-        return isFillTop
+
+        return isFill
     }
     
-    mutating func move(_ x: Int64) {
-        guard xbMin <= x else {
+    mutating func clearAllBefore(_ x: Int64) {
+        guard minBx <= x else {
              return
         }
 
         var i = segments.count - 1
-        var minBx = Int64.max
+        var newMin = Int64.max
         while i >= 0 {
             let sbx = segments[i].b.x
             if sbx <= x {
                 segments.remove(at: i)
-            } else if minBx > sbx {
-                minBx = sbx
+            } else if newMin > sbx {
+                newMin = sbx
             }
             i -= 1
         }
         
-        xbMin = minBx
+        minBx = newMin
     }
     
 }
@@ -78,22 +75,10 @@ struct SegmentScanList {
 private extension Segment {
     
     func isUnder(_ p: FixVec) -> Bool {
-        let vs = b - a
-        let vp = p - a
-
-        return vs.unsafeCrossProduct(vp) > 0
+        (b - a).unsafeCrossProduct(p - a) > 0
     }
     
-    var isParallelOY: Bool {
+    var isVertical: Bool {
         a.x == b.x
     }
-
-}
-
-private extension Array where Element == Segment {
- 
-    var lastElement: Segment {
-        self[count - 1]
-    }
-    
 }

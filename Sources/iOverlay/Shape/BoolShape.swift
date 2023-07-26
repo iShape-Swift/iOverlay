@@ -8,15 +8,22 @@
 import iFixFloat
 import iShape
 
+@usableFromInline
+enum BoolShapeState {
+    case dirty
+    case sortedByLength
+    case sortedByAngle
+}
+
 public struct BoolShape {
     
     public private (set) var edges: [SelfEdge]
-    private var isFixed: Bool
+    private var state: BoolShapeState
     
     public init(capacity: Int) {
         edges = [SelfEdge]()
         edges.reserveCapacity(capacity)
-        isFixed = true
+        state = .dirty
     }
 
     public mutating func add(path: [FixVec]) {
@@ -24,22 +31,15 @@ public struct BoolShape {
         let clean = path.removedDegenerates()
         guard clean.count > 2 else { return }
         
-        isFixed = false
+        state = .dirty
         edges.append(contentsOf: clean.edges)
     }
-    
-    public mutating func build() {
-        guard !isFixed else {
-            return
-        }
 
-        edges.sort(by: { $0.isLess($1) })
-        _ = self.fix()
-        
-        isFixed = true
-    }
-    
     mutating func fix() -> Bool {
+        if state != .sortedByLength {
+            edges.sort(by: { $0.isLess($1) })
+        }
+        
         edges.eliminateSame()
         
         assert(edges.isAsscending())
@@ -49,13 +49,49 @@ public struct BoolShape {
         if splitResult.isModified {
             edges.eliminateSame()
         }
+
+        state = .sortedByLength
         
         assert(edges.isAsscending())
         
         return splitResult.isGeometryModified
     }
     
-   
+    mutating func sortByAngle() {
+        guard state != .sortedByAngle else {
+            return
+        }
+        let n = edges.count
+        
+        var i = 0
+
+        while i < n {
+            let i0 = i
+            let e = edges[i0]
+            
+            i += 1
+            var m = 1
+            while i < n && e.a == edges[i].a {
+                i += 1
+                m += 1
+            }
+
+            if m > 1 {
+                var subEdges = [SelfEdge](repeating: .zero, count: m)
+                for j in 0..<m {
+                    subEdges[j] = edges[i0 + j]
+                }
+
+                subEdges.sortByAngle(start: e.a)
+
+                for j in 0..<m {
+                    edges[i0 + j] = subEdges[j]
+                }
+            }
+        }
+
+        state = .sortedByAngle
+    }
 }
 
 private extension Array where Element == FixVec {
@@ -80,7 +116,6 @@ private extension Array where Element == FixVec {
         
         return edges
     }
-
 }
 
 extension Array where Element == SelfEdge {
@@ -159,5 +194,18 @@ extension Array where Element == SelfEdge {
                 }
             }
         }
+    }
+}
+
+private extension Array where Element == SelfEdge {
+
+    mutating func sortByAngle(start: FixVec) {
+        self.sort(by: {
+            if $0.b.x == $1.b.x {
+                return $0.b.y < $1.b.y
+            } else {
+                return Triangle.isClockwise(p0: start, p1: $1.b, p2: $0.b)
+            }
+        })
     }
 }
