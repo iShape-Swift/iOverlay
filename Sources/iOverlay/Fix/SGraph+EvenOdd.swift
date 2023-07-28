@@ -37,7 +37,7 @@ public extension SGraph {
         
         // find for each hole it shape
         for hole in holes {
-            var bestMark = VerticalDistanceMarker.empty
+            var bestDist = Int64.max
             var bestShapeIndex = -1
 
             for shapeIndex in 0..<shapes.count {
@@ -47,10 +47,10 @@ public extension SGraph {
 
                 if shapeBnd.isInside(hole.boundary) {
 
-                    let vDistMark = shape.contour.getVerticalMarker(p: hole.start)
+                    let dist = shape.contour.getBottomVerticalDistance(p: hole.start)
 
-                    if vDistMark.isBetter(bestMark) {
-                        bestMark = vDistMark
+                    if bestDist > dist {
+                        bestDist = dist
                         bestShapeIndex = shapeIndex
                     }
                 }

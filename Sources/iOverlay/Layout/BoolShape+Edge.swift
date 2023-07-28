@@ -23,4 +23,3 @@ extension Array where Element == SelfEdge {
     }
 
 }
-

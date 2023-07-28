@@ -12,7 +12,7 @@ struct SLink {
     
     var a: IndexPoint
     var b: IndexPoint
-    let fill: SegmentFillMask
+    let fill: FillMask
 
     @inlinable
     func other(_ point: IndexPoint) -> IndexPoint {

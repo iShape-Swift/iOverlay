@@ -8,17 +8,6 @@
 import iFixFloat
 import iShape
 
-public typealias SegmentFillMask = Int
-
-public extension SegmentFillMask {
-    
-    static let subjectTop       = 0b0001
-    static let subjectBottom    = 0b0010
-    static let clipTop          = 0b0100
-    static let clipBottom       = 0b1000
-    
-}
-
 public struct Segment {
     
     @usableFromInline
@@ -33,10 +22,10 @@ public struct Segment {
     // start < end
     public let a: FixVec        // start
     public let b: FixVec        // end
-    public var fill: SegmentFillMask
+    public var fill: FillMask
     
     @inlinable
-    init(i: Int, a: FixVec, b: FixVec, fill: SegmentFillMask) {
+    init(i: Int, a: FixVec, b: FixVec, fill: FillMask) {
         self.i = i
         self.a = a
         self.b = b
