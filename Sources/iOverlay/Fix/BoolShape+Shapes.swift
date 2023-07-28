@@ -10,12 +10,21 @@ import iFixFloat
 
 public extension BoolShape {
     
-    mutating func shapes() -> [FixPath] {
-        
+    mutating func build() {
         _ = self.fix()
         self.sortByAngle()
+    }
+    
+    mutating func shapes() -> [FixShape] {
+        self.build()
         
-        return []
+        let segments = self.buildSegments()
+        
+        let graph = SGraph(segments: segments)
+        
+        let shapes = graph.partitionEvenOddShapes()
+        
+        return shapes
     }
     
 }

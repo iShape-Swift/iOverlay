@@ -38,8 +38,8 @@ public struct SGraph {
         for i in 0..<n {
             let l = links[i]
             
-            nCount[l.a.index] += nCount[l.a.index] + 1
-            nCount[l.b.index] += nCount[l.b.index] + 1
+            nCount[l.a.index] = nCount[l.a.index] + 1
+            nCount[l.b.index] = nCount[l.b.index] + 1
         }
         
         var nl = 0
@@ -55,9 +55,9 @@ public struct SGraph {
         var offset = 0
 
         for i in 0..<m {
-            var nC = nCount[i]
+            let nC = nCount[i]
             if nC > 2 {
-                nodes[i] = SNode(data0: offset, data1: -1, count: nC)
+                nodes[i] = SNode(data0: offset, data1: 0, count: nC)
                 offset += nC
             } else {
                 nodes[i] = SNode(data0: -1, data1: -1, count: nC)
@@ -68,19 +68,11 @@ public struct SGraph {
             let link = links[i]
             
             var nodeA = nodes[link.a.index]
-            nodeA.add(i)
-            if nodeA.count > 2 {
-                indices[nodeA.data0 + nodeA.data1] = i
-            }
+            nodeA.add(i, indices: &indices)
             nodes[link.a.index] = nodeA
             
-            
             var nodeB = nodes[link.b.index]
-            nodeB.add(i)
-
-            if nodeB.count > 2 {
-                indices[nodeB.data0 + nodeB.data1] = i
-            }
+            nodeB.add(i, indices: &indices)
             nodes[link.b.index] = nodeB
         }
         
@@ -105,7 +97,7 @@ private extension Dictionary where Key == FixVec, Value == Int {
 
 private extension SNode {
     
-    mutating func add(_ index: Int) {
+    mutating func add(_ index: Int, indices: inout [Int]) {
         if count == 2 {
             if data0 == -1 {
                 data0 = index
@@ -113,6 +105,7 @@ private extension SNode {
                 data1 = index
             }
         } else {
+            indices[data0 + data1] = index
             data1 += 1
         }
     }

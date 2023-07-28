@@ -10,12 +10,6 @@ import iFixFloat
 
 public extension BoolShape {
     
-    // for debug pupose
-    mutating func build() {
-        _ = self.fix()
-        self.sortByAngle()
-    }
-    
     func buildSegments() -> [Segment] {
         let n = edges.count
         var segments = [Segment](repeating: .zero, count: n)
