@@ -1,11 +1,11 @@
 //
-//  SNode.swift
+//  OverlayNode.swift
 //  
 //
 //  Created by Nail Sharipov on 26.07.2023.
 //
 
-struct SNode {
+struct OverlayNode {
         
     var data0: Int
     var data1: Int

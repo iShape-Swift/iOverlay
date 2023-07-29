@@ -1,15 +1,25 @@
 //
-//  OverlaySolver+Split.swift
+//  BoolShape+Overlay.swift
 //  
 //
-//  Created by Nail Sharipov on 28.07.2023.
+//  Created by Nail Sharipov on 29.07.2023.
 //
 
-extension OverlaySolver {
+import iFixFloat
 
-    static func split(subject: inout BoolShape, clip: inout BoolShape) {
+public extension BoolShape {
+    
+    mutating func overlay(_ clip: inout BoolShape) {
+        self.split(&clip)
         
-        _ = subject.fix()
+        
+        
+        
+    }
+    
+    mutating private func split(_ clip: inout BoolShape) {
+
+        _ = self.fix()
         _ = clip.fix()
 
         var scanList = EdgeScanList()
@@ -17,15 +27,15 @@ extension OverlaySolver {
         var isSubBend = false
         var isClipBend = false
         
-        while isSubBend || isClipBend {
+        repeat {
             
             var clipIndex = 0
             var eIndex = 0
             scanList.clear()
             
         mainLoop:
-            while eIndex < subject.edges.count {
-                let thisEdge = subject.edges[eIndex]
+            while eIndex < self.edges.count {
+                let thisEdge = self.edges[eIndex]
                 
                 let scanPos = thisEdge.a.bitPack
 
@@ -51,7 +61,7 @@ extension OverlaySolver {
                         let sIndex = clip.edges.findEdgeIndex(eScan)
                         let scanEdge = clip.edges[sIndex]
                         
-                        subject.edges.remove(at: eIndex)
+                        self.edges.remove(at: eIndex)
                         clip.edges.remove(at: sIndex)
                         
                         // devide both edges
@@ -64,8 +74,8 @@ extension OverlaySolver {
                         
                         _ = clip.edges.addAndMerge(scanLt)
                         _ = clip.edges.addAndMerge(scanRt)
-                        _ = subject.edges.addAndMerge(thisRt)
-                        eIndex = subject.edges.addAndMerge(thisLt)
+                        _ = self.edges.addAndMerge(thisRt)
+                        eIndex = self.edges.addAndMerge(thisLt)
 
                         // new point must be exactly on the same line
                         isSubBend = isSubBend || thisEdge.isNotSameLine(x)
@@ -75,7 +85,7 @@ extension OverlaySolver {
                         scanList.replace(oldIndex: scanIndex, newEdge: scanLt)
                         scanList.removeAllLater(edge: thisLt.edge)
                         
-                        assert(subject.edges.isAsscending())
+                        assert(self.edges.isAsscending())
                         assert(clip.edges.isAsscending())
                         
                         continue mainLoop
@@ -86,20 +96,20 @@ extension OverlaySolver {
                         
                         // devide this edge
                         
-                        subject.edges.remove(at: eIndex)
+                        self.edges.remove(at: eIndex)
                         
                         let thisLt = SelfEdge.safeCreate(a: thisEdge.a, b: x, n: thisEdge.n)
                         let thisRt = SelfEdge.safeCreate(a: x, b: thisEdge.b, n: thisEdge.n)
                         
-                        _ = subject.edges.addAndMerge(thisRt)
-                        eIndex = subject.edges.addAndMerge(thisLt)
+                        _ = self.edges.addAndMerge(thisRt)
+                        eIndex = self.edges.addAndMerge(thisLt)
 
                         // new point must be exactly on the same line
                         isSubBend = isSubBend || thisEdge.isNotSameLine(x)
 
                         scanList.removeAllLater(edge: thisLt.edge)
                         
-                        assert(subject.edges.isAsscending())
+                        assert(self.edges.isAsscending())
                         
                         continue mainLoop
                     case .end_a:
@@ -138,14 +148,13 @@ extension OverlaySolver {
             } // while mainLoop
             
             if isSubBend {
-                isSubBend = subject.fix()
+                isSubBend = self.fix()
             }
             
             if isClipBend {
                 isClipBend = clip.fix()
             }
 
-        } // root loop
+        } while isSubBend || isClipBend // root loop
     }
-    
 }

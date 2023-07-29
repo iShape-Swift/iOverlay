@@ -20,7 +20,7 @@ public extension BoolShape {
         
         let segments = self.buildSegments()
         
-        let graph = SGraph(segments: segments)
+        let graph = OverlayGraph(segments: segments)
         
         let shapes = graph.partitionEvenOddShapes()
         

@@ -1,5 +1,5 @@
 //
-//  SGraph.swift
+//  OverlayGraph.swift
 //  
 //
 //  Created by Nail Sharipov on 26.07.2023.
@@ -8,15 +8,15 @@
 import iFixFloat
 import iShape
 
-public struct SGraph {
+public struct OverlayGraph {
     
-    let nodes: [SNode]
+    let nodes: [OverlayNode]
     let indices: [Int]
-    let links: [SLink]
+    let links: [OverlayLink]
 
     init(segments: [Segment]) {
         let n = segments.count
-        var links = [SLink](repeating: .init(a: .zero, b: .zero, fill: 0), count: n)
+        var links = [OverlayLink](repeating: .init(a: .zero, b: .zero, fill: 0), count: n)
         
         var vStore = [FixVec: Int]()
         vStore.reserveCapacity(2 * n)
@@ -26,7 +26,7 @@ public struct SGraph {
             let ai = vStore.place(s.a)
             let bi = vStore.place(s.b)
             
-            links[i] = SLink(
+            links[i] = OverlayLink(
                 a: IndexPoint(index: ai, point: s.a),
                 b: IndexPoint(index: bi, point: s.b),
                 fill: s.fill
@@ -51,16 +51,16 @@ public struct SGraph {
         }
         
         var indices = [Int](repeating: 0, count: nl)
-        var nodes = [SNode](repeating: SNode(data0: 0, data1: 0, count: 0), count: m)
+        var nodes = [OverlayNode](repeating: OverlayNode(data0: 0, data1: 0, count: 0), count: m)
         var offset = 0
 
         for i in 0..<m {
             let nC = nCount[i]
             if nC > 2 {
-                nodes[i] = SNode(data0: offset, data1: 0, count: nC)
+                nodes[i] = OverlayNode(data0: offset, data1: 0, count: nC)
                 offset += nC
             } else {
-                nodes[i] = SNode(data0: -1, data1: -1, count: nC)
+                nodes[i] = OverlayNode(data0: -1, data1: -1, count: nC)
             }
         }
         
@@ -95,7 +95,7 @@ private extension Dictionary where Key == FixVec, Value == Int {
     }
 }
 
-private extension SNode {
+private extension OverlayNode {
     
     mutating func add(_ index: Int, indices: inout [Int]) {
         if count == 2 {

@@ -1,5 +1,5 @@
 //
-//  SGraph+Partition.swift
+//  OverlayGraph+Partition.swift
 //  
 //
 //  Created by Nail Sharipov on 26.07.2023.
@@ -8,7 +8,7 @@
 import iFixFloat
 import iShape
 
-public extension SGraph {
+public extension OverlayGraph {
     
     func partitionEvenOddShapes() -> [FixShape] {
         let n = links.count
@@ -87,7 +87,7 @@ public extension SGraph {
             if node.count == 2 {
                 next = node.other(index: next)
             } else {
-                let isCW = SGraph.isClockwise(a: a.point, b: b.point, isTopInside: link.fill == .subjectTop)
+                let isCW = OverlayGraph.isClockwise(a: a.point, b: b.point, isTopInside: link.fill == .subjectTop)
                 next = self.findNearestLinkTo(target: a, center: b, ignore: next, inClockWise: isCW, visited: visited)
                 guard next >= 0 else {
                     break

@@ -1,5 +1,5 @@
 //
-//  SGraph+NodeApi.swift
+//  OverlayGraph+NodeApi.swift
 //  
 //
 //  Created by Nail Sharipov on 27.07.2023.
@@ -8,8 +8,9 @@
 import iFixFloat
 import iShape
 
-extension SGraph {
+extension OverlayGraph {
     
+    // Finds the nearest link to a given target point.
     func findNearestLinkTo(target: IndexPoint, center: IndexPoint, ignore: Int, inClockWise: Bool, visited: [Bool]) -> Int {
         let node = nodes[center.index]
 
@@ -52,7 +53,6 @@ extension SGraph {
             }
             i += 1
         }
-        
         
         return minIndex
     }
