@@ -28,8 +28,8 @@ struct EdgeScanList {
         minEnd = min(minEnd, edge.e1.bitPack)
     }
     
-    mutating func removeSegmentsEndingBeforePosition(_ pos: Int64) {
-        guard minEnd <= pos else { return } // if segments is empty then minEnd === .max
+    mutating func removeAllEndingBeforePosition(_ pos: Int64) {
+        guard minEnd <= pos else { return } // if edges is empty then minEnd === .max
         var minPos = Int64.max
         var i = 0
         var j = edges.count - 1
@@ -71,6 +71,24 @@ struct EdgeScanList {
                 i += 1
             }
         }
+    }
+    
+    mutating func addAllOverlapingPosition(_ pos: Int64, start: Int, list: [SelfEdge]) -> Int {
+        var i = start
+        while i < list.count {
+            let edge = list[i]
+            guard edge.a.bitPack <= pos else {
+                return i
+            }
+            
+            if edge.b.bitPack >= pos {
+                edges.append(edge.edge)
+            }
+            
+            i += 1
+        }
+        
+        return i
     }
     
     private func isContain(_ edge: FixEdge) -> Bool {

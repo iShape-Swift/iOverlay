@@ -19,17 +19,12 @@ public struct OverlaySolution {
 public struct OverlaySolver {
 
     public static func overlay(subject: inout BoolShape, clip: inout BoolShape) -> OverlaySolution {
-        cross(subject: &subject, clip: &clip)
+//        cross(subject: &subject, clip: &clip)
         
 //        let subSegments = subject.buildSegments(fillTop: .subjectTop, fillBottom: .subjectBottom)
 //        let clipSegments = clip.buildSegments(fillTop: .clipTop, fillBottom: .clipBottom)
 
         return OverlaySolution()
-    }
-    
-    
-    private static func cross(subject: inout BoolShape, clip: inout BoolShape) {
-        
     }
 
     private static func merge(subject: [Segment], clip: [Segment]) -> [Segment] {

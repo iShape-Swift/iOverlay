@@ -44,7 +44,7 @@ extension SGraph {
             if !visited[j] && ignore != j {
                 let vj = links[j].other(center).point - center.point
                 
-                if v0.isCloserInRotation(to: vj, comparedTo: minVec, inClockWise: inClockWise) {
+                if v0.isCloserInRotation(to: vj, comparedTo: minVec) == inClockWise {
                     minVec = vj
                     minIndex = j
                 }
@@ -61,7 +61,7 @@ extension SGraph {
 private extension FixVec {
     
     // v, a, b vectors are multidirectional
-    func isCloserInRotation(to a: FixVec, comparedTo b: FixVec, inClockWise: Bool) -> Bool {
+    func isCloserInRotation(to a: FixVec, comparedTo b: FixVec) -> Bool {
         let crossA = self.unsafeCrossProduct(a)
         let crossB = self.unsafeCrossProduct(b)
 

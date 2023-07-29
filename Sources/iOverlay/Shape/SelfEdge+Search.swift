@@ -48,9 +48,7 @@ extension Array where Element == SelfEdge {
             i += 1
         }
 
-        assert(self[i].isEqual(edge))
-
-        return i
+        return i <= rt ? i : -1
     }
     
     /// Find the index of the edge or first greater

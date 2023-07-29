@@ -17,7 +17,7 @@ enum BoolShapeState {
 
 public struct BoolShape {
     
-    public private (set) var edges: [SelfEdge]
+    public internal (set) var edges: [SelfEdge]
     private var state: BoolShapeState
     
     public init(capacity: Int) {

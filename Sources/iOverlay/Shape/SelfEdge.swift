@@ -27,9 +27,23 @@ public struct SelfEdge {
     
     @inlinable
     init(a: FixVec, b: FixVec, n: Int) {
-        self.a = a
-        self.b = b
+        if a.bitPack <= b.bitPack {
+            self.a = a
+            self.b = b
+        } else {
+            self.b = a
+            self.a = b
+        }
         self.n = n
+    }
+    
+    @inlinable
+    static func safeCreate(a: FixVec, b: FixVec, n: Int) -> SelfEdge {
+        if a.bitPack <= b.bitPack {
+            return SelfEdge(a: a, b: b, n: n)
+        } else {
+            return SelfEdge(a: b, b: a, n: n)
+        }
     }
     
     @inlinable

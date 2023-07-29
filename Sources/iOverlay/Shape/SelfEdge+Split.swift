@@ -34,7 +34,7 @@ extension Array where Element == SelfEdge {
                 
                 let scanPos = thisEdge.a.bitPack
 
-                scanList.removeSegmentsEndingBeforePosition(scanPos)
+                scanList.removeAllEndingBeforePosition(scanPos)
                 
                 let eThis = thisEdge.edge
                 
@@ -67,11 +67,11 @@ extension Array where Element == SelfEdge {
                         
                         // devide both segments
                         
-                        let thisLt = SelfEdge(a: thisEdge.a, b: x, n: thisEdge.n)
-                        let thisRt = SelfEdge(a: x, b: thisEdge.b, n: thisEdge.n)
+                        let thisLt = SelfEdge.safeCreate(a: thisEdge.a, b: x, n: thisEdge.n)
+                        let thisRt = SelfEdge.safeCreate(a: x, b: thisEdge.b, n: thisEdge.n)
                         
-                        let scanLt = SelfEdge(a: scanEdge.a, b: x, n: scanEdge.n)
-                        let scanRt = SelfEdge(a: x, b: scanEdge.b, n: scanEdge.n)
+                        let scanLt = SelfEdge.safeCreate(a: scanEdge.a, b: x, n: scanEdge.n)
+                        let scanRt = SelfEdge.safeCreate(a: x, b: scanEdge.b, n: scanEdge.n)
                         
                         _ = self.addAndMerge(scanLt)
                         _ = self.addAndMerge(scanRt)
@@ -101,8 +101,8 @@ extension Array where Element == SelfEdge {
                         
                         self.remove(at: eIndex)
                         
-                        let thisLt = SelfEdge(a: thisEdge.a, b: x, n: thisEdge.n)
-                        let thisRt = SelfEdge(a: x, b: thisEdge.b, n: thisEdge.n)
+                        let thisLt = SelfEdge.safeCreate(a: thisEdge.a, b: x, n: thisEdge.n)
+                        let thisRt = SelfEdge.safeCreate(a: x, b: thisEdge.b, n: thisEdge.n)
                         
                         _ = self.addAndMerge(thisRt)
                         eIndex = self.addAndMerge(thisLt)
@@ -130,8 +130,8 @@ extension Array where Element == SelfEdge {
                         let scanEdge = self[sIndex]
                         self.remove(at: sIndex)
                         
-                        let scanLt = SelfEdge(a: scanEdge.a, b: x, n: scanEdge.n)
-                        let scanRt = SelfEdge(a: x, b: scanEdge.b, n: scanEdge.n)
+                        let scanLt = SelfEdge.safeCreate(a: scanEdge.a, b: x, n: scanEdge.n)
+                        let scanRt = SelfEdge.safeCreate(a: x, b: scanEdge.b, n: scanEdge.n)
 
                         _ = self.addAndMerge(scanLt)
                         _ = self.addAndMerge(scanRt)
@@ -169,12 +169,4 @@ extension Array where Element == SelfEdge {
         return SplitResult(isModified: isModified, isGeometryModified: isGeometryModified)
     }
    
-}
-
-private extension SelfEdge {
-    
-    func isNotSameLine(_ point: FixVec) -> Bool {
-        Triangle.isNotLine(p0: a, p1: b, p2: point)
-    }
-    
 }

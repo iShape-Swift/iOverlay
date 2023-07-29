@@ -1,5 +1,5 @@
 //
-//  SGraph+EvenOdd.swift
+//  SGraph+Partition.swift
 //  
 //
 //  Created by Nail Sharipov on 26.07.2023.
@@ -76,10 +76,12 @@ public extension SGraph {
         
         var leftLink = link
         
+        var newVisited = [Int]()
+
         // find a closed tour
         repeat {
+            newVisited.append(next)
             path.append(a.point)
-            visited[next] = true
             let node = nodes[b.index]
             
             if node.count == 2 {
@@ -114,6 +116,10 @@ public extension SGraph {
             path.reverse()
         }
         
+        for index in newVisited {
+            visited[index] = true
+        }
+
         return Contour(path: path, boundary: FixBnd(points: path), start: leftLink.a.point, isCavity: isCavity)
     }
 
