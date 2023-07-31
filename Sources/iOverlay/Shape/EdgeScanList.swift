@@ -73,6 +73,19 @@ struct EdgeScanList {
         }
     }
     
+    mutating func removeAllAfter(edge: FixEdge) {
+        var i = 0
+        while i < edges.count {
+            let e = edges[i]
+            
+            if edge.isMore(e) {
+                edges.remove(at: i)
+            } else {
+                i += 1
+            }
+        }
+    }
+    
     mutating func addAllOverlapingPosition(_ pos: Int64, start: Int, list: [SelfEdge]) -> Int {
         var i = start
         while i < list.count {
@@ -101,6 +114,19 @@ struct EdgeScanList {
 }
 
 private extension FixEdge {
+    
+    func isMore(_ other: FixEdge) -> Bool {
+        let a0 = e0.bitPack
+        let a1 = other.e0.bitPack
+        if a0 != a1 {
+            return a0 > a1
+        } else {
+            let b0 = e1.bitPack
+            let b1 = other.e1.bitPack
+            
+            return b0 > b1
+        }
+    }
     
     func isLess(_ other: FixEdge) -> Bool {
         let a0 = e0.bitPack
