@@ -6,6 +6,7 @@
 //
 
 import iFixFloat
+import iShape
 
 public extension BoolShape {
     
@@ -18,76 +19,141 @@ public extension BoolShape {
     }
 
     mutating private func split(_ clip: inout BoolShape) {
-
+        guard !clip.edges.isEmpty && !self.edges.isEmpty else {
+            return
+        }
+        
         _ = self.fix()
         _ = clip.fix()
 
-        var clipScanList = EdgeScanList()
-        var subjScanList = EdgeScanList()
-        
+        let selfBnd = FixBnd(minX: self.edges[0].a.x, edges: self.edges)
+        let clipBnd = FixBnd(minX: clip.edges[0].a.x, edges: clip.edges)
+
         var isSubjBend = false
         var isClipBend = false
         
         repeat {
-            subjScanList.clear()
-            clipScanList.clear()
-            
-            var subjIndex = 0
-            var clipIndex = 0
 
-            var isSubjOver = false
-            var isClipOver = false
+            var scanList = ABScan(edges: clip.edges, bnd: selfBnd)
+
+            var subjIndex = 0
             
-            while !isSubjOver || !isClipOver {
+        mainLoop:
+            while subjIndex < self.edges.count && !scanList.isEmpty {
                 
-                let fixedSubjIndex = isSubjOver ? self.edges.count - 1 : subjIndex
-                let fixedClipIndex = isClipOver ? clip.edges.count - 1 : clipIndex
+                let thisEdge = self.edges[subjIndex]
                 
-                let subjEdge = self.edges[fixedSubjIndex]
-                let clipEdge = clip.edges[fixedClipIndex]
-                
-                let iterateSubj = subjEdge.a.bitPack < clipEdge.a.bitPack && !isSubjOver || isClipOver
-                
-                if iterateSubj {
-                    let result = BoolShape.intersectEdge(
-                        mainIndex: subjIndex,
-                        otherIndex: fixedClipIndex,
-                        scanList: &clipScanList,
-                        mainEdges: &self.edges,
-                        otherEdges: &clip.edges
-                    )
-                    
-                    if result.isIntersect {
-                        subjIndex = result.mainIndex
-                        clipIndex = result.otherIndex
-                        isSubjBend = isSubjBend || result.isMainBend
-                        isClipBend = isClipBend || result.isOtherBend
-                    } else {
-                        subjScanList.add(subjEdge.edge)
-                        subjIndex += 1
-                    }
-                } else {
-                    let result = BoolShape.intersectEdge(
-                        mainIndex: clipIndex,
-                        otherIndex: fixedSubjIndex,
-                        scanList: &subjScanList,
-                        mainEdges: &clip.edges,
-                        otherEdges: &self.edges
-                    )
-                    
-                    if result.isIntersect {
-                        subjIndex = result.otherIndex
-                        clipIndex = result.mainIndex
-                        isSubjBend = isSubjBend || result.isOtherBend
-                        isClipBend = isClipBend || result.isMainBend
-                    } else {
-                        clipScanList.add(clipEdge.edge)
-                        clipIndex += 1
-                    }
+                guard clipBnd.isCollide(FixBnd(edge: thisEdge)) else {
+                    subjIndex += 1
+                    continue
                 }
                 
-                isSubjOver = subjIndex >= self.edges.count
-                isClipOver = clipIndex >= clip.edges.count
+                let eThis = thisEdge.edge
+                
+                scanList.startIterate(start: thisEdge.a.bitPack, end: thisEdge.b.bitPack)
+                
+                var scanRes = scanList.next()
+                
+                while scanRes.hasNext {
+                    
+                    let scanEdge = scanRes.edge
+                    let eScan = scanEdge.edge
+                    let cross = eThis.cross(eScan)
+                    
+                    switch cross.type {
+                    case .not_cross, .common_end:
+                        break
+                    case .pure:
+                        // if the two segments intersect at a point that isn't an end point of either segment...
+                        
+                        let x = cross.point
+                        
+                        let clipIndex = clip.edges.findEdgeIndex(eScan)
+                        let scanEdge = clip.edges[clipIndex]
+
+                        self.edges.remove(at: subjIndex)
+                        clip.edges.remove(at: clipIndex)
+                        
+                        // devide both segments
+                        
+                        let thisLt = SelfEdge.safeCreate(a: thisEdge.a, b: x, n: thisEdge.n)
+                        let thisRt = SelfEdge.safeCreate(a: x, b: thisEdge.b, n: thisEdge.n)
+                        
+                        let scanLt = SelfEdge.safeCreate(a: scanEdge.a, b: x, n: scanEdge.n)
+                        let scanRt = SelfEdge.safeCreate(a: x, b: scanEdge.b, n: scanEdge.n)
+                        
+                        _ = clip.edges.addAndMerge(scanLt)
+                        _ = clip.edges.addAndMerge(scanRt)
+                        _ = self.edges.addAndMerge(thisRt)
+                        subjIndex = self.edges.addAndMerge(thisLt)
+
+                        // new point must be exactly on the same line
+                        
+                        isSubjBend = isSubjBend || thisEdge.isNotSameLine(x)
+                        isClipBend = isClipBend || scanEdge.isNotSameLine(x)
+                        
+                        scanList.remove(at: scanRes.index)
+                        scanList.insert(newEdge: scanLt)
+                        scanList.insert(newEdge: scanRt)
+                        
+                        assert(clip.edges.isAsscending())
+                        assert(self.edges.isAsscending())
+                        
+                        continue mainLoop
+                    case .end_b:
+                        // if the intersection point is at the end of the current edge...
+                        
+                        let x = cross.point
+                        
+                        // devide this edge
+                        
+                        self.edges.remove(at: subjIndex)
+                        
+                        let thisLt = SelfEdge.safeCreate(a: thisEdge.a, b: x, n: thisEdge.n)
+                        let thisRt = SelfEdge.safeCreate(a: x, b: thisEdge.b, n: thisEdge.n)
+                        
+                        _ = self.edges.addAndMerge(thisRt)
+                        subjIndex = self.edges.addAndMerge(thisLt)
+
+                        // new point must be exactly on the same line
+                        isSubjBend = isSubjBend || thisEdge.isNotSameLine(x)
+                        
+                        assert(self.edges.isAsscending())
+                        
+                        continue mainLoop
+                    case .end_a:
+                        // if the intersection point is at the end of the segment from the scan list...
+                        
+                        let x = cross.point
+
+                        // devide scan segment
+                        
+                        let clipIndex = clip.edges.findEdgeIndex(eScan)
+                        let scanEdge = clip.edges[clipIndex]
+                        
+                        clip.edges.remove(at: clipIndex)
+                        
+                        let scanLt = SelfEdge.safeCreate(a: scanEdge.a, b: x, n: scanEdge.n)
+                        let scanRt = SelfEdge.safeCreate(a: x, b: scanEdge.b, n: scanEdge.n)
+
+                        _ = clip.edges.addAndMerge(scanLt)
+                        _ = clip.edges.addAndMerge(scanRt)
+
+                        isClipBend = isClipBend || scanEdge.isNotSameLine(x)
+                        
+                        scanList.remove(at: scanRes.index)
+                        scanList.insert(newEdge: scanLt)
+                        scanList.insert(newEdge: scanRt)
+                        
+                        assert(clip.edges.isAsscending())
+                        
+                        continue mainLoop
+                    }
+
+                    scanRes = scanList.next()
+                }
+                
+                subjIndex += 1
             }
             
             if isSubjBend {
@@ -100,175 +166,6 @@ public extension BoolShape {
 
         } while isSubjBend || isClipBend // root loop
     }
-    
-    private struct IntersectEdgeResult {
-        let mainIndex: Int
-        let otherIndex: Int
-        let isMainBend: Bool
-        let isOtherBend: Bool
-        let isIntersect: Bool
-    }
-    
-    private static func intersectEdge(
-        mainIndex: Int,
-        otherIndex: Int,
-        scanList: inout EdgeScanList,
-        mainEdges: inout [SelfEdge],
-        otherEdges: inout [SelfEdge]
-    ) -> IntersectEdgeResult {
 
-        let thisEdge = mainEdges[mainIndex]
-        
-        scanList.removeAllEndingBeforePosition(thisEdge.a.bitPack)
-        
-        let eThis = thisEdge.edge
-        
-        // Try to intersect the current edge with all the edges in the scan list.
-        for scanIndex in 0..<scanList.edges.count {
-
-            let eScan = scanList.edges[scanIndex]
-            let cross = eThis.cross(eScan)
-
-            switch cross.type {
-            case .not_cross, .common_end:
-                break
-            case .pure:
-                // If the two edges intersect at a point that isn't an end point of either edge...
-
-                let x = cross.point
-
-                let sIndex = otherEdges.findEdgeIndex(eScan)
-                let scanEdge = otherEdges[sIndex]
-                let otherEdge = otherEdges[otherIndex]
-
-                mainEdges.remove(at: mainIndex)
-                otherEdges.remove(at: sIndex)
-
-                // devide both edges
-
-                let thisLt = SelfEdge.safeCreate(a: thisEdge.a, b: x, n: thisEdge.n)
-                let thisRt = SelfEdge.safeCreate(a: x, b: thisEdge.b, n: thisEdge.n)
-
-                let scanLt = SelfEdge.safeCreate(a: scanEdge.a, b: x, n: scanEdge.n)
-                let scanRt = SelfEdge.safeCreate(a: x, b: scanEdge.b, n: scanEdge.n)
-
-                let scanLtIndex = otherEdges.addAndMerge(scanLt)
-                let scanRtIndex = otherEdges.addAndMerge(scanRt)
-                _ = mainEdges.addAndMerge(thisRt)
-
-                let newMainIndex = mainEdges.addAndMerge(thisLt)
-                
-                let newOtherIndex: Int
-                if sIndex == otherIndex {
-                    newOtherIndex = scanLtIndex
-                } else if otherEdge.a.bitPack < scanRt.a.bitPack {
-                    newOtherIndex = otherEdges.findEdgeIndex(otherEdge.edge)
-                } else {
-                    newOtherIndex = scanRtIndex
-                }
-
-                // new point must be exactly on the same line
-                let isMainBend = thisEdge.isNotSameLine(x)
-                let isOtherBend = scanEdge.isNotSameLine(x)
-
-                // replace current with left part
-                scanList.replace(oldIndex: scanIndex, newEdge: scanLt)
-                scanList.removeAllAfter(edge: otherEdges[newOtherIndex].edge)
-
-                assert(mainEdges.isAsscending())
-                assert(otherEdges.isAsscending())
-
-                return IntersectEdgeResult(
-                    mainIndex: newMainIndex,
-                    otherIndex: newOtherIndex,
-                    isMainBend: isMainBend,
-                    isOtherBend: isOtherBend,
-                    isIntersect: true
-                )
-            case .end_b:
-                // If the intersection point is at the end of the current edge...
-
-                let x = cross.point
-                
-                // devide this edge
-
-                mainEdges.remove(at: mainIndex)
-
-                let thisLt = SelfEdge.safeCreate(a: thisEdge.a, b: x, n: thisEdge.n)
-                let thisRt = SelfEdge.safeCreate(a: x, b: thisEdge.b, n: thisEdge.n)
-
-                _ = mainEdges.addAndMerge(thisRt)
-                let newMainIndex = mainEdges.addAndMerge(thisLt)
-
-                // new point must be exactly on the same line
-                let isMainBend = thisEdge.isNotSameLine(x)
-
-                assert(mainEdges.isAsscending())
-
-                return IntersectEdgeResult(
-                    mainIndex: newMainIndex,
-                    otherIndex: otherIndex, // we are not modify otherEdges
-                    isMainBend: isMainBend,
-                    isOtherBend: false,
-                    isIntersect: true
-                )
-            case .end_a:
-                // if the intersection point is at the end of the edge from the scan list...
-
-                let x = cross.point
-
-                let otherEdge = otherEdges[otherIndex]
-                
-                // devide scan edge
-
-                let sIndex = otherEdges.findEdgeIndex(eScan)
-                let scanEdge = otherEdges[sIndex]
-
-                otherEdges.remove(at: sIndex)
-
-                let scanLt = SelfEdge.safeCreate(a: scanEdge.a, b: x, n: scanEdge.n)
-                let scanRt = SelfEdge.safeCreate(a: x, b: scanEdge.b, n: scanEdge.n)
-
-                let scanLtIndex = otherEdges.addAndMerge(scanLt)
-                let scanRtIndex = otherEdges.addAndMerge(scanRt)
-
-                let newOtherIndex: Int
-                if otherEdge.a.bitPack < scanRt.a.bitPack {
-                    if sIndex == otherIndex {
-                        newOtherIndex = scanLtIndex
-                    } else {
-                        newOtherIndex = otherEdges.findEdgeIndex(otherEdge.edge)
-                    }
-                } else {
-                    newOtherIndex = scanRtIndex
-                }
-
-                // new point must be exactly on the same line
-                let isOtherBend = scanEdge.isNotSameLine(x)
-
-                scanList.replace(oldIndex: scanIndex, newEdge: scanLt)
-                scanList.removeAllAfter(edge: otherEdges[newOtherIndex].edge)
-                
-                assert(otherEdges.isAsscending())
-
-                return IntersectEdgeResult(
-                    mainIndex: mainIndex,
-                    otherIndex: newOtherIndex,
-                    isMainBend: false,
-                    isOtherBend: isOtherBend,
-                    isIntersect: true
-                )
-            }
-
-        } // for scanList
-        
-        return IntersectEdgeResult(
-            mainIndex: mainIndex,
-            otherIndex: otherIndex,
-            isMainBend: false,
-            isOtherBend: false,
-            isIntersect: false
-        )
-    }
 
 }

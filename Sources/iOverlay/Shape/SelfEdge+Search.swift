@@ -140,6 +140,9 @@ extension Array where Element == SelfEdge {
     }
 
     func isAsscending() -> Bool {
+        guard count > 1 else {
+            return true
+        }
         var i = 1
         var e0 = self[0]
         while i < count {
