@@ -10,12 +10,27 @@ import iShape
 
 public extension BoolShape {
     
-    mutating func overlay(_ clip: inout BoolShape) {
+    mutating func segments(_ clip: inout BoolShape) -> [Segment] {
+        guard !self.edges.isEmpty && !clip.edges.isEmpty else { return [] }
+        
         self.split(&clip)
         
+        let mergeList = self.merge(listA: edges, listB: clip.edges)
+        let n = mergeList.count
+        var segments = [Segment](repeating: .zero, count: n)
+        for i in 0..<n {
+            let e = mergeList[i]
+            segments[i] = Segment(i: i, a: e.a, b: e.b, fill: 0)
+        }
         
+        Self.fill(edges: self.edges, segments: &segments, fillTop: .subjectTop, fillBottom: .subjectBottom)
+        Self.fill(edges: clip.edges, segments: &segments, fillTop: .clipTop, fillBottom: .clipBottom)
         
-        
+        return segments
+    }
+    
+    mutating func overlay(_ clip: inout BoolShape) -> OverlayGraph {
+        OverlayGraph(segments: segments(&clip))
     }
 
     mutating private func split(_ clip: inout BoolShape) {
@@ -167,5 +182,41 @@ public extension BoolShape {
         } while isSubjBend || isClipBend // root loop
     }
 
+    private func merge(listA: [SelfEdge], listB: [SelfEdge]) -> [SelfEdge] {
+        let nA = listA.count
+        let nB = listB.count
+
+        var mergeList = [SelfEdge]()
+        mergeList.reserveCapacity(nA + nB)
+        
+        var iA = 0
+        var iB = 0
+
+        while iA < nA && iB < nB {
+               if listA[iA].isLess(listB[iB]) {
+                   mergeList.append(listA[iA])
+                   iA += 1
+               } else if listA[iA].isEqual(listB[iB]) {
+                   mergeList.append(listA[iA])
+                   iA += 1
+                   iB += 1
+               } else {
+                   mergeList.append(listB[iB])
+                   iB += 1
+               }
+           }
+
+           while iA < listA.count {
+               mergeList.append(listA[iA])
+               iA += 1
+           }
+
+           while iB < listB.count {
+               mergeList.append(listB[iB])
+               iB += 1
+           }
+
+        return mergeList
+    }
 
 }
