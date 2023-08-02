@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  BoolShape+Fill.swift
 //  
 //
 //  Created by Nail Sharipov on 01.08.2023.
@@ -122,19 +122,12 @@ extension BoolShape {
                 while j < scanList.count {
                     let scan = scanList[j]
 
-                    if scan.b.x < x {
+                    if scan.b.x <= x {
                         scanList.remove(at: j)
                     } else {
-                        
-                        j += 1
-                        
+
                         if scan.a == segm.a {
-                            // have a common point
-                            
-                            if scan.b == segm.b || scan.a.x == scan.b.x {
-                                // skip self and verticals
-                                continue
-                            }
+                            // have a common point "a"
 
                             if Triangle.isClockwise(p0: scan.a, p1: segm.b, p2: scan.b) {
                                 cnt += 1
@@ -143,6 +136,8 @@ extension BoolShape {
                         } else if scan.b.x > segm.a.x && Triangle.isClockwise(p0: scan.a, p1: segm.a, p2: scan.b) {
                             cnt += 1
                         }
+                        
+                        j += 1
                     }
                 }
                 
