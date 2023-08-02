@@ -49,26 +49,31 @@ extension BoolShape {
                     if scan.b.x < segm.a.x {
                         scanList.remove(at: j)
                     } else {
-                        
-                        if scan.a == segm.a {
-                            if scan.b == segm.b {
-                                isShape = true
-                            } else if scan.a.x != scan.b.x {
-                                let isCW = Triangle.isClockwise(p0: scan.a, p1: segm.b, p2: scan.b)
-                                if isCW {
-                                    cnt += 1
-                                }
-                            }
-                        } else if scan.b.x > segm.a.x {
-                            let v0 = scan.b - scan.a
-                            let v1 = segm.a - scan.a
-                            let cross = v0.unsafeCrossProduct(v1)
-                            if cross > 0 {
-                                cnt += 1
-                            }
-                        }
 
                         j += 1
+                        
+                        if scan.a == segm.a {
+                            
+                            // have a common point
+                            
+                            if scan.b == segm.b {
+                                // find self
+                                isShape = true
+                                continue
+                            }
+                            
+                            if scan.a.x == scan.b.x {
+                                // skip verticals
+                                continue
+                            }
+
+                            if Triangle.isClockwise(p0: scan.a, p1: segm.b, p2: scan.b) {
+                                cnt += 1
+                            }
+                            
+                        } else if scan.b.x > segm.a.x && Triangle.isClockwise(p0: scan.a, p1: segm.a, p2: scan.b) {
+                            cnt += 1
+                        }
                     }
                 }
                 
@@ -86,4 +91,68 @@ extension BoolShape {
             }
         }
     }
+    
+    static func fill(segments: inout [Segment], fillTop: FillMask, fillBottom: FillMask) {
+        let n = segments.count
+
+        var i = 0
+        var scanList = [Segment]()
+        
+        while i < n {
+            let x = segments[i].a.x
+            
+            let i0 = i
+
+            while i < n {
+                let si = segments[i]
+                if si.a.x == x {
+                    scanList.append(si)
+                    i += 1
+                } else {
+                    break
+                }
+            }
+            
+            var k = i0
+            while k < i {
+                var segm = segments[k]
+                
+                var j = 0
+                var cnt = 0
+                while j < scanList.count {
+                    let scan = scanList[j]
+
+                    if scan.b.x < x {
+                        scanList.remove(at: j)
+                    } else {
+                        
+                        j += 1
+                        
+                        if scan.a == segm.a {
+                            // have a common point
+                            
+                            if scan.b == segm.b || scan.a.x == scan.b.x {
+                                // skip self and verticals
+                                continue
+                            }
+
+                            if Triangle.isClockwise(p0: scan.a, p1: segm.b, p2: scan.b) {
+                                cnt += 1
+                            }
+                            
+                        } else if scan.b.x > segm.a.x && Triangle.isClockwise(p0: scan.a, p1: segm.a, p2: scan.b) {
+                            cnt += 1
+                        }
+                    }
+                }
+                
+                segm.fill = cnt % 2 == 0 ? fillTop : fillBottom
+                
+                segments[k] = segm
+                
+                k += 1
+            }
+        }
+    }
+    
 }

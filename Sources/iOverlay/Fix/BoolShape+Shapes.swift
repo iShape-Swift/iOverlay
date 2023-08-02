@@ -10,15 +10,10 @@ import iFixFloat
 
 public extension BoolShape {
     
-    mutating func build() {
-        _ = self.fix()
-        self.sortByAngle()
-    }
-    
     mutating func shapes() -> [FixShape] {
-        self.build()
+        _ = self.fix()
         
-        let segments = self.buildSegments()
+        let segments = self.buildSegments(fillTop: .subjectTop, fillBottom: .subjectBottom)
         
         let graph = OverlayGraph(segments: segments)
         
