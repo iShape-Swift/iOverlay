@@ -32,19 +32,3 @@ public struct Segment {
         self.fill = fill
     }
 }
-
-extension Array where Element == Segment {
-    
-    func lastNodeIndex(index: Int) -> Int {
-        let a = self[index].a
-        var i = index + 1
-        while i < count {
-            if a != self[i].a {
-                return i
-            }
-            i += 1
-        }
-        return i
-    }
-
-}
