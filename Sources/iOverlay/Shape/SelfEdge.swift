@@ -27,13 +27,8 @@ public struct SelfEdge {
     
     @inlinable
     init(a: FixVec, b: FixVec, n: Int) {
-        if a.bitPack <= b.bitPack {
-            self.a = a
-            self.b = b
-        } else {
-            self.b = a
-            self.a = b
-        }
+        self.a = a
+        self.b = b
         self.n = n
     }
     
@@ -52,11 +47,7 @@ public struct SelfEdge {
         self.b = parent.b
         self.n = n
     }
-    
-    @inlinable
-    func cross(_ other: SelfEdge) -> EdgeCross {
-        edge.cross(other.edge)
-    }
+
 }
 
 extension SelfEdge: Equatable, Hashable {

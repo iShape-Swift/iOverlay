@@ -6,8 +6,9 @@
 //
 
 import iFixFloat
+import iShape
 
-public extension Array where Element == FixVec {
+public extension FixPath {
     
     mutating func removeDegenerates() {
         guard count > 2 else {

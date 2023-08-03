@@ -73,24 +73,6 @@ struct EdgeScanList {
         }
     }
     
-    mutating func addAllOverlapingPosition(_ pos: Int64, start: Int, list: [SelfEdge]) -> Int {
-        var i = start
-        while i < list.count {
-            let edge = list[i]
-            guard edge.a.bitPack <= pos else {
-                return i
-            }
-            
-            if edge.b.bitPack >= pos {
-                edges.append(edge.edge)
-            }
-            
-            i += 1
-        }
-        
-        return i
-    }
-    
     private func isContain(_ edge: FixEdge) -> Bool {
         for e in edges where e.isEqual(edge) {
             return true

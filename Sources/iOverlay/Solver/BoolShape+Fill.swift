@@ -9,7 +9,8 @@ import iFixFloat
 import iShape
 
 extension BoolShape {
-    
+
+    @inlinable
     static func fill(edges: [SelfEdge], segments: inout [Segment], fillTop: FillMask, fillBottom: FillMask) {
         let en = edges.count
         let sn = segments.count
@@ -91,7 +92,8 @@ extension BoolShape {
             }
         }
     }
-    
+
+    @inlinable
     static func fill(segments: inout [Segment], fillTop: FillMask, fillBottom: FillMask) {
         let n = segments.count
 

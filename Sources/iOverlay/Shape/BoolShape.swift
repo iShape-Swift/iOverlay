@@ -12,11 +12,13 @@ public struct BoolShape {
     
     public internal (set) var edges: [SelfEdge]
     private var isDirty: Bool
+    private var isSorted: Bool
     
     public init(capacity: Int) {
         edges = [SelfEdge]()
         edges.reserveCapacity(capacity)
         isDirty = false
+        isSorted = true
     }
 
     public mutating func add(path: [FixVec]) {
@@ -25,29 +27,40 @@ public struct BoolShape {
         guard clean.count > 2 else { return }
         
         isDirty = true
+        isSorted = false
         edges.append(contentsOf: clean.edges)
+    }
+    
+    public mutating func unsafeAdd(path: [FixVec]) {
+        isSorted = false
+        edges.append(contentsOf: path.edges)
     }
 
     public mutating func fix() -> Bool {
-        if isDirty {
+        if !isSorted {
             edges.sort(by: { $0.isLess($1) })
+            isSorted = true
         }
         
-        edges.eliminateSame()
-        
-        assert(edges.isAsscending())
-
-        let splitResult = edges.split()
-
-        if splitResult.isModified {
+        if isDirty {
             edges.eliminateSame()
-        }
+            
+            assert(edges.isAsscending())
+        
+            let splitResult = edges.split()
 
-        isDirty = false
-        
-        assert(edges.isAsscending())
-        
-        return splitResult.isGeometryModified
+            if splitResult.isModified {
+                edges.eliminateSame()
+            }
+
+            isDirty = false
+            
+            assert(edges.isAsscending())
+            
+            return splitResult.isGeometryModified
+        } else {
+            return false
+        }
     }
 }
 

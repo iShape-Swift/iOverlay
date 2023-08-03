@@ -84,36 +84,6 @@ extension Array where Element == SelfEdge {
         
         return i
     }
-    
-    func findAnyIndexByStart(_ value: Int64) -> Int {
-        guard !self.isEmpty else {
-            return 0
-        }
-        
-        var lt = 0
-        var rt = count - 1
-        
-        // Perform binary search until the remaining range is below the threshold
-        while rt - lt >= Self.binaryRange {
-            let i = (rt + lt) / 2
-            let a = self[i].a.bitPack
-            if a == value {
-                return i
-            } else if a < value {
-                lt = i + 1
-            } else {
-                rt = i - 1
-            }
-        }
-        
-        // Perform linear search within the remaining range
-        var i = lt
-        while i <= rt && self[i].a.bitPack < value {
-            i += 1
-        }
-        
-        return i
-    }
 
     mutating func addAndMerge(_ newEdge: SelfEdge) -> Int {
         let index = self.findNewEdgeIndex(newEdge.edge)
