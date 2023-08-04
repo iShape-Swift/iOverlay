@@ -56,7 +56,14 @@ public struct OverlayGraph {
 
         for i in 0..<m {
             let nC = nCount[i]
-            if nC > 2 {
+//            print("Assert")
+//            assert(nC > 1)
+            
+            if nC == 1 {
+                print("Assert")
+            }
+            
+            if nC != 2 {
                 nodes[i] = OverlayNode(data0: offset, data1: 0, count: nC)
                 offset += nC
             } else {
@@ -98,7 +105,7 @@ private extension Dictionary where Key == FixVec, Value == Int {
 private extension OverlayNode {
     
     mutating func add(_ index: Int, indices: inout [Int]) {
-        if count == 2 {
+        if count <= 2 {
             if data0 == -1 {
                 data0 = index
             } else {

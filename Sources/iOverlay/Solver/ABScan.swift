@@ -61,14 +61,14 @@ struct ABScan {
     
     @inlinable
     mutating func insert(newEdge: SelfEdge) {
-        let index = edges.findNewEdgeIndex(newEdge.edge)
+        let index = edges.aFindNewEdgeIndex(newEdge.edge)
         var i = index - 1
         while i >= 0 {
             let edge = edges[i]
             if edge.isEqual(newEdge) {
                 // do not insert if already exist
                 return
-            } else if edge.isLess(newEdge) {
+            } else if edge.isLessA(newEdge) {
                 break
             }
             

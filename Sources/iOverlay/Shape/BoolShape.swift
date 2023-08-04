@@ -36,16 +36,16 @@ public struct BoolShape {
         edges.append(contentsOf: path.edges)
     }
 
-    public mutating func fix() -> Bool {
+    public mutating func fix(force: Bool) -> Bool {
         if !isSorted {
-            edges.sort(by: { $0.isLess($1) })
+            edges.sort(by: { $0.isLessA($1) })
             isSorted = true
         }
         
-        if isDirty {
+        if isDirty || force {
             edges.eliminateSame()
             
-            assert(edges.isAsscending())
+            assert(edges.isAsscendingA())
         
             let splitResult = edges.split()
 
@@ -55,12 +55,17 @@ public struct BoolShape {
 
             isDirty = false
             
-            assert(edges.isAsscending())
+            assert(edges.isAsscendingA())
             
             return splitResult.isGeometryModified
         } else {
             return false
         }
+    }
+    
+    mutating func sortDescending() {
+        edges.sort(by: { $0.isLessB($1) })
+        isSorted = false
     }
 }
 

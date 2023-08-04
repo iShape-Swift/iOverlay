@@ -11,7 +11,7 @@ import iFixFloat
 public extension BoolShape {
 
     mutating func shapes() -> [FixShape] {
-        _ = self.fix()
+        _ = self.fix(force: false)
         
         let segments = self.buildSegments(fillTop: .subjectTop, fillBottom: .subjectBottom)
         

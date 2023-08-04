@@ -38,148 +38,213 @@ public extension BoolShape {
             return
         }
         
-        _ = self.fix()
-        _ = clip.fix()
+        _ = self.fix(force: false)
+        _ = clip.fix(force: false)
 
-        let selfBnd = FixBnd(minX: self.edges[0].a.x, edges: self.edges)
-        let clipBnd = FixBnd(minX: clip.edges[0].a.x, edges: clip.edges)
+        let clipBnd = FixBnd(edges: clip.edges)
 
+        clip.sortDescending()
+        
         var isSubjBend = false
         var isClipBend = false
+        var isAnypBend = false
         
         repeat {
-
-            var scanList = ABScan(edges: clip.edges, bnd: selfBnd)
 
             var subjIndex = 0
             
         mainLoop:
-            while subjIndex < self.edges.count && !scanList.isEmpty {
+            while subjIndex < self.edges.count {
                 
-                let thisEdge = self.edges[subjIndex]
-                
-                guard clipBnd.isCollide(FixBnd(edge: thisEdge)) else {
+                let subjEdge = self.edges[subjIndex]
+
+                guard clipBnd.isCollide(FixBnd(edge: subjEdge)) else {
                     subjIndex += 1
                     continue
                 }
+
+                var clipIndex = clip.edges.bFindMore(subjEdge.a)
+                let clipEnd = subjEdge.b.bitPack
                 
-                let eThis = thisEdge.edge
-                
-                scanList.startIterate(start: thisEdge.a.bitPack, end: thisEdge.b.bitPack)
-                
-                var scanRes = scanList.next()
-                
-                while scanRes.hasNext {
+                while clipIndex <= clip.edges.count {
+
+                    let clipEdge = clip.edges[clipIndex]
                     
-                    let scanEdge = scanRes.edge
-                    let eScan = scanEdge.edge
-                    let cross = eThis.cross(eScan)
+                    guard clipEdge.b.bitPack < clipEnd else {
+                        subjIndex += 1
+                        break
+                    }
+
+                    let cross = subjEdge.edge.cross(clipEdge.edge)
                     
                     switch cross.type {
-                    case .not_cross, .common_end:
+                    case .not_cross:
                         break
                     case .pure:
-                        // if the two segments intersect at a point that isn't an end point of either segment...
+                        // common intersections
                         
                         let x = cross.point
-                        
-                        let clipIndex = clip.edges.findEdgeIndex(eScan)
-                        let scanEdge = clip.edges[clipIndex]
 
                         self.edges.remove(at: subjIndex)
                         clip.edges.remove(at: clipIndex)
                         
                         // devide both segments
                         
-                        let thisLt = SelfEdge.safeCreate(a: thisEdge.a, b: x, n: thisEdge.n)
-                        let thisRt = SelfEdge.safeCreate(a: x, b: thisEdge.b, n: thisEdge.n)
+                        let subjLt = SelfEdge.safeCreate(a: subjEdge.a, b: x, n: subjEdge.n)
+                        let subjRt = SelfEdge.safeCreate(a: x, b: subjEdge.b, n: subjEdge.n)
                         
-                        let scanLt = SelfEdge.safeCreate(a: scanEdge.a, b: x, n: scanEdge.n)
-                        let scanRt = SelfEdge.safeCreate(a: x, b: scanEdge.b, n: scanEdge.n)
+                        let clipLt = SelfEdge.safeCreate(a: clipEdge.a, b: x, n: clipEdge.n)
+                        let clipRt = SelfEdge.safeCreate(a: x, b: clipEdge.b, n: clipEdge.n)
                         
-                        _ = clip.edges.addAndMerge(scanLt)
-                        _ = clip.edges.addAndMerge(scanRt)
-                        _ = self.edges.addAndMerge(thisRt)
-                        subjIndex = self.edges.addAndMerge(thisLt)
+                        _ = clip.edges.bAddAndMerge(clipLt)
+                        _ = clip.edges.bAddAndMerge(clipRt)
+                        
+                        _ = self.edges.aAddAndMerge(subjRt)
+                        subjIndex = self.edges.aAddAndMerge(subjLt)
 
                         // new point must be exactly on the same line
                         
-                        isSubjBend = isSubjBend || thisEdge.isNotSameLine(x)
-                        isClipBend = isClipBend || scanEdge.isNotSameLine(x)
-                        
-                        scanList.remove(at: scanRes.index)
-                        scanList.insert(newEdge: scanLt)
-                        scanList.insert(newEdge: scanRt)
-                        
-                        assert(clip.edges.isAsscending())
-                        assert(self.edges.isAsscending())
+                        isSubjBend = isSubjBend || subjEdge.isNotSameLine(x)
+                        isClipBend = isClipBend || clipEdge.isNotSameLine(x)
+
+                        assert(clip.edges.isAsscendingB())
+                        assert(self.edges.isAsscendingA())
                         
                         continue mainLoop
                     case .end_b:
-                        // if the intersection point is at the end of the current edge...
+                        // clip edge end split subj edge
                         
                         let x = cross.point
                         
-                        // devide this edge
+                        // devide subj edge
                         
                         self.edges.remove(at: subjIndex)
                         
-                        let thisLt = SelfEdge.safeCreate(a: thisEdge.a, b: x, n: thisEdge.n)
-                        let thisRt = SelfEdge.safeCreate(a: x, b: thisEdge.b, n: thisEdge.n)
+                        let subjLt = SelfEdge.safeCreate(a: subjEdge.a, b: x, n: subjEdge.n)
+                        let subjRt = SelfEdge.safeCreate(a: x, b: subjEdge.b, n: subjEdge.n)
                         
-                        _ = self.edges.addAndMerge(thisRt)
-                        subjIndex = self.edges.addAndMerge(thisLt)
+                        _ = self.edges.aAddAndMerge(subjRt)
+                        subjIndex = self.edges.aAddAndMerge(subjLt)
 
                         // new point must be exactly on the same line
-                        isSubjBend = isSubjBend || thisEdge.isNotSameLine(x)
+                        isSubjBend = isSubjBend || subjEdge.isNotSameLine(x)
                         
-                        assert(self.edges.isAsscending())
+                        assert(self.edges.isAsscendingA())
+                        
+                        continue mainLoop
+                    case .overlay_b:
+                        // subj edge is overlayed by clip edge
+
+                        // split subj into 3 segments
+                        
+                        self.edges.remove(at: subjIndex)
+                        
+                        let subj0 = SelfEdge.safeCreate(a: subjEdge.a, b: clipEdge.a, n: subjEdge.n)
+                        let subj1 = SelfEdge.safeCreate(a: clipEdge.a, b: clipEdge.b, n: subjEdge.n)
+                        let subj2 = SelfEdge.safeCreate(a: clipEdge.b, b: subjEdge.b, n: subjEdge.n)
+                        
+                        _ = self.edges.aAddAndMerge(subj1)
+                        _ = self.edges.aAddAndMerge(subj2)
+                        subjIndex = self.edges.aAddAndMerge(subj0)
+
+                        // new points must be exactly on the same line
+                        isSubjBend = isSubjBend || subjEdge.isNotSameLine(clipEdge.a) || subjEdge.isNotSameLine(clipEdge.b)
+                        
+                        assert(self.edges.isAsscendingA())
                         
                         continue mainLoop
                     case .end_a:
-                        // if the intersection point is at the end of the segment from the scan list...
+                        // subj edge end split clip edge
                         
                         let x = cross.point
 
-                        // devide scan segment
-                        
-                        let clipIndex = clip.edges.findEdgeIndex(eScan)
-                        let scanEdge = clip.edges[clipIndex]
+                        // devide clip edge
                         
                         clip.edges.remove(at: clipIndex)
                         
-                        let scanLt = SelfEdge.safeCreate(a: scanEdge.a, b: x, n: scanEdge.n)
-                        let scanRt = SelfEdge.safeCreate(a: x, b: scanEdge.b, n: scanEdge.n)
+                        let clipLt = SelfEdge.safeCreate(a: clipEdge.a, b: x, n: clipEdge.n)
+                        let clipRt = SelfEdge.safeCreate(a: x, b: clipEdge.b, n: clipEdge.n)
 
-                        _ = clip.edges.addAndMerge(scanLt)
-                        _ = clip.edges.addAndMerge(scanRt)
+                        _ = clip.edges.bAddAndMerge(clipLt)
+                        _ = clip.edges.bAddAndMerge(clipRt)
 
-                        isClipBend = isClipBend || scanEdge.isNotSameLine(x)
+                        // new point must be exactly on the same line
+                        isClipBend = isClipBend || clipEdge.isNotSameLine(x)
                         
-                        scanList.remove(at: scanRes.index)
-                        scanList.insert(newEdge: scanLt)
-                        scanList.insert(newEdge: scanRt)
+                        assert(clip.edges.isAsscendingB())
                         
-                        assert(clip.edges.isAsscending())
+                        continue mainLoop
+                    case .overlay_a:
+                        // clip edge is overlayed by subj edge
+                        
+                        // split clip into 3 segments
+                        
+                        clip.edges.remove(at: clipIndex)
+                        
+                        let clip0 = SelfEdge.safeCreate(a: clipEdge.a, b: subjEdge.a, n: clipEdge.n)
+                        let clip1 = SelfEdge.safeCreate(a: subjEdge.a, b: subjEdge.b, n: clipEdge.n)
+                        let clip2 = SelfEdge.safeCreate(a: subjEdge.b, b: clipEdge.b, n: clipEdge.n)
+
+                        _ = clip.edges.bAddAndMerge(clip0)
+                        _ = clip.edges.bAddAndMerge(clip1)
+                        _ = clip.edges.bAddAndMerge(clip2)
+
+                        // new points must be exactly on the same line
+                        isClipBend = isClipBend || clipEdge.isNotSameLine(subjEdge.a) || clipEdge.isNotSameLine(subjEdge.b)
+                        
+                        assert(clip.edges.isAsscendingB())
+                        
+                        continue mainLoop
+                    case .penetrate:
+                        // penetrate each other
+                        
+                        let xSubj = cross.point
+                        let xClip = cross.second
+
+                        self.edges.remove(at: subjIndex)
+                        clip.edges.remove(at: clipIndex)
+                        
+                        // devide both segments
+                        
+                        let subjLt = SelfEdge.safeCreate(a: subjEdge.a, b: xSubj, n: subjEdge.n)
+                        let subjRt = SelfEdge.safeCreate(a: xSubj, b: subjEdge.b, n: subjEdge.n)
+                        
+                        let clipLt = SelfEdge.safeCreate(a: clipEdge.a, b: xClip, n: clipEdge.n)
+                        let clipRt = SelfEdge.safeCreate(a: xClip, b: clipEdge.b, n: clipEdge.n)
+                        
+                        _ = clip.edges.bAddAndMerge(clipLt)
+                        _ = clip.edges.bAddAndMerge(clipRt)
+                        
+                        _ = self.edges.aAddAndMerge(subjRt)
+                        subjIndex = self.edges.aAddAndMerge(subjLt)
+
+                        // new point must be exactly on the same line
+                        
+                        isSubjBend = isSubjBend || subjEdge.isNotSameLine(xSubj)
+                        isClipBend = isClipBend || clipEdge.isNotSameLine(xClip)
+                        
+                        assert(clip.edges.isAsscendingB())
+                        assert(self.edges.isAsscendingA())
                         
                         continue mainLoop
                     }
-
-                    scanRes = scanList.next()
+                    
+                    clipIndex += 1
                 }
-                
-                subjIndex += 1
-            }
+            } // main loop
+            
+            isAnypBend = isSubjBend || isClipBend
             
             if isSubjBend {
-                isSubjBend = self.fix()
+                isSubjBend = self.fix(force: true)
             }
             
             if isClipBend {
-                isClipBend = clip.fix()
+                isClipBend = clip.fix(force: true)
+                clip.sortDescending()
             }
 
-        } while isSubjBend || isClipBend // root loop
+        } while isAnypBend // root loop
     }
 
     private func merge(listA: [SelfEdge], listB: [SelfEdge]) -> [SelfEdge] {
@@ -193,7 +258,7 @@ public extension BoolShape {
         var iB = 0
 
         while iA < nA && iB < nB {
-               if listA[iA].isLess(listB[iB]) {
+               if listA[iA].isLessA(listB[iB]) {
                    mergeList.append(listA[iA])
                    iA += 1
                } else if listA[iA].isEqual(listB[iB]) {

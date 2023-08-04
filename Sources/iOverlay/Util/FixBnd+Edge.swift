@@ -10,16 +10,19 @@ import iFixFloat
 
 extension FixBnd {
     
-    init(minX: Int64, edges: [SelfEdge]) {
+    init(edges: [SelfEdge]) {
+        var minX = Int64.max
         var maxX = Int64.min
         var minY = Int64.max
         var maxY = Int64.min
 
         for edge in edges {
+            let abMinX = Swift.min(edge.a.x, edge.b.x)
             let abMaxX = Swift.max(edge.a.x, edge.b.x)
             let abMinY = Swift.min(edge.a.y, edge.b.y)
             let abMaxY = Swift.max(edge.a.y, edge.b.y)
             
+            minX = Swift.min(minX, abMinX)
             maxX = Swift.max(maxX, abMaxX)
             minY = Swift.min(minY, abMinY)
             maxY = Swift.max(maxY, abMaxY)

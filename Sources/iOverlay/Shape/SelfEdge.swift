@@ -62,7 +62,7 @@ extension SelfEdge: Equatable, Hashable {
     }
 
     @inlinable
-    func isLess(_ other: FixEdge) -> Bool {
+    func isLessA(_ other: FixEdge) -> Bool {
         let a0 = a.bitPack
         let a1 = other.e0.bitPack
         if a0 != a1 {
@@ -76,6 +76,34 @@ extension SelfEdge: Equatable, Hashable {
     }
 
     @inlinable
+    func isLessB(_ other: FixEdge) -> Bool {
+        let b0 = b.bitPack
+        let b1 = other.e1.bitPack
+        if b0 != b1 {
+            return b0 < b1
+        } else {
+            let a0 = a.bitPack
+            let a1 = other.e0.bitPack
+            
+            return a0 < a1
+        }
+    }
+    
+    @inlinable
+    func isMoreB(_ other: FixEdge) -> Bool {
+        let b0 = b.bitPack
+        let b1 = other.e1.bitPack
+        if b0 != b1 {
+            return b0 > b1
+        } else {
+            let a0 = a.bitPack
+            let a1 = other.e0.bitPack
+            
+            return a0 > a1
+        }
+    }
+    
+    @inlinable
     func isEqual(_ other: FixEdge) -> Bool {
         let a0 = a.bitPack
         let a1 = other.e0.bitPack
@@ -86,7 +114,7 @@ extension SelfEdge: Equatable, Hashable {
     }
     
     @inlinable
-    func isLess(_ other: SelfEdge) -> Bool {
+    func isLessA(_ other: SelfEdge) -> Bool {
         let a0 = a.bitPack
         let a1 = other.a.bitPack
         if a0 != a1 {
@@ -100,6 +128,35 @@ extension SelfEdge: Equatable, Hashable {
     }
 
     @inlinable
+    func isLessB(_ other: SelfEdge) -> Bool {
+        let b0 = b.bitPack
+        let b1 = other.b.bitPack
+        if b0 != b1 {
+            return b0 < b1
+        } else {
+            let a0 = a.bitPack
+            let a1 = other.a.bitPack
+            
+            return a0 < a1
+        }
+    }
+    
+    
+    @inlinable
+    func isMoreB(_ other: SelfEdge) -> Bool {
+        let b0 = b.bitPack
+        let b1 = other.b.bitPack
+        if b0 != b1 {
+            return b0 > b1
+        } else {
+            let a0 = a.bitPack
+            let a1 = other.a.bitPack
+            
+            return a0 > a1
+        }
+    }
+    
+    @inlinable
     func isEqual(_ other: SelfEdge) -> Bool {
         let a0 = a.bitPack
         let a1 = other.a.bitPack
@@ -109,3 +166,34 @@ extension SelfEdge: Equatable, Hashable {
         return a0 == a1 && b0 == b1
     }
 }
+//
+//extension FixEdge {
+//    @inlinable
+//    func isLessB(_ other: FixEdge) -> Bool {
+//        let b0 = e1.bitPack
+//        let b1 = other.e1.bitPack
+//        if b0 != b1 {
+//            return b0 < b1
+//        } else {
+//            let a0 = e0.bitPack
+//            let a1 = other.e0.bitPack
+//
+//            return a0 < a1
+//        }
+//    }
+//
+//    @inlinable
+//    func isMoreOrEqualB(_ other: FixEdge) -> Bool {
+//        let b0 = b.bitPack
+//        let b1 = other.b.bitPack
+//        if b0 != b1 {
+//            return b0 > b1
+//        } else {
+//            let a0 = a.bitPack
+//            let a1 = other.a.bitPack
+//
+//            return a0 >= a1
+//        }
+//    }
+//}
+
