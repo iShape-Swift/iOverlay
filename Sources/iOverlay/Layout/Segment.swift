@@ -11,7 +11,7 @@ import iShape
 public struct Segment {
     
     @usableFromInline
-    static let zero = Segment(i: 0, a: .zero, b: .zero, fill: 0)
+    static let zero = Segment(i: 0, a: .zero, b: .zero, shape: 0, fill: 0)
     
     @inlinable
     var edge: FixEdge { FixEdge(e0: a, e1: b) }
@@ -22,13 +22,15 @@ public struct Segment {
     // start < end
     public let a: FixVec        // start
     public let b: FixVec        // end
-    public var fill: FillMask
-    
+    public let shape: ShapeType
+    public var fill: SegmentFill
+
     @inlinable
-    init(i: Int, a: FixVec, b: FixVec, fill: FillMask) {
+    init(i: Int, a: FixVec, b: FixVec, shape: ShapeType, fill: SegmentFill) {
         self.i = i
         self.a = a
         self.b = b
+        self.shape = shape
         self.fill = fill
     }
 }

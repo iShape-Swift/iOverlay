@@ -14,6 +14,7 @@ public struct OverlayGraph {
     let indices: [Int]
     let links: [OverlayLink]
 
+    
     init(segments: [Segment]) {
         let n = segments.count
         var links = [OverlayLink](repeating: .init(a: .zero, b: .zero, fill: 0), count: n)
@@ -56,8 +57,7 @@ public struct OverlayGraph {
 
         for i in 0..<m {
             let nC = nCount[i]
-//            print("Assert")
-//            assert(nC > 1)
+            assert(nC > 1)
             
             if nC == 1 {
                 print("Assert")

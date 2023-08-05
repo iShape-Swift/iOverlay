@@ -1,13 +1,13 @@
 //
-//  EdgeScanList.swift
+//  ScanList.swift
 //  
 //
-//  Created by Nail Sharipov on 21.07.2023.
+//  Created by Nail Sharipov on 04.08.2023.
 //
 
 import iShape
 
-struct EdgeScanList {
+struct ScanList {
     
     private (set) var edges: [FixEdge]
     private var minEnd: Int64
@@ -50,13 +50,13 @@ struct EdgeScanList {
         edges.removeLast(n)
     }
 
-    mutating func replace(oldIndex: Int, newEdge: SelfEdge) {
-        if self.isContain(newEdge.edge) {
+    mutating func replace(oldIndex: Int, newEdge: FixEdge) {
+        if self.isContain(newEdge) {
             // newEdge is exist, but we still must remove old edge
             edges.remove(at: oldIndex)
         } else {
             // newEdge is not exist, so we only update old edge
-            edges[oldIndex] = newEdge.edge
+            edges[oldIndex] = newEdge
         }
     }
 
