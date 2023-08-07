@@ -63,8 +63,16 @@ struct ScanList {
     
     @inlinable
     mutating func remove(index: Int) {
+        guard index < nodes.count else {
+            return
+        }
+        
         let node = nodes[index]
 
+        guard node.isPresent else {
+            return
+        }
+        
         if node.prev != -1 {
             var prev = nodes[node.prev]
             prev.next = node.next
@@ -137,5 +145,17 @@ struct ScanList {
         nodes[index] = .empty
         
         return node.next
+    }
+    
+    @inlinable
+    mutating func validate(list: EdgeLinkedList) {
+        var sIndex = first
+        
+        // Try to intersect the current segment with all the segments in the scan list.
+        while sIndex != -1 {
+            let scanEdge = list[sIndex]
+            assert(scanEdge.a != scanEdge.b)
+            sIndex = self.next(index: sIndex)
+        }
     }
 }

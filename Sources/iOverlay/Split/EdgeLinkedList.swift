@@ -72,25 +72,28 @@ struct EdgeLinkedList {
     
     @inlinable
     mutating func remove(index: Int) {
-        let node = nodes[index]
-        if node.prev != -1 {
-            var prev = nodes[node.prev]
-            prev.next = node.next
-            nodes[node.prev] = prev
-        } else {
-            first = node.next
-        }
-        
-        if node.next != -1 {
-            var next = nodes[node.next]
-            next.prev = node.prev
-            nodes[node.next] = next
-        }
-        
-        nodes[index] = .init(next: -1, prev: -1, edge: .zero)
+        nodes.withUnsafeMutableBufferPointer({ buffer in
+            let node = buffer[index]
+            
+            if node.prev != -1 {
+                var prev = buffer[node.prev]
+                prev.next = node.next
+                buffer[node.prev] = prev
+            } else {
+                first = node.next
+            }
+            
+            if node.next != -1 {
+                var next = buffer[node.next]
+                next.prev = node.prev
+                buffer[node.next] = next
+            }
+            
+            buffer[index] = .init(next: -1, prev: -1, edge: .zero)
+        })
         
         free.append(index)
-    }
+      }
 
     @inlinable
     mutating func addAndMerge(anchorIndex: Int, newEdge: ShapeEdge) -> Int {
