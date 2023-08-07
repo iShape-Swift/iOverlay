@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  ShapeEdge+Split.swift
 //  
 //
 //  Created by Nail Sharipov on 06.08.2023.
@@ -10,10 +10,12 @@ import iShape
 
 extension Array where Element == ShapeEdge {
     
-    mutating func split2() {
-        var list = EdgeList(edges: self)
+    mutating func split() {
+        // at this moment array is sorted
         
-        var scanList = SList(count: list.count)
+        var list = EdgeLinkedList(edges: self)
+        
+        var scanList = ScanList(count: list.count)
         
         var needToFix = true
         
@@ -25,7 +27,7 @@ extension Array where Element == ShapeEdge {
 
         mainLoop:
             while eIndex >= 0 {
-                let eNode = list.list[eIndex]
+                let eNode = list.nodes[eIndex]
 
                 let thisEdge = eNode.edge
                 
@@ -34,7 +36,7 @@ extension Array where Element == ShapeEdge {
                     eIndex = eNode.next
                 }
                 
-                let scanPos = thisEdge.a.bitPack
+                let scanPos = thisEdge.aBitPack
                 
                 var sIndex = scanList.first
                 
@@ -44,7 +46,7 @@ extension Array where Element == ShapeEdge {
                     
                     assert(scanEdge.a != scanEdge.b)
                     
-                    if scanEdge.b.bitPack <= scanPos || scanEdge.count.isEven {
+                    if scanEdge.bBitPack <= scanPos || scanEdge.count.isEven {
                         sIndex = scanList.removeAndGetNext(index: sIndex)
                         continue
                     }
@@ -85,8 +87,6 @@ extension Array where Element == ShapeEdge {
                         needToFix = needToFix || isBend
                         
                         eIndex = newThisLeft
-
-                        assert(list.edges().isAsscending())
                         
                         continue mainLoop
                     case .end_b:
@@ -99,8 +99,6 @@ extension Array where Element == ShapeEdge {
                         let thisLt = ShapeEdge(a: thisEdge.a, b: x, count: thisEdge.count)
                         let thisRt = ShapeEdge(a: x, b: thisEdge.b, count: thisEdge.count)
                         
-                        assert(thisLt.isLess(thisRt))
-                        
                         _ = list.addAndMerge(anchorIndex: eIndex, newEdge: thisRt)
                         let newThisLeft = list.addAndMerge(anchorIndex: eIndex, newEdge: thisLt)
 
@@ -112,8 +110,6 @@ extension Array where Element == ShapeEdge {
                         // new point must be exactly on the same line
                         let isBend = thisEdge.isNotSameLine(x)
                         needToFix = needToFix || isBend
-                        
-                        assert(list.edges().isAsscending())
                         
                         continue mainLoop
                     case .overlay_b:
@@ -188,8 +184,6 @@ extension Array where Element == ShapeEdge {
                         
                         // do not update eIndex
                         
-                        assert(list.edges().isAsscending())
-                        
                         continue mainLoop
                     case .penetrate:
                         // penetrate each other
@@ -223,8 +217,6 @@ extension Array where Element == ShapeEdge {
                         needToFix = needToFix || isBend
                         
                         eIndex = newThisLeft
-                        
-                        assert(list.edges().isAsscending())
                         
                         continue mainLoop
                     }

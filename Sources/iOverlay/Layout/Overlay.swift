@@ -71,7 +71,7 @@ public struct Overlay {
             edges.append(prev)
         }
         
-        edges.split2()
+        edges.split()
 
         var segments = [Segment]()
         segments.reserveCapacity(edges.count)
