@@ -102,14 +102,15 @@ extension Array where Element == ShapeEdge {
         guard count > 1 else {
             return true
         }
+        
         var i = 1
         var e0 = self[0]
         while i < count {
             let ei = self[i]
+            assert(e0.a != e0.b)
             if !e0.isLess(ei) {
                 return false
             }
-
             e0 = ei
             i += 1
         }
