@@ -10,6 +10,9 @@ public struct ShapeCount {
     @inlinable
     var isEmpty: Bool { subj < 0 && clip < 0 }
     
+    @inlinable
+    var isEven: Bool { subj % 2 == 0 && clip % 2 == 0 }
+    
     public let subj: Int
     public let clip: Int
     

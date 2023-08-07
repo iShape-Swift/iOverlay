@@ -60,12 +60,16 @@ public struct Overlay {
             if prev.isEqual(next) {
                 prev = prev.merge(next)
             } else {
-                edges.append(prev)
+                if !prev.count.isEven {
+                    edges.append(prev)
+                }
                 prev = next
             }
         }
 
-        edges.append(prev)
+        if !prev.count.isEven {
+            edges.append(prev)
+        }
         
         edges.split2()
 

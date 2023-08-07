@@ -160,6 +160,20 @@ extension ShapeEdge {
     }
     
     @inlinable
+    func isLessOrEqual(_ other: ShapeEdge) -> Bool {
+        let a0 = a.bitPack
+        let a1 = other.a.bitPack
+        if a0 != a1 {
+            return a0 < a1
+        } else {
+            let b0 = b.bitPack
+            let b1 = other.b.bitPack
+            
+            return b0 <= b1
+        }
+    }
+    
+    @inlinable
     func isEqual(_ other: ShapeEdge) -> Bool {
         let a0 = a.bitPack
         let a1 = other.a.bitPack

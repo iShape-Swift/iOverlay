@@ -26,7 +26,13 @@ extension Array where Element == ShapeEdge {
         mainLoop:
             while eIndex >= 0 {
                 let eNode = list.list[eIndex]
+
                 let thisEdge = eNode.edge
+                
+                if thisEdge.count.isEven {
+                    list.remove(index: eIndex)
+                    eIndex = eNode.next
+                }
                 
                 let scanPos = thisEdge.a.bitPack
                 
@@ -38,7 +44,7 @@ extension Array where Element == ShapeEdge {
                     
                     assert(scanEdge.a != scanEdge.b)
                     
-                    if scanEdge.b.bitPack <= scanPos {
+                    if scanEdge.b.bitPack <= scanPos || scanEdge.count.isEven {
                         sIndex = scanList.removeAndGetNext(index: sIndex)
                         continue
                     }
@@ -58,37 +64,33 @@ extension Array where Element == ShapeEdge {
                         let thisLt = ShapeEdge(a: thisEdge.a, b: x, count: thisEdge.count)
                         let thisRt = ShapeEdge(a: x, b: thisEdge.b, count: thisEdge.count)
                         
-                        assert(thisLt.isLess(thisRt))
-                        
                         let scanLt = ShapeEdge(a: scanEdge.a, b: x, count: scanEdge.count)
                         let scanRt = ShapeEdge(a: x, b: scanEdge.b, count: scanEdge.count)
                         
-                        assert(scanLt.isLess(scanRt))
-                        
-                        _ = list.addAndMerge(anchorIndex: eIndex, edge: thisRt)
-                        let newIndex = list.addAndMerge(anchorIndex: eIndex, edge: thisLt)
-                        
-                        let scanLeftIndex = list.addAndMerge(anchorIndex: sIndex, edge: scanLt)
-                        _ = list.addAndMerge(anchorIndex: sIndex, edge: scanRt)
-                        
+                        let newThisLeft = list.addAndMerge(anchorIndex: eIndex, newEdge: thisLt)
+                        _ = list.addAndMerge(anchorIndex: eIndex, newEdge: thisRt)
+
+                        let newScanLeft = list.addAndMerge(anchorIndex: sIndex, newEdge: scanLt)
+                        _ = list.addAndMerge(anchorIndex: sIndex, newEdge: scanRt)
+
                         list.remove(index: eIndex)
                         list.remove(index: sIndex)
-                        
+
+                        scanList.add(index: newScanLeft)
                         scanList.remove(index: sIndex)
-                        scanList.add(index: scanLeftIndex)
-                        scanList.removeAllLess(edge: thisLt, list: list)
+                        scanList.removeAllLessOrEqual(edge: thisLt, list: list)
 
                         // new point must be exactly on the same line
                         let isBend = thisEdge.isNotSameLine(x) || scanEdge.isNotSameLine(x)
                         needToFix = needToFix || isBend
                         
-                        eIndex = newIndex
+                        eIndex = newThisLeft
 
                         assert(list.edges().isAsscending())
                         
                         continue mainLoop
                     case .end_b:
-                        // if the intersection point is at the end of the current edge...
+                        // scan edge end devide this edge into 2 parts
                         
                         let x = cross.point
                         
@@ -99,18 +101,17 @@ extension Array where Element == ShapeEdge {
                         
                         assert(thisLt.isLess(thisRt))
                         
-                        _ = list.addAndMerge(anchorIndex: eIndex, edge: thisRt)
-                        let newIndex = list.addAndMerge(anchorIndex: eIndex, edge: thisLt)
-                        
+                        _ = list.addAndMerge(anchorIndex: eIndex, newEdge: thisRt)
+                        let newThisLeft = list.addAndMerge(anchorIndex: eIndex, newEdge: thisLt)
+
                         list.remove(index: eIndex)
+                        scanList.removeAllLessOrEqual(edge: thisLt, list: list)
                         
-                        scanList.removeAllLess(edge: thisLt, list: list)
+                        eIndex = newThisLeft
                         
                         // new point must be exactly on the same line
                         let isBend = thisEdge.isNotSameLine(x)
                         needToFix = needToFix || isBend
-                        
-                        eIndex = newIndex
                         
                         assert(list.edges().isAsscending())
                         
@@ -122,19 +123,19 @@ extension Array where Element == ShapeEdge {
                         let this1 = ShapeEdge(a: scanEdge.a, b: scanEdge.b, count: thisEdge.count)
                         let this2 = ShapeEdge(a: scanEdge.b, b: thisEdge.b, count: thisEdge.count)
                         
-                        _ = list.addAndMerge(anchorIndex: eIndex, edge: this1)
-                        _ = list.addAndMerge(anchorIndex: eIndex, edge: this2)
-                        let newIndex = list.addAndMerge(anchorIndex: eIndex, edge: this0)
+                        _ = list.addAndMerge(anchorIndex: eIndex, newEdge: this1)
+                        _ = list.addAndMerge(anchorIndex: eIndex, newEdge: this2)
+                        let newThis0 = list.addAndMerge(anchorIndex: eIndex, newEdge: this0)
                         
                         list.remove(index: eIndex)
                         
-                        scanList.removeAllLess(edge: this0, list: list)
+                        scanList.removeAllLessOrEqual(edge: this0, list: list)
                         
                         // new point must be exactly on the same line
                         let isBend = thisEdge.isNotSameLine(scanEdge.a) || thisEdge.isNotSameLine(scanEdge.b)
                         needToFix = needToFix || isBend
                         
-                        eIndex = newIndex
+                        eIndex = newThis0
                         
                         assert(list.edges().isAsscending())
                         
@@ -149,21 +150,15 @@ extension Array where Element == ShapeEdge {
                         let scanLt = ShapeEdge(a: scanEdge.a, b: x, count: scanEdge.count)
                         let scanRt = ShapeEdge(a: x, b: scanEdge.b, count: scanEdge.count)
                         
-                        let es0 = list.edges()
-                        assert(es0.isAsscending())
-                        
-                        let scanLeftIndex = list.addAndMerge(anchorIndex: sIndex, edge: scanLt)
-                        _ = list.addAndMerge(anchorIndex: sIndex, edge: scanRt)
+                        let newScanLeft = list.addAndMerge(anchorIndex: sIndex, newEdge: scanLt)
+                        _ = list.addAndMerge(anchorIndex: sIndex, newEdge: scanRt)
 
                         list.remove(index: sIndex)
 
+                        scanList.add(index: newScanLeft)
                         scanList.remove(index: sIndex)
-                        scanList.add(index: scanLeftIndex)
-                        scanList.removeAllLess(edge: thisEdge, list: list)
+                        scanList.removeAllLessOrEqual(edge: thisEdge, list: list)
 
-                        let es1 = list.edges()
-                        assert(es1.isAsscending())
-                        
                         // new point must be exactly on the same line
                         let isBend = scanEdge.isNotSameLine(x)
                         needToFix = needToFix || isBend
@@ -178,15 +173,15 @@ extension Array where Element == ShapeEdge {
                         let scan1 = ShapeEdge(a: thisEdge.a, b: thisEdge.b, count: scanEdge.count)
                         let scan2 = ShapeEdge(a: thisEdge.b, b: scanEdge.b, count: scanEdge.count)
                         
-                        let scanLeftIndex = list.addAndMerge(anchorIndex: sIndex, edge: scan0)
-                        _ = list.addAndMerge(anchorIndex: sIndex, edge: scan1)
-                        _ = list.addAndMerge(anchorIndex: sIndex, edge: scan2)
+                        let newScan0 = list.addAndMerge(anchorIndex: sIndex, newEdge: scan0)
+                        _ = list.addAndMerge(anchorIndex: sIndex, newEdge: scan1)
+                        _ = list.addAndMerge(anchorIndex: sIndex, newEdge: scan2)
 
                         list.remove(index: sIndex)
                         
+                        scanList.add(index: newScan0)
                         scanList.remove(index: sIndex)
-                        scanList.add(index: scanLeftIndex)
-                        scanList.removeAllLess(edge: thisEdge, list: list)
+                        scanList.removeAllLessOrEqual(edge: thisEdge, list: list)
 
                         let isBend = scanEdge.isNotSameLine(thisEdge.a) || scanEdge.isNotSameLine(thisEdge.b)
                         needToFix = needToFix || isBend
@@ -210,24 +205,24 @@ extension Array where Element == ShapeEdge {
                         let scanLt = ShapeEdge(a: scanEdge.a, b: xScan, count: thisEdge.count)
                         let scanRt = ShapeEdge(a: xScan, b: scanEdge.b, count: thisEdge.count)
                         
-                        let scanLeftIndex = list.addAndMerge(anchorIndex: sIndex, edge: scanLt)
-                        _ = list.addAndMerge(anchorIndex: sIndex, edge: scanRt)
+                        let newScanLeft = list.addAndMerge(anchorIndex: sIndex, newEdge: scanLt)
+                        _ = list.addAndMerge(anchorIndex: sIndex, newEdge: scanRt)
                         
-                        _ = list.addAndMerge(anchorIndex: eIndex, edge: thisRt)
-                        let newIndex = list.addAndMerge(anchorIndex: eIndex, edge: thisLt)
+                        _ = list.addAndMerge(anchorIndex: eIndex, newEdge: thisRt)
+                        let newThisLeft = list.addAndMerge(anchorIndex: eIndex, newEdge: thisLt)
 
                         list.remove(index: eIndex)
                         list.remove(index: sIndex)
                         
+                        scanList.add(index: newScanLeft)
                         scanList.remove(index: sIndex)
-                        scanList.add(index: scanLeftIndex)
-                        scanList.removeAllLess(edge: thisEdge, list: list)
+                        scanList.removeAllLessOrEqual(edge: thisEdge, list: list)
 
                         // new point must be exactly on the same line
                         let isBend = thisEdge.isNotSameLine(xThis) || scanEdge.isNotSameLine(xScan)
                         needToFix = needToFix || isBend
                         
-                        eIndex = newIndex
+                        eIndex = newThisLeft
                         
                         assert(list.edges().isAsscending())
                         

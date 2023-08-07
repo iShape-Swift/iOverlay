@@ -95,26 +95,27 @@ struct EdgeList {
         return newIndex
     }
     
-    mutating func addAndMerge(anchorIndex: Int, edge: ShapeEdge) -> Int {
+    mutating func addAndMerge(anchorIndex: Int, newEdge: ShapeEdge) -> Int {
         let anchor = list[anchorIndex]
         
-        if edge.isLess(anchor.edge) {
+        if newEdge.isLess(anchor.edge) {
             // search back
             var nextIx = anchorIndex
             var next = anchor
             var i = anchor.prev
             while i >= 0 {
                 var node = list[i]
-                if edge.isLess(node.edge) {
+                if newEdge.isLess(node.edge) {
                     nextIx = i
                     next = node
                     i = node.prev
-                } else if node.edge.isEqual(edge) {
+                } else if node.edge.isEqual(newEdge) {
                     
                     // merge
                     
-                    let count = edge.count.add(edge.count)
-                    node.edge = ShapeEdge(parent: edge, count: count)
+                    let count = node.edge.count.add(newEdge.count)
+                    
+                    node.edge = ShapeEdge(parent: newEdge, count: count)
                     list[i] = node
                     
                     return i
@@ -126,7 +127,7 @@ struct EdgeList {
                     node.next = free
                     next.prev = free
                     list[i] = node
-                    list[free] = EdgeNode(next: nextIx, prev: i, index: free, edge: edge)
+                    list[free] = EdgeNode(next: nextIx, prev: i, index: free, edge: newEdge)
                     list[nextIx] = next
                     
                     return free
@@ -139,7 +140,7 @@ struct EdgeList {
             let free = getFreeIndex()
             first = free
             next.prev = free
-            list[free] = EdgeNode(next: nextIx, prev: -1, index: free, edge: edge)
+            list[free] = EdgeNode(next: nextIx, prev: -1, index: free, edge: newEdge)
             list[nextIx] = next
             
             return free
@@ -150,16 +151,17 @@ struct EdgeList {
             var i = anchor.next
             while i >= 0 {
                 var node = list[i]
-                if node.edge.isLess(edge) {
+                if node.edge.isLess(newEdge) {
                     prevIx = i
                     prev = node
                     i = node.next
-                } else if node.edge.isEqual(edge) {
+                } else if node.edge.isEqual(newEdge) {
                     
                     // merge
                     
-                    let count = edge.count.add(edge.count)
-                    node.edge = ShapeEdge(parent: edge, count: count)
+                    let count = node.edge.count.add(newEdge.count)
+
+                    node.edge = ShapeEdge(parent: newEdge, count: count)
                     list[i] = node
                     
                     return i
@@ -172,7 +174,7 @@ struct EdgeList {
                     prev.next = free
                     list[i] = node
                     list[prevIx] = prev
-                    list[free] = EdgeNode(next: i, prev: prevIx, index: free, edge: edge)
+                    list[free] = EdgeNode(next: i, prev: prevIx, index: free, edge: newEdge)
                     
                     return free
                 }
@@ -183,7 +185,7 @@ struct EdgeList {
 
             let free = getFreeIndex()
             prev.next = free
-            list[free] = EdgeNode(next: -1, prev: prevIx, index: free, edge: edge)
+            list[free] = EdgeNode(next: -1, prev: prevIx, index: free, edge: newEdge)
             list[prevIx] = prev
             
             return free
@@ -196,7 +198,11 @@ struct EdgeList {
         var index = first
         while index >= 0 {
             let node = list[index]
-            result.append(node.edge)
+            
+            if !node.edge.count.isEven {
+                result.append(node.edge)
+            }
+
             index = node.next
         }
         return result

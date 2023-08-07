@@ -32,6 +32,10 @@ struct SList {
     }
     
     mutating func add(index: Int) {
+        guard index != -1 else {
+            return
+        }
+
         if index >= list.count {
             self.increase(index: index)
         }
@@ -61,11 +65,13 @@ struct SList {
         if node.prev != -1 {
             var prev = list[node.prev]
             prev.next = node.next
+            list[node.prev] = prev
         }
         
         if node.next != -1 {
             var next = list[node.next]
             next.prev = node.prev
+            list[node.next] = next
         }
         
         if first == index {
@@ -88,13 +94,13 @@ struct SList {
         first = -1
     }
     
-    mutating func removeAllLess(edge: ShapeEdge, list: EdgeList) {
+    mutating func removeAllLessOrEqual(edge: ShapeEdge, list: EdgeList) {
         var sIndex = first
         
         // Try to intersect the current segment with all the segments in the scan list.
         while sIndex != -1 {
             let scanEdge = list[sIndex]
-            if edge.isLess(scanEdge) {
+            if edge.isLessOrEqual(scanEdge) {
                 sIndex = self.removeAndGetNext(index: sIndex)
                 continue
             }
@@ -107,6 +113,7 @@ struct SList {
         if node.prev != -1 {
             var prev = list[node.prev]
             prev.next = node.next
+            list[node.prev] = prev
         } else {
             first = node.next
         }
@@ -114,11 +121,14 @@ struct SList {
         if node.next != -1 {
             var next = list[node.next]
             next.prev = node.prev
+            list[node.next] = next
         }
         
         if first == index {
             first = node.next
         }
+        
+        list[index] = .empty
         
         return node.next
     }
