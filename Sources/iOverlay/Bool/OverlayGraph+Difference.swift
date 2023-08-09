@@ -1,8 +1,8 @@
 //
-//  OverlayGraph+Partition.swift
+//  OverlayGraph+Difference.swift
 //  
 //
-//  Created by Nail Sharipov on 26.07.2023.
+//  Created by Nail Sharipov on 09.08.2023.
 //
 
 import iFixFloat
@@ -10,15 +10,14 @@ import iShape
 
 public extension OverlayGraph {
     
-    func partitionEvenOddShapes() -> [FixShape] {
-        let n = links.count
-        var visited = [Bool](repeating: false, count: n)
+    func differenceShapes() -> [FixShape] {
+        var visited = self.filter(operation: .difference)
 
         var holes = [Contour]()
         var shapes = [FixShape]()
         var shapeBnds = [FixBnd]()
         
-        for i in 0..<n {
+        for i in 0..<links.count {
             if !visited[i] {
                 let contour = self.getContour(index: i, visited: &visited)
                 
@@ -87,7 +86,8 @@ public extension OverlayGraph {
             if node.count == 2 {
                 next = node.other(index: next)
             } else {
-                let isCW = OverlayGraph.isClockwise(a: a.point, b: b.point, isTopInside: link.fill == .subjectTop)
+                let isFillTop = link.fill & .bothTop == .subjectTop
+                let isCW = OverlayGraph.isClockwise(a: a.point, b: b.point, isTopInside: isFillTop)
                 next = self.findNearestLinkTo(target: a, center: b, ignore: next, inClockWise: isCW, visited: visited)
                 guard next >= 0 else {
                     break
@@ -110,7 +110,8 @@ public extension OverlayGraph {
             
         } while next != index
 
-        let isCavity = leftLink.fill == .subjectBottom
+        let isFillBottom = leftLink.fill & .bothBottom == .subjectBottom
+        let isCavity = isFillBottom
         
         if path.area < 0 {
             path.reverse()

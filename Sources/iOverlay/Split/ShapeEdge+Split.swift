@@ -71,8 +71,12 @@ extension Array where Element == ShapeEdge {
                         let thisLt = ShapeEdge(a: thisEdge.a, b: x, count: thisEdge.count)
                         let thisRt = ShapeEdge(a: x, b: thisEdge.b, count: thisEdge.count)
                         
+                        assert(thisLt.isLess(thisRt))
+                        
                         let scanLt = ShapeEdge(a: scanEdge.a, b: x, count: scanEdge.count)
                         let scanRt = ShapeEdge(a: x, b: scanEdge.b, count: scanEdge.count)
+                        
+                        assert(scanLt.isLess(scanRt))
                         
                         let newThisLeft = list.addAndMerge(anchorIndex: eIndex, newEdge: thisLt)
                         _ = list.addAndMerge(anchorIndex: eIndex, newEdge: thisRt)
@@ -107,6 +111,8 @@ extension Array where Element == ShapeEdge {
                         let thisLt = ShapeEdge(a: thisEdge.a, b: x, count: thisEdge.count)
                         let thisRt = ShapeEdge(a: x, b: thisEdge.b, count: thisEdge.count)
                         
+                        assert(thisLt.isLess(thisRt))
+                        
                         _ = list.addAndMerge(anchorIndex: eIndex, newEdge: thisRt)
                         let newThisLeft = list.addAndMerge(anchorIndex: eIndex, newEdge: thisLt)
 
@@ -130,6 +136,9 @@ extension Array where Element == ShapeEdge {
                         let this0 = ShapeEdge(a: thisEdge.a, b: scanEdge.a, count: thisEdge.count)
                         let this1 = ShapeEdge(a: scanEdge.a, b: scanEdge.b, count: thisEdge.count)
                         let this2 = ShapeEdge(a: scanEdge.b, b: thisEdge.b, count: thisEdge.count)
+                        
+                        assert(this0.isLess(this1))
+                        assert(this1.isLess(this2))
                         
                         _ = list.addAndMerge(anchorIndex: eIndex, newEdge: this1)
                         _ = list.addAndMerge(anchorIndex: eIndex, newEdge: this2)
@@ -161,6 +170,8 @@ extension Array where Element == ShapeEdge {
                         let scanLt = ShapeEdge(a: scanEdge.a, b: x, count: scanEdge.count)
                         let scanRt = ShapeEdge(a: x, b: scanEdge.b, count: scanEdge.count)
                         
+                        assert(scanLt.isLess(scanRt))
+                        
                         let newScanLeft = list.addAndMerge(anchorIndex: sIndex, newEdge: scanLt)
                         _ = list.addAndMerge(anchorIndex: sIndex, newEdge: scanRt)
 
@@ -185,6 +196,9 @@ extension Array where Element == ShapeEdge {
                         let scan0 = ShapeEdge(a: scanEdge.a, b: thisEdge.a, count: scanEdge.count)
                         let scan1 = ShapeEdge(a: thisEdge.a, b: thisEdge.b, count: scanEdge.count)
                         let scan2 = ShapeEdge(a: thisEdge.b, b: scanEdge.b, count: scanEdge.count)
+                        
+                        assert(scan0.isLess(scan1))
+                        assert(scan1.isLess(scan2))
                         
                         let newScan0 = list.addAndMerge(anchorIndex: sIndex, newEdge: scan0)
                         _ = list.addAndMerge(anchorIndex: sIndex, newEdge: scan1)
@@ -215,8 +229,12 @@ extension Array where Element == ShapeEdge {
                         let thisLt = ShapeEdge(a: thisEdge.a, b: xThis, count: thisEdge.count)
                         let thisRt = ShapeEdge(a: xThis, b: thisEdge.b, count: thisEdge.count)
                         
+                        assert(thisLt.isLess(thisRt))
+                        
                         let scanLt = ShapeEdge(a: scanEdge.a, b: xScan, count: thisEdge.count)
                         let scanRt = ShapeEdge(a: xScan, b: scanEdge.b, count: thisEdge.count)
+                        
+                        assert(scanLt.isLess(scanRt))
                         
                         let newScanLeft = list.addAndMerge(anchorIndex: sIndex, newEdge: scanLt)
                         _ = list.addAndMerge(anchorIndex: sIndex, newEdge: scanRt)

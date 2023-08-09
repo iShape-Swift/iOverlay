@@ -102,7 +102,7 @@ public struct Overlay {
         return segments
     }
 
-    public mutating func build() -> OverlayGraph {
+    public mutating func buildGraph() -> OverlayGraph {
         OverlayGraph(segments: self.buildSegments())
     }
 
