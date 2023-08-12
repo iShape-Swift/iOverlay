@@ -10,7 +10,7 @@ import iFixFloat
 
 public extension OverlayGraph {
 
-    func extractShapes(operation: Operation) -> [FixShape] {
+    func extractShapes(operation: BoolOperation) -> [FixShape] {
         var visited = self.filter(operation: operation)
 
         var holes = [Contour]()
@@ -64,7 +64,7 @@ public extension OverlayGraph {
         return shapes
     }
     
-    private func getContour(operation: Operation, index: Int, visited: inout [Bool]) -> Contour {
+    private func getContour(operation: BoolOperation, index: Int, visited: inout [Bool]) -> Contour {
         var path = FixPath()
         var next = index
 
@@ -147,7 +147,7 @@ private enum FillRule {
     case xorSubject
     case xorClip
 
-    init(operation: Operation, fill: SegmentFill) {
+    init(operation: BoolOperation, fill: SegmentFill) {
         switch operation {
         case .subject:
             self = .subject

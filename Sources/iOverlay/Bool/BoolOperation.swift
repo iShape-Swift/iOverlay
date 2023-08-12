@@ -1,11 +1,11 @@
 //
-//  Operation.swift
+//  BoolOperation.swift
 //  
 //
 //  Created by Nail Sharipov on 08.08.2023.
 //
 
-public enum Operation {
+public enum BoolOperation {
 
     case subject
     case clip

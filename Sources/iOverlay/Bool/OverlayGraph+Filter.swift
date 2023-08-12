@@ -10,7 +10,7 @@ import iFixFloat
 
 extension OverlayGraph {
 
-    func filter(operation: Operation) -> [Bool] {
+    func filter(operation: BoolOperation) -> [Bool] {
         switch operation {
         case .subject:
             return filterSubject()
