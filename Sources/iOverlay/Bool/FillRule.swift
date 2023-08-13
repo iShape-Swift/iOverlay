@@ -1,12 +1,12 @@
 //
-//  BoolOperation.swift
+//  FillRule.swift
 //  
 //
-//  Created by Nail Sharipov on 08.08.2023.
+//  Created by Nail Sharipov on 13.08.2023.
 //
 
-public enum BoolOperation {
-
+public enum FillRule {
+    
     case subject
     case clip
     case intersect

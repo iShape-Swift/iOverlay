@@ -10,8 +10,8 @@ import iFixFloat
 
 public extension OverlayGraph {
 
-    func extractShapes(operation: BoolOperation) -> [FixShape] {
-        var visited = self.filter(operation: operation)
+    func extractShapes(fillRule: FillRule) -> [FixShape] {
+        var visited = self.filter(fillRule: fillRule)
 
         var holes = [Contour]()
         var shapes = [FixShape]()
@@ -19,7 +19,7 @@ public extension OverlayGraph {
         
         for i in 0..<links.count {
             if !visited[i] {
-                let contour = self.getContour(operation: operation, index: i, visited: &visited)
+                let contour = self.getContour(fillRule: fillRule, index: i, visited: &visited)
                 
                 if contour.isCavity {
                     holes.append(contour)
@@ -36,7 +36,7 @@ public extension OverlayGraph {
         
         // find for each hole it shape
         for hole in holes {
-            var bestDist = Int64.max
+            var minDist = Int64.max
             var bestShapeIndex = -1
 
             for shapeIndex in 0..<shapes.count {
@@ -48,8 +48,8 @@ public extension OverlayGraph {
 
                     let dist = shape.contour.getBottomVerticalDistance(p: hole.start)
 
-                    if bestDist > dist {
-                        bestDist = dist
+                    if minDist > dist {
+                        minDist = dist
                         bestShapeIndex = shapeIndex
                     }
                 }
@@ -64,13 +64,11 @@ public extension OverlayGraph {
         return shapes
     }
     
-    private func getContour(operation: BoolOperation, index: Int, visited: inout [Bool]) -> Contour {
+    private func getContour(fillRule: FillRule, index: Int, visited: inout [Bool]) -> Contour {
         var path = FixPath()
         var next = index
 
         var link = links[index]
-
-        let fillRule = FillRule(operation: operation, fill: link.fill)
         
         var a = link.a
         var b = link.b
@@ -137,37 +135,7 @@ public extension OverlayGraph {
 
 }
 
-private enum FillRule {
-    
-    case subject
-    case clip
-    case intersect
-    case union
-    case difference
-    case xorSubject
-    case xorClip
-
-    init(operation: BoolOperation, fill: SegmentFill) {
-        switch operation {
-        case .subject:
-            self = .subject
-        case .clip:
-            self = .clip
-        case .intersect:
-            self = .intersect
-        case .union:
-            self = .union
-        case .difference:
-            self = .difference
-        case .xor:
-            let isSubject = fill & .bothTop == .subjectTop || fill & .bothBottom == .subjectBottom
-            if isSubject {
-                self = .xorSubject
-            } else {
-                self = .xorClip
-            }
-        }
-    }
+private extension FillRule {
     
     func isFillTop(fill: SegmentFill) -> Bool {
         switch self {
@@ -181,10 +149,11 @@ private enum FillRule {
             return fill & SegmentFill.bothBottom == 0
         case .difference:
             return fill & SegmentFill.bothTop == SegmentFill.subjectTop
-        case .xorSubject:
-            return fill & SegmentFill.bothTop == SegmentFill.subjectTop
-        case .xorClip:
-            return fill & SegmentFill.bothTop == SegmentFill.clipTop
+        case .xor:
+            let isSubject = fill & SegmentFill.bothTop == SegmentFill.subjectTop
+            let isClip = fill & SegmentFill.bothTop == SegmentFill.clipTop
+            
+            return isSubject || isClip
         }
     }
 
@@ -200,10 +169,11 @@ private enum FillRule {
             return fill & SegmentFill.bothTop == 0
         case .difference:
             return fill & SegmentFill.bothBottom == SegmentFill.subjectBottom
-        case .xorSubject:
-            return fill & SegmentFill.bothBottom == SegmentFill.subjectBottom
-        case .xorClip:
-            return fill & SegmentFill.bothBottom == SegmentFill.clipBottom
+        case .xor:
+            let isSubject = fill & SegmentFill.bothBottom == SegmentFill.subjectBottom
+            let isClip = fill & SegmentFill.bothBottom == SegmentFill.clipBottom
+            
+            return isSubject || isClip
         }
     }
     

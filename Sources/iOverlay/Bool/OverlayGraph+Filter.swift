@@ -10,8 +10,8 @@ import iFixFloat
 
 extension OverlayGraph {
 
-    func filter(operation: BoolOperation) -> [Bool] {
-        switch operation {
+    func filter(fillRule: FillRule) -> [Bool] {
+        switch fillRule {
         case .subject:
             return filterSubject()
         case .clip:
@@ -125,16 +125,18 @@ extension OverlayGraph {
     private func filterXOR() -> [Bool] {
         let n = links.count
         var skip = [Bool](repeating: false, count: n)
-        
+
         for i in 0..<n {
             let fill = links[i].fill
             
-            // Every edge must have solo side and other must be empty or both fill
+            // Skip edge if clip and subject share it
             
-            let subjectHasSide = fill & .bothTop == .subjectTop || fill & .bothBottom == .subjectBottom
-            let clipHasSide = fill & .bothTop == .clipTop || fill & .bothBottom == .clipBottom
+            let sameTop = fill == .bothTop
+            let sameBottom = fill == .bothBottom
+            let sameSide0 = fill == .subjectTop | .clipBottom
+            let sameSide1 = fill == .subjectBottom | .clipTop
             
-            skip[i] = subjectHasSide == clipHasSide
+            skip[i] = sameTop || sameBottom || sameSide0 || sameSide1
         }
         
         return skip

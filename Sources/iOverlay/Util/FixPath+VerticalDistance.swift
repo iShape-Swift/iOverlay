@@ -13,7 +13,7 @@ extension FixPath {
     // points of holes can not have any common points with hull
     func getBottomVerticalDistance(p: FixVec) -> Int64 {
         var p0 = self[count - 1]
-        var bestDist = Int64.min
+        var nearestY = Int64.min
         
         for pi in self {
             // any bottom and non vertical
@@ -33,8 +33,8 @@ extension FixPath {
                 if a.x <= p.x && p.x <= b.x {
                     let y = FixPath.getVerticalIntersection(p0: a, p1: b, p: p)
                     
-                    if p.y > y && y > bestDist {
-                        bestDist = y
+                    if p.y > y && y > nearestY {
+                        nearestY = y
                     }
                 }
             }
@@ -42,7 +42,7 @@ extension FixPath {
             p0 = pi
         }
 
-        return bestDist
+        return p.y - nearestY
     }
     
     private static func getVerticalIntersection(p0: FixVec, p1: FixVec, p: FixVec) -> Int64 {
