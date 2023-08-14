@@ -10,7 +10,7 @@ import iFixFloat
 
 public extension OverlayGraph {
 
-    func extractShapes(fillRule: FillRule) -> [FixShape] {
+    func extractShapes(fillRule: FillRule, minArea: FixFloat = 16) -> [FixShape] {
         var visited = self.filter(fillRule: fillRule)
 
         var holes = [Contour]()
@@ -19,13 +19,15 @@ public extension OverlayGraph {
         
         for i in 0..<links.count {
             if !visited[i] {
-                let contour = self.getContour(fillRule: fillRule, index: i, visited: &visited)
+                let contour = self.getContour(fillRule: fillRule, minArea: minArea, index: i, visited: &visited)
                 
-                if contour.isCavity {
-                    holes.append(contour)
-                } else {
-                    shapes.append(FixShape(contour: contour.path, holes: []))
-                    shapeBnds.append(contour.boundary)
+                if !contour.path.isEmpty {
+                    if contour.isCavity {
+                        holes.append(contour)
+                    } else {
+                        shapes.append(FixShape(contour: contour.path, holes: []))
+                        shapeBnds.append(contour.boundary)
+                    }
                 }
             }
         }
@@ -64,7 +66,7 @@ public extension OverlayGraph {
         return shapes
     }
     
-    private func getContour(fillRule: FillRule, index: Int, visited: inout [Bool]) -> Contour {
+    private func getContour(fillRule: FillRule, minArea: FixFloat, index: Int, visited: inout [Bool]) -> Contour {
         var path = FixPath()
         var next = index
 
@@ -112,15 +114,15 @@ public extension OverlayGraph {
 
         let isCavity = fillRule.isFillBottom(fill: leftLink.fill)
         
-        if path.area < 0 {
-            path.reverse()
-        }
+        path.validate(minArea: minArea)
         
         for index in newVisited {
             visited[index] = true
         }
 
-        return Contour(path: path, boundary: FixBnd(points: path), start: leftLink.a.point, isCavity: isCavity)
+        let boundary = !path.isEmpty ? FixBnd(points: path) : FixBnd.zero
+        
+        return Contour(path: path, boundary: boundary, start: leftLink.a.point, isCavity: isCavity)
     }
 
     private static func isClockwise(a: FixVec, b: FixVec, isTopInside: Bool) -> Bool {
@@ -177,4 +179,69 @@ private extension FillRule {
         }
     }
     
+}
+
+private extension FixPath {
+    
+    // remove a short path and make cw if needed
+    mutating func validate(minArea: FixFloat) {
+        self.removeDegenerates()
+        
+        guard count > 2 else {
+            self.removeAll()
+            return
+        }
+
+        let area = self.area
+
+        if abs(area) < minArea {
+            self.removeAll()
+        } else if area < 0 {
+            self.reverse()
+        }
+    }
+    
+    // points of holes can not have any common points with hull
+    func getBottomVerticalDistance(p: FixVec) -> Int64 {
+        var p0 = self[count - 1]
+        var nearestY = Int64.min
+        
+        for pi in self {
+            // any bottom and non vertical
+            
+            if p0.x != pi.x {
+                let a: FixVec
+                let b: FixVec
+                
+                if p0.x < pi.x {
+                    a = p0
+                    b = pi
+                } else {
+                    a = pi
+                    b = p0
+                }
+                
+                if a.x <= p.x && p.x <= b.x {
+                    let y = FixPath.getVerticalIntersection(p0: a, p1: b, p: p)
+                    
+                    if p.y > y && y > nearestY {
+                        nearestY = y
+                    }
+                }
+            }
+
+            p0 = pi
+        }
+
+        return p.y - nearestY
+    }
+    
+    private static func getVerticalIntersection(p0: FixVec, p1: FixVec, p: FixVec) -> Int64 {
+        let k = (p0.y - p1.y) / (p0.x - p1.x)
+        let b = p0.y - k * p0.x
+        
+        let y = k * p.x + b
+
+        return y
+    }
 }
