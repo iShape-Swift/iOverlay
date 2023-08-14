@@ -11,7 +11,7 @@ struct OverlayNode {
     var data1: Int
     var count: Int
 
-    @inlinable
+    @inline(__always)
     func other(index: Int) -> Int {
         assert(count == 2)
         return data0 == index ? data1 : data0

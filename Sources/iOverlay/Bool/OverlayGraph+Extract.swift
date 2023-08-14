@@ -34,7 +34,7 @@ public extension OverlayGraph {
             return shapes
         }
         
-        // find for each hole it shape
+        // find for each hole its shape
         for hole in holes {
             var minDist = Int64.max
             var bestShapeIndex = -1

@@ -20,19 +20,16 @@ struct ScanList {
     
     private var nodes: [Node]
     private (set) var first: Int
-    
-    @inlinable
+
     init(count: Int) {
         nodes = [Node](repeating: .empty, count: count)
         first = -1
     }
-    
-    @inlinable
+
     func next(index: Int) -> Int {
         nodes[index].next
     }
-    
-    @inlinable
+
     mutating func add(index: Int) {
         guard index != -1 else {
             return
@@ -60,8 +57,7 @@ struct ScanList {
 
         first = index
     }
-    
-    @inlinable
+
     mutating func remove(index: Int) {
         guard index < nodes.count else {
             return
@@ -98,15 +94,13 @@ struct ScanList {
         }
     }
     
-    @inlinable
     mutating func clear() {
         for i in 0..<nodes.count {
             nodes[i] = .empty
         }
         first = -1
     }
-    
-    @inlinable
+
     mutating func removeAllLessOrEqual(edge: ShapeEdge, list: EdgeLinkedList) {
         var sIndex = first
         
@@ -121,7 +115,6 @@ struct ScanList {
         }
     }
     
-    @inlinable
     mutating func removeAndGetNext(index: Int) -> Int {
         let node = nodes[index]
         if node.prev != -1 {
@@ -147,7 +140,6 @@ struct ScanList {
         return node.next
     }
     
-    @inlinable
     mutating func validate(list: EdgeLinkedList) {
         var sIndex = first
         

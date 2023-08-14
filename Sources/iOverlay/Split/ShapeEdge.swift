@@ -9,31 +9,25 @@ import iFixFloat
 import iShape
 
 public struct ShapeEdge {
-        
-    @usableFromInline
+
     static let zero = ShapeEdge(a: .zero, b: .zero, count: ShapeCount(subj: 0, clip: 0))
 
-    @inlinable
     var edge: FixEdge { FixEdge(e0: a, e1: b) }
 
     // start < end
     public let a: FixVec        // start
     public let b: FixVec        // end
     
-    @usableFromInline
     let aBitPack: Int64
     
-    @usableFromInline
     let bBitPack: Int64
     
-    public let count: ShapeCount
+    let count: ShapeCount
     
-    @usableFromInline
     let maxY: Int64
-    @usableFromInline
     let minY: Int64
 
-    @inlinable
+    @inline(__always)
     init(a: FixVec, b: FixVec, count: ShapeCount) {
         let aBitPack = a.bitPack
         let bBitPack = b.bitPack
@@ -60,8 +54,8 @@ public struct ShapeEdge {
         
         self.count = count
     }
-    
-    @inlinable
+
+    @inline(__always)
     init(parent: ShapeEdge, count: ShapeCount) {
         self.a = parent.a
         self.b = parent.b
@@ -71,13 +65,13 @@ public struct ShapeEdge {
         self.aBitPack = parent.aBitPack
         self.bBitPack = parent.bBitPack
     }
-    
-    @inlinable
+
+    @inline(__always)
     func merge(_ other: ShapeEdge) -> ShapeEdge {
         ShapeEdge(a: a, b: b, count: self.count.add(other.count))
     }
 
-    @inlinable
+    @inline(__always)
     func isLess(_ other: ShapeEdge) -> Bool {
         let a0 = aBitPack
         let a1 = other.aBitPack
@@ -91,7 +85,7 @@ public struct ShapeEdge {
         }
     }
     
-    @inlinable
+    @inline(__always)
     func isLessOrEqual(_ other: ShapeEdge) -> Bool {
         let a0 = aBitPack
         let a1 = other.aBitPack
@@ -104,8 +98,8 @@ public struct ShapeEdge {
             return b0 <= b1
         }
     }
-    
-    @inlinable
+
+    @inline(__always)
     func isEqual(_ other: ShapeEdge) -> Bool {
         let a0 = aBitPack
         let a1 = other.aBitPack

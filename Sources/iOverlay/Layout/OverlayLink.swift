@@ -13,7 +13,7 @@ struct OverlayLink {
     var b: IndexPoint
     let fill: SegmentFill
 
-    @inlinable
+    @inline(__always)
     func other(_ point: IndexPoint) -> IndexPoint {
         a.index == point.index ? b : a
     }

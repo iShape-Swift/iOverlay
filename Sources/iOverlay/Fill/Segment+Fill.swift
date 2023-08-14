@@ -1,5 +1,5 @@
 //
-//  Overlay+Fill.swift
+//  Segment+Fill.swift
 //  
 //
 //  Created by Nail Sharipov on 04.08.2023.
@@ -9,7 +9,6 @@ import iShape
 
 extension Array where Element == Segment {
     
-    @inlinable
     mutating func fill() {
         var scanList = [Segment]()
         

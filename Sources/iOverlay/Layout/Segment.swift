@@ -10,13 +10,10 @@ import iShape
 
 public struct Segment {
     
-    @usableFromInline
     static let zero = Segment(i: 0, a: .zero, b: .zero, shape: 0, fill: 0)
     
-    @inlinable
     var edge: FixEdge { FixEdge(e0: a, e1: b) }
 
-    @usableFromInline
     let i: Int                  // index in store array
     
     // start < end
@@ -25,7 +22,6 @@ public struct Segment {
     public let shape: ShapeType
     public var fill: SegmentFill
 
-    @inlinable
     init(i: Int, a: FixVec, b: FixVec, shape: ShapeType, fill: SegmentFill) {
         self.i = i
         self.a = a

@@ -155,8 +155,6 @@ extension Array where Element == ShapeEdge {
                         
                         eIndex = newThis0
                         
-                        assert(list.edges().isAsscending())
-                        
                         scanList.validate(list: list)
                         
                         continue mainLoop
@@ -290,6 +288,7 @@ private extension ShapeEdge {
         return self.edge.cross(edge.edge)
     }
 
+    @inline(__always)
     func isNotSameLine(_ point: FixVec) -> Bool {
         Triangle.isNotLine(p0: a, p1: b, p2: point)
     }

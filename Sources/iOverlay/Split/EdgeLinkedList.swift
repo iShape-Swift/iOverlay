@@ -23,18 +23,17 @@ struct EdgeLinkedList {
     private (set) var nodes: [EdgeNode]
     private (set) var first: Int
 
-    @inlinable
+    @inline(__always)
     var count: Int { nodes.count }
 
-    @inlinable
+    @inline(__always)
     subscript(index: Int) -> ShapeEdge {
-        @inlinable
+        @inline(__always)
         get {
             nodes[index].edge
         }
     }
     
-    @inlinable
     init(edges: [ShapeEdge]) {
         let plusCapacity = 16
         nodes = [EdgeNode](repeating: .empty, count: edges.count + plusCapacity)
@@ -58,7 +57,6 @@ struct EdgeLinkedList {
         first = 0
     }
     
-    @inlinable
     func nextNode(index: Int) -> EdgeNode {
         nodes.withUnsafeBufferPointer({ buffer in
             let nextIndex = buffer[index].next
@@ -70,7 +68,6 @@ struct EdgeLinkedList {
         })
     }
     
-    @inlinable
     mutating func remove(index: Int) {
         nodes.withUnsafeMutableBufferPointer({ buffer in
             let node = buffer[index]
@@ -95,7 +92,6 @@ struct EdgeLinkedList {
         free.append(index)
       }
 
-    @inlinable
     mutating func addAndMerge(anchorIndex: Int, newEdge: ShapeEdge) -> Int {
         if free.isEmpty {
             let newIndex = nodes.count
@@ -202,7 +198,6 @@ struct EdgeLinkedList {
         })
     }
     
-    @inlinable
     func edges() -> [ShapeEdge] {
         var result = [ShapeEdge]()
         result.reserveCapacity(nodes.count)
