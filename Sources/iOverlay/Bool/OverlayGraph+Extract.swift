@@ -162,9 +162,9 @@ private extension FillRule {
     func isFillBottom(fill: SegmentFill) -> Bool {
         switch self {
         case .subject:
-            return fill & SegmentFill.subjectTop == SegmentFill.subjectBottom
+            return fill & SegmentFill.subjectBottom == SegmentFill.subjectBottom
         case .clip:
-            return fill & SegmentFill.clipTop == SegmentFill.clipBottom
+            return fill & SegmentFill.clipBottom == SegmentFill.clipBottom
         case .intersect:
             return fill & SegmentFill.bothBottom == SegmentFill.bothBottom
         case .union:
