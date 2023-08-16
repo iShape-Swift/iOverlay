@@ -28,3 +28,24 @@ import iFixFloat
 import iShape
 import iOverlay
 ```
+
+
+<p align="center">
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/self-intersecting.svg" width="500"/>
+</p>
+
+<p align="center">
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/union.svg" width="500"/>
+</p>
+
+<p align="center">
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/difference.svg" width="500"/>
+</p>
+
+<p align="center">
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/intersection.svg" width="500"/>
+</p>
+
+<p align="center">
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/exclusion.svg" width="500"/>
+</p>
