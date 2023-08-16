@@ -16,6 +16,7 @@ The iOverlay is a poly-bool library that supports main operations such as union,
 - Supports any degenerate cases including identical edges and points
 - Handles any count of overlaps, resolving them with the even-odd rule
 - Utilizes integer math for computation
+- Non-Raster Algorithm: The library does not employ a raster algorithm, differentiating it from similar polygon clipping solutions
 
 
 
