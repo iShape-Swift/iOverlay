@@ -75,22 +75,27 @@ let xor = graph.extractShapes(fillRule: FillRule.xor)
 let xor = graph.extractShapes(fillRule: FillRule.subject)
 ```
 
+### Union
 <p align="center">
 <img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/union.svg" width="500"/>
 </p>
 
+### Difference
 <p align="center">
 <img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/difference.svg" width="500"/>
 </p>
 
+### Intersection
 <p align="center">
 <img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/intersection.svg" width="500"/>
 </p>
 
+### Exclusion (xor)
 <p align="center">
 <img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/exclusion.svg" width="500"/>
 </p>
 
+### Self-intersection
 <p align="center">
 <img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/self-intersecting.svg" width="500"/>
 </p>
