@@ -61,7 +61,7 @@ overlay.add(path: [
     Vec(-4,  24).fix,
     Vec( 4,  24).fix,
     Vec( 4, -24).fix
-], type: ShapeType.subject)
+], type: ShapeType.clip)
 
 // make overlay graph
 let graph = overlay.buildGraph()
