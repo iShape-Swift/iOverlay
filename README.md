@@ -4,27 +4,33 @@
 <img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/balloons.svg" width="500"/>
 </p>
 
-Poly bool library, which is support main operatioons like union, intersection, difference, xor and self intersection by evenodd rule. An algorithm is based on Vatti clipping ideas but original impementation.
+The iOverlay is a poly-bool library that supports main operations such as union, intersection, difference, xor, and self-intersection by the even-odd rule. This algorithm is based on Vatti clipping ideas but is an original implementation.
+
+
 
 ## Features
 
-- Suported operations union, intersection, difference, xor and self intersection
+- Supports main operations such as union, intersection, difference, xor, and self-intersection
+- Handles any kind of polygons including self-intersected ones and those with holes
+- Adheres to "Data-Oriented Design" with no reference types like classes, just structs
+- Supports any degenerate cases including identical edges and points
+- Handles any count of overlaps, resolving them with the even-odd rule
+- Utilizes integer math for computation
 
-- Supports any kind of polygons self intersected, with holes etc
 
-- All code is written to suit "Data Oriented Design". No reference type like class, just structs.
 
-- Any degenerate case are suported same edge, same points etc
-- 
-- Any count of overlaps are suported and will be resolved with even odd rule
+## Working Range and Precision
+The iOverlay library operates within the following ranges and precision levels:
 
-- Use int math for computation
+Extended Range: From -1,000,000 to 1,000,000 with a precision of 0.001.
+Recommended Range: From -100,000 to 100,000 with a precision of 0.01 for more accurate results.
+Utilizing the library within the recommended range ensures optimal accuracy in computations and is advised for most use cases.
 
----
+
 
 ## Basic Usage
 
-Add import:
+Add the following imports:
 ```swift
 import iFixFloat
 import iShape
