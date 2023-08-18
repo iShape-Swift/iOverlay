@@ -33,6 +33,11 @@ public struct Overlay {
         self.add(paths: paths, shapeCount: count)
     }
     
+    public mutating func add(shape: FixShape, type: ShapeType) {
+        let count = type == .clip ? ShapeCount(subj: 0, clip: 1) : ShapeCount(subj: 1, clip: 0)
+        self.add(paths: shape.paths, shapeCount: count)
+    }
+    
     private mutating func add(paths: [FixPath], shapeCount: ShapeCount) {
         for path in paths {
             self.add(path: path, shapeCount: shapeCount)

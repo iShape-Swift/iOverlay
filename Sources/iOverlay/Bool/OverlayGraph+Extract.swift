@@ -58,7 +58,7 @@ public extension OverlayGraph {
             }
             
             var bestShape = shapes[bestShapeIndex]
-            bestShape.holes.append(hole.path)
+            bestShape.addHole(hole.path)
             
             shapes[bestShapeIndex] = bestShape
         }
