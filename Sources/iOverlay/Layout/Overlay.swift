@@ -91,7 +91,6 @@ public struct Overlay {
                 let shape = clip | subj
 
                 let segment = Segment(
-                    i: segments.count,
                     a: edge.a,
                     b: edge.b,
                     shape: shape,

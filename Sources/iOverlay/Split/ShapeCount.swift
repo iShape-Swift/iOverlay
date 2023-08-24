@@ -7,8 +7,6 @@
 
 public struct ShapeCount {
 
-    var isEmpty: Bool { subj < 0 && clip < 0 }
-
     var isEven: Bool { subj % 2 == 0 && clip % 2 == 0 }
     
     public let subj: Int
