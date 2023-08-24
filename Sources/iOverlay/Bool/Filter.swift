@@ -8,7 +8,7 @@
 import iShape
 import iFixFloat
 
-extension OverlayGraph {
+extension Array where Element == OverlayLink {
 
     func filter(fillRule: FillRule) -> [Bool] {
         switch fillRule {
@@ -28,11 +28,11 @@ extension OverlayGraph {
     }
     
     private func filterSubject() -> [Bool] {
-        let n = links.count
+        let n = self.count
         var skip = [Bool](repeating: false, count: n)
         
         for i in 0..<n {
-            let fill = links[i].fill
+            let fill = self[i].fill
             
             // Skip edge if it it inside or not belong subject
             
@@ -46,11 +46,11 @@ extension OverlayGraph {
     }
     
     private func filterClip() -> [Bool] {
-        let n = links.count
+        let n = self.count
         var skip = [Bool](repeating: false, count: n)
         
         for i in 0..<n {
-            let fill = links[i].fill
+            let fill = self[i].fill
             
             // Skip edge if it it inside or not belong clip
             
@@ -64,11 +64,11 @@ extension OverlayGraph {
     }
     
     private func filterIntersect() -> [Bool] {
-        let n = links.count
+        let n = self.count
         var skip = [Bool](repeating: false, count: n)
         
         for i in 0..<n {
-            let fill = links[i].fill
+            let fill = self[i].fill
             
             // Skip edge if it not from same side. If edge is inside for one polygon is ok too
             
@@ -87,11 +87,11 @@ extension OverlayGraph {
     }
     
     private func filterUnion() -> [Bool] {
-        let n = links.count
+        let n = self.count
         var skip = [Bool](repeating: false, count: n)
         
         for i in 0..<n {
-            let fill = links[i].fill
+            let fill = self[i].fill
 
             // Skip edge if it has polygon from both sides (subject or clip). One side must be empty
             
@@ -105,11 +105,11 @@ extension OverlayGraph {
     }
     
     private func filterDifference() -> [Bool] {
-        let n = links.count
+        let n = self.count
         var skip = [Bool](repeating: false, count: n)
         
         for i in 0..<n {
-            let fill = links[i].fill
+            let fill = self[i].fill
             
             // Skip edge if it does not have only subject side
             
@@ -123,11 +123,11 @@ extension OverlayGraph {
     }
     
     private func filterXOR() -> [Bool] {
-        let n = links.count
+        let n = self.count
         var skip = [Bool](repeating: false, count: n)
 
         for i in 0..<n {
-            let fill = links[i].fill
+            let fill = self[i].fill
             
             // Skip edge if clip and subject share it
             

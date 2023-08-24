@@ -11,7 +11,7 @@ import iFixFloat
 public extension OverlayGraph {
 
     func extractShapes(fillRule: FillRule, minArea: FixFloat = 16) -> [FixShape] {
-        var visited = self.filter(fillRule: fillRule)
+        var visited = self.links.filter(fillRule: fillRule)
 
         var holes = [Contour]()
         var shapes = [FixShape]()
@@ -244,4 +244,11 @@ private extension FixPath {
 
         return y
     }
+}
+
+private struct Contour {
+    let path: FixPath       // Array of points in clockwise order
+    let boundary: FixBnd    // Smallest bounding box of the path
+    let start: FixVec       // Leftmost point in the path
+    let isCavity: Bool      // True if path is an internal cavity (hole), false if external (hull)
 }
