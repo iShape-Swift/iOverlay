@@ -46,7 +46,6 @@ extension Array where Element == ShapeEdge {
                 
                 // Try to intersect the current segment with all the segments in the scan list.
                 while sIndex != -1 {
-                    
                     let scanEdge = list[sIndex]
                     
                     assert(scanEdge.a != scanEdge.b)
@@ -60,7 +59,7 @@ extension Array where Element == ShapeEdge {
                     
                     switch cross.type {
                     case .not_cross:
-                        break
+                        sIndex = scanList.next(index: sIndex)
                     case .pure:
                         // If the two segments intersect at a point that isn't an end point of either segment...
                         
@@ -258,9 +257,6 @@ extension Array where Element == ShapeEdge {
                         
                         continue mainLoop
                     }
-                    
-                    sIndex = scanList.next(index: sIndex)
-                    
                 } // for scanList
                 
                 // no intersections, add to scan
