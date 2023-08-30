@@ -14,8 +14,8 @@ Try out iOverlay with an interactive demo. The demo covers operations like union
 
 ## Features
 
-- Supports all basic set operations such as union, intersection, difference, exclusion, and self-intersection.
-- Capable of handling various types of polygons, including self-intersecting polygons, multiple paths, and polygons with holes.
+- Supports all basic set operations such as union, intersection, difference, exclusion and self-intersection.
+- Capable of handling various types of polygons, including self-intersecting polygons, multiple paths and polygons with holes.
 - Optimizes by removing unnecessary vertices and merging parallel edges.
 - Effectively handles an arbitrary number of overlaps, resolving them using the even-odd rule.
 - Employs integer arithmetic for computations.
