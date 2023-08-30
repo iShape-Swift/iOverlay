@@ -14,13 +14,11 @@ Try out iOverlay with an interactive demo. The demo covers operations like union
 
 ## Features
 
-- Supports main operations such as union, intersection, difference, xor, and self-intersection
-- Handles any kind of polygons including self-intersected ones and those with holes
-- Adheres to "Data-Oriented Design" with no reference types like classes, just structs
-- Supports any degenerate cases including identical edges and points
-- Handles any count of overlaps, resolving them with the even-odd rule
-- Utilizes integer math for computation
-- Non-Raster Algorithm: The library does not employ a raster algorithm
+- Supports all basic set operations such as union, intersection, difference, exclusion, and self-intersection.
+- Capable of handling various types of polygons, including self-intersecting polygons, multiple paths, and polygons with holes.
+- Optimizes by removing unnecessary vertices and merging parallel edges.
+- Effectively handles an arbitrary number of overlaps, resolving them using the even-odd rule.
+- Employs integer arithmetic for computations.
 
 
 
