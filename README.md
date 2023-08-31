@@ -1,22 +1,24 @@
 # iOverlay
 
 <p align="center">
-<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/balloons.svg" width="500"/>
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/balloons.svg" width="250"/>
 </p>
 
 The iOverlay is a poly-bool library that supports main operations such as union, intersection, difference, xor, and self-intersection by the even-odd rule. This algorithm is based on Vatti clipping ideas but is an original implementation.
+
+## [Demo](https://ishape-rust.github.io/i_shape_js/demo/stars_demo.html)
+Try out iOverlay with an interactive demo. The demo covers operations like union, intersection, and difference.
+[Demo](https://ishape-rust.github.io/i_shape_js/demo/stars_demo.html)
 
 
 
 ## Features
 
-- Supports main operations such as union, intersection, difference, xor, and self-intersection
-- Handles any kind of polygons including self-intersected ones and those with holes
-- Adheres to "Data-Oriented Design" with no reference types like classes, just structs
-- Supports any degenerate cases including identical edges and points
-- Handles any count of overlaps, resolving them with the even-odd rule
-- Utilizes integer math for computation
-- Non-Raster Algorithm: The library does not employ a raster algorithm
+- Supports all basic set operations such as union, intersection, difference, exclusion and self-intersection.
+- Capable of handling various types of polygons, including self-intersecting polygons, multiple paths and polygons with holes.
+- Optimizes by removing unnecessary vertices and merging parallel edges.
+- Effectively handles an arbitrary number of overlaps, resolving them using the even-odd rule.
+- Employs integer arithmetic for computations.
 
 
 
@@ -83,27 +85,27 @@ let xor = graph.extractShapes(fillRule: FillRule.subject)
 ```
 
 ### Union
-<p align="center">
-<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/union.svg" width="500"/>
+<p align="left">
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/union.svg" width="250"/>
 </p>
 
 ### Difference
-<p align="center">
-<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/difference.svg" width="500"/>
+<p align="left">
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/difference.svg" width="250"/>
 </p>
 
 ### Intersection
-<p align="center">
-<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/intersection.svg" width="500"/>
+<p align="left">
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/intersection.svg" width="250"/>
 </p>
 
 ### Exclusion (xor)
-<p align="center">
-<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/exclusion.svg" width="500"/>
+<p align="left">
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/exclusion.svg" width="250"/>
 </p>
 
 ### Self-intersection
-<p align="center">
-<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/self-intersecting.svg" width="500"/>
+<p align="left">
+<img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/self-intersecting.svg" width="250"/>
 </p>
 
