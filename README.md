@@ -34,14 +34,31 @@ Utilizing the library within the recommended range ensures optimal accuracy in c
 
 
 
-## Basic Usage
+## Installation
 
-Add the following imports:
+Installing iOverlay is simple and easy using Swift Package Manager. Just follow these steps:
+
+- Open your Xcode project.
+- Select your project and open tab Package Dependencies.
+- Click on the "+" button.
+- In search bar enter ```https://github.com/iShape-Swift/iOverlay```
+- Click the "Add" button.
+- Wait for the package to be imported.
+- In your Swift code, add the following using statement to access the library:
+
 ```swift
 import iFixFloat
 import iShape
 import iOverlay
+```
 
+
+
+## Usage
+
+Here's an example of how you can create a square with a hole and union/differnce/intersect/xor with other polygon:
+
+```swift
 var overlay = Overlay()
 
 // add shape
