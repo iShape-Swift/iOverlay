@@ -56,7 +56,7 @@ import iOverlay
 
 ## Usage
 
-Here's an example of how you can create a square with a hole and union/differnce/intersect/xor with other polygon:
+Here's an example of how you can create a square with a hole and *union / differnce / intersect / xor* with other polygon:
 
 ```swift
 var overlay = Overlay()
