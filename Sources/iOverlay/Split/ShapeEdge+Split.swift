@@ -228,8 +228,8 @@ extension Array where Element == ShapeEdge {
                         
                         assert(thisLt.isLess(thisRt))
                         
-                        let scanLt = ShapeEdge(a: scanEdge.a, b: xScan, count: thisEdge.count)
-                        let scanRt = ShapeEdge(a: xScan, b: scanEdge.b, count: thisEdge.count)
+                        let scanLt = ShapeEdge(a: scanEdge.a, b: xScan, count: scanEdge.count)
+                        let scanRt = ShapeEdge(a: xScan, b: scanEdge.b, count: scanEdge.count)
                         
                         assert(scanLt.isLess(scanRt))
                         
