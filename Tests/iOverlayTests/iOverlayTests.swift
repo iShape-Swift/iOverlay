@@ -317,4 +317,64 @@ final class iOverlayTests: XCTestCase {
     func test_70() throws {
         self.execute(index: 70)
     }
+    
+    func test_71() throws {
+        self.execute(index: 71)
+    }
+    
+    func test_72() throws {
+        self.execute(index: 72)
+    }
+    
+    func test_73() throws {
+        self.execute(index: 73)
+    }
+    
+    func test_74() throws {
+        self.execute(index: 74)
+    }
+    
+    func test_75() throws {
+        self.execute(index: 75)
+    }
+    
+    func test_76() throws {
+        self.execute(index: 76)
+    }
+    
+    func test_77() throws {
+        self.execute(index: 77)
+    }
+    
+    func test_78() throws {
+        self.execute(index: 78)
+    }
+    
+    func test_79() throws {
+        self.execute(index: 79)
+    }
+
+    func test_80() throws {
+        self.execute(index: 80)
+    }
+    
+    func test_81() throws {
+        self.execute(index: 81)
+    }
+    
+    func test_82() throws {
+        self.execute(index: 82)
+    }
+    
+    func test_83() throws {
+        self.execute(index: 83)
+    }
+    
+    func test_84() throws {
+        self.execute(index: 84)
+    }
+    
+    func test_85() throws {
+        self.execute(index: 85)
+    }
 }
