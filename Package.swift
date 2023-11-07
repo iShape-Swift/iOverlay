@@ -24,6 +24,10 @@ let package = Package(
             dependencies: ["iFixFloat", "iShape"]),
         .testTarget(
             name: "iOverlayTests",
-            dependencies: ["iOverlay"]),
+            dependencies: ["iOverlay"],
+            resources: [
+                .process("Overlay")
+            ]
+        ),
     ]
 )
