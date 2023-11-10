@@ -15,7 +15,7 @@ extension Array where Element == ShapeEdge {
         
         var list = EdgeLinkedList(edges: self)
         
-        var scanList = ScanList(count: list.count)
+        var scanList = ScanList2(count: list.count)
         
         var needToFix = true
         
@@ -42,16 +42,18 @@ extension Array where Element == ShapeEdge {
                 
                 let scanPos = thisEdge.aBitPack
                 
-                var sIndex = scanList.first
+                var scanIndex = 0
                 
                 // Try to intersect the current segment with all the segments in the scan list.
-                while sIndex != -1 {
+                while scanIndex < scanList.count {
+                    let sIndex = scanList[scanIndex]
                     let scanEdge = list[sIndex]
                     
                     assert(scanEdge.a != scanEdge.b)
                     
                     if scanEdge.bBitPack <= scanPos || scanEdge.count.isEven {
-                        sIndex = scanList.removeAndGetNext(index: sIndex)
+                        scanList.removeByReplace(index: scanIndex)
+//                        scanList.remove(index: scanIndex)
                         continue
                     }
 
@@ -59,7 +61,7 @@ extension Array where Element == ShapeEdge {
                     
                     switch cross.type {
                     case .not_cross:
-                        sIndex = scanList.next(index: sIndex)
+                        scanIndex += 1
                     case .pure:
                         // If the two segments intersect at a point that isn't an end point of either segment...
                         
@@ -87,9 +89,10 @@ extension Array where Element == ShapeEdge {
                         list.remove(index: sIndex)
 
                         scanList.add(index: newScanLeft)
-                        scanList.remove(index: sIndex)
-                        scanList.remove(index: eIndex)
+//                        scanList.remove(index: sIndex)
+                        scanList.removeByReplace(index: scanIndex)
                         scanList.removeAllLessOrEqual(edge: thisLt, list: list)
+                        scanList.remove(index: eIndex)
 
                         // new point must be exactly on the same line
                         let isBend = thisEdge.isNotSameLine(x) || scanEdge.isNotSameLine(x)
@@ -174,8 +177,9 @@ extension Array where Element == ShapeEdge {
 
                         list.remove(index: sIndex)
 
+                        scanList.removeByReplace(index: scanIndex)
                         scanList.add(index: newScanLeft)
-                        scanList.remove(index: sIndex)
+//                        scanList.remove(index: sIndex)
                         scanList.removeAllLessOrEqual(edge: thisEdge, list: list)
 
                         // new point must be exactly on the same line
@@ -203,8 +207,9 @@ extension Array where Element == ShapeEdge {
 
                         list.remove(index: sIndex)
                         
+                        scanList.removeByReplace(index: sIndex)
                         scanList.add(index: newScan0)
-                        scanList.remove(index: sIndex)
+//                        scanList.remove(index: sIndex)
                         scanList.removeAllLessOrEqual(edge: thisEdge, list: list)
 
                         let isBend = scanEdge.isNotSameLine(thisEdge.a) || scanEdge.isNotSameLine(thisEdge.b)
@@ -242,8 +247,9 @@ extension Array where Element == ShapeEdge {
                         list.remove(index: eIndex)
                         list.remove(index: sIndex)
                         
+                        scanList.removeByReplace(index: sIndex)
                         scanList.add(index: newScanLeft)
-                        scanList.remove(index: sIndex)
+//                        scanList.remove(index: sIndex)
                         scanList.remove(index: eIndex)
                         scanList.removeAllLessOrEqual(edge: thisEdge, list: list)
 

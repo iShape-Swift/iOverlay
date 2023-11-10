@@ -43,7 +43,7 @@ extension Array where Element == Segment {
                     let scan = scanList[j]
 
                     if scan.b.x <= x {
-                        scanList.remove(at: j)
+                        scanList.remove(at: j) // TODO swapRemove ???
                     } else {
 
                         if scan.a == segm.a {

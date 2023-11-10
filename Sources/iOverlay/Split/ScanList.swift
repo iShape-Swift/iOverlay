@@ -151,3 +151,70 @@ struct ScanList {
         }
     }
 }
+
+
+struct ScanList2 {
+    
+    private var items: [Int]
+    
+    var count: Int {
+        items.count
+    }
+    
+    subscript(index: Int) -> Int {
+        items[index]
+    }
+
+    init(count: Int) {
+        items = [Int]()
+        let capacity = 2 * Int(Double(count).squareRoot())
+        items.reserveCapacity(capacity)
+    }
+
+    mutating func add(index: Int) {
+        guard !items.contains(where: { $0 == index }) else {
+            return
+        }
+        items.append(index)
+    }
+
+    mutating func remove(index: Int) {
+        guard let index = items.first(where: { $0 == index }) else {
+            return
+        }
+        self.removeByReplace(index: index)
+    }
+    
+    mutating func clear() {
+        items.removeAll()
+    }
+
+    mutating func removeAllLessOrEqual(edge: ShapeEdge, list: EdgeLinkedList) {
+        var i = 0
+        while i < items.count {
+            let item = items[i]
+            let scanEdge = list[item]
+            if edge.isLessOrEqual(scanEdge) {
+                self.removeByReplace(index: item)
+            } else {
+                i += 1
+            }
+        }
+    }
+
+    mutating func validate(list: EdgeLinkedList) {
+        for item in items {
+            let scanEdge = list[item]
+            assert(scanEdge.a != scanEdge.b)
+        }
+    }
+    
+    mutating func removeByReplace(index: Int) {
+        if index + 1 < items.count {
+            items[index] = items.removeLast()
+        } else {
+            items.removeLast()
+        }
+    }
+    
+}
