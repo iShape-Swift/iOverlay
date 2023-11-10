@@ -43,7 +43,7 @@ extension Array where Element == Segment {
                     let scan = scanList[j]
 
                     if scan.b.x <= x {
-                        scanList.remove(at: j)
+                        scanList.swapRemove(at: j)
                     } else {
 
                         if scan.a == segm.a {
@@ -83,6 +83,14 @@ extension Array where Element == Segment {
                 
                 k += 1
             }
+        }
+    }
+    
+    mutating func swapRemove(at index: Int) {
+        if index + 1 < count {
+            self[index] = self.removeLast()
+        } else {
+            self.removeLast()
         }
     }
 }
