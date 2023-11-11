@@ -33,8 +33,7 @@ extension Array where Element == Segment {
                 }
             }
             
-            var k = i0
-            while k < i {
+            for k in i0..<i {
                 var segm = self[k]
                 
                 var j = 0
@@ -43,7 +42,7 @@ extension Array where Element == Segment {
                     let scan = scanList[j]
 
                     if scan.b.x <= x {
-                        scanList.remove(at: j) // TODO swapRemove ???
+                        scanList.swapRemove(at: j)
                     } else {
 
                         if scan.a == segm.a {
@@ -80,9 +79,15 @@ extension Array where Element == Segment {
                 segm.fill = subjFill | clipFill
                 
                 self[k] = segm
-                
-                k += 1
             }
+        }
+    }
+    
+    private mutating func swapRemove(at index: Int) {
+        if index + 1 < count {
+            self[index] = self.removeLast()
+        } else {
+            self.removeLast()
         }
     }
 }

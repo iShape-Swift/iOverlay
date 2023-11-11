@@ -237,12 +237,11 @@ private extension FixPath {
     }
     
     private static func getVerticalIntersection(p0: FixVec, p1: FixVec, p: FixVec) -> Int64 {
-        let k = (p0.y - p1.y) / (p0.x - p1.x)
-        let b = p0.y - k * p0.x
-        
-        let y = k * p.x + b
+        let y01 = p0.y - p1.y
+        let x01 = p0.x - p1.x
+        let xx0 = p.x - p0.x
 
-        return y
+        return (y01 * xx0) / x01 + p0.y
     }
 }
 
