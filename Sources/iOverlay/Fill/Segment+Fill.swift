@@ -11,6 +11,8 @@ extension Array where Element == Segment {
     
     mutating func fill() {
         var scanList = [Segment]()
+        let capacity = 2 * Int(Double(self.count).squareRoot())
+        scanList.reserveCapacity(capacity)
         
         let n = self.count
         var i = 0
@@ -45,7 +47,7 @@ extension Array where Element == Segment {
                         scanList.swapRemove(at: j)
                     } else {
 
-                        if scan.a == segm.a {
+                        if scan.a.x == segm.a.x && scan.a.y == segm.a.y {
                             // have a common point "a"
 
                             if Triangle.isClockwise(p0: scan.a, p1: segm.b, p2: scan.b) {
