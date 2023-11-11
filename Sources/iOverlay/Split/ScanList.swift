@@ -32,13 +32,17 @@ struct ScanList {
         }
         items.append(index)
     }
-
-    mutating func clear() {
-        items.removeAll()
+    
+    mutating func unsafeAdd(index: Int) {
+        items.append(index)
     }
 
-    mutating func removeByReplace(index: Int) {
-        if index + 1 < items.count {
+    mutating func clear() {
+        items.removeAll(keepingCapacity: true)
+    }
+
+    mutating func removeBySwap(index: Int) {
+        if index < items.count - 1 {
             items[index] = items.removeLast()
         } else {
             items.removeLast()

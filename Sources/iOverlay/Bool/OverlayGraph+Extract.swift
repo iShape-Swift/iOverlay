@@ -37,7 +37,10 @@ public extension OverlayGraph {
         }
         
         // find for each hole its shape
-        for hole in holes {
+        var holeCounter = [Int: Int]()
+        var holeShape = [Int](repeating: 0, count: holes.count)
+        holeCounter.reserveCapacity(holes.count)
+        for (index, hole) in holes.enumerated() {
             var minDist = Int64.max
             var bestShapeIndex = -1
 
@@ -57,10 +60,17 @@ public extension OverlayGraph {
                 }
             }
             
-            var bestShape = shapes[bestShapeIndex]
-            bestShape.addHole(hole.path)
-            
-            shapes[bestShapeIndex] = bestShape
+            holeShape[index] = bestShapeIndex
+            holeCounter[bestShapeIndex, default: 0] += 1
+        }
+        
+        for (shapeIndex, holeCount) in holeCounter {
+            shapes[shapeIndex].paths.reserveCapacity(holeCount + 1)
+        }
+        
+        for (index, hole) in holes.enumerated() {
+            let shapeIndex = holeShape[index]
+            shapes[shapeIndex].addHole(hole.path)
         }
         
         return shapes

@@ -39,7 +39,6 @@ extension Array where Element == ShapeEdge {
                 }
                 
                 let scanPos = thisEdge.aBitPack
-                let scanEnd = thisEdge.bBitPack
                 
                 var scanIndex = 0
                 
@@ -49,14 +48,16 @@ extension Array where Element == ShapeEdge {
                     let scanNode = list.nodes[sIndex]
                     let scanEdge = scanNode.edge
                     
-                    // scan list can contain not valide edges like splited, not actual or deleted
-                    if scanEdge.bBitPack <= scanPos || scanEdge.count.isEven || scanEnd <= scanEdge.aBitPack || scanNode.isRemoved {
-                        scanList.removeByReplace(index: scanIndex)
+                    // scan list can contain not valide edges
+                    if scanEdge.bBitPack <= scanPos ||  // edge is behind scan line
+                        scanEdge.count.isEven ||        // overlaps count is even
+                        thisEdge.isLess(scanEdge) ||    // edge is forward then this, we will add it again later
+                        scanNode.isRemoved              // edge is not actual
+                    {
+                        scanList.removeBySwap(index: scanIndex)
                         continue
                     }
 
-                    assert(scanEdge.isLess(thisEdge))
-                    
                     let cross = thisEdge.cross(scanEdge)
                     
                     switch cross.type {
@@ -234,7 +235,7 @@ extension Array where Element == ShapeEdge {
                 } // for scanList
                 
                 // no intersections, add to scan
-                scanList.add(index: eIndex)
+                scanList.unsafeAdd(index: eIndex)
                 
                 eIndex = eNode.next
                 
