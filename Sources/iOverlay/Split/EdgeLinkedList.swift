@@ -14,6 +14,9 @@ struct EdgeNode {
     var next: Int
     var prev: Int
     var edge: ShapeEdge
+    var isRemoved: Bool {
+        next == -1 && prev == -1
+    }
 }
 
 
@@ -25,14 +28,6 @@ struct EdgeLinkedList {
 
     @inline(__always)
     var count: Int { nodes.count }
-
-    @inline(__always)
-    subscript(index: Int) -> ShapeEdge {
-        @inline(__always)
-        get {
-            nodes[index].edge
-        }
-    }
     
     init(edges: [ShapeEdge]) {
         let plusCapacity = 16

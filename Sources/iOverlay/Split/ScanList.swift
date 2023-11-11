@@ -106,7 +106,7 @@ struct ScanList {
         
         // Try to intersect the current segment with all the segments in the scan list.
         while sIndex != -1 {
-            let scanEdge = list[sIndex]
+            let scanEdge = list.nodes[sIndex].edge
             if edge.isLessOrEqual(scanEdge) {
                 sIndex = self.removeAndGetNext(index: sIndex)
                 continue
@@ -145,7 +145,7 @@ struct ScanList {
         
         // Try to intersect the current segment with all the segments in the scan list.
         while sIndex != -1 {
-            let scanEdge = list[sIndex]
+            let scanEdge = list.nodes[sIndex].edge
             assert(scanEdge.a != scanEdge.b)
             sIndex = self.next(index: sIndex)
         }
@@ -193,7 +193,7 @@ struct ScanList2 {
         var i = 0
         while i < items.count {
             let item = items[i]
-            let scanEdge = list[item]
+            let scanEdge = list.nodes[item].edge
             if edge.isLessOrEqual(scanEdge) {
                 self.removeByReplace(index: item)
             } else {
@@ -204,7 +204,7 @@ struct ScanList2 {
 
     mutating func validate(list: EdgeLinkedList) {
         for item in items {
-            let scanEdge = list[item]
+            let scanEdge = list.nodes[item].edge
             assert(scanEdge.a != scanEdge.b)
         }
     }
