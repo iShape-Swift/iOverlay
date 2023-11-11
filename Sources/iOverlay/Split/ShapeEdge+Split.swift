@@ -50,9 +50,9 @@ extension Array where Element == ShapeEdge {
                     
                     // scan list can contain not valide edges
                     if scanEdge.bBitPack <= scanPos ||  // edge is behind scan line
-                        scanEdge.count.isEven ||        // overlaps count is even
                         thisEdge.isLess(scanEdge) ||    // edge is forward then this, we will add it again later
-                        scanNode.isRemoved              // edge is not actual
+                        scanNode.isRemoved ||           // edge is not actual
+                        scanEdge.count.isEven           // overlaps count is even
                     {
                         scanList.removeBySwap(index: scanIndex)
                         continue
