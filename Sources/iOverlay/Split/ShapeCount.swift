@@ -27,4 +27,3 @@ public struct ShapeCount {
         return ShapeCount(subj: subjCnt, clip: clipCnt)
     }
 }
-

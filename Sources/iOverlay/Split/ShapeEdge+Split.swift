@@ -15,7 +15,7 @@ extension Array where Element == ShapeEdge {
         
         var list = EdgeLinkedList(edges: self)
         
-        var scanList = ScanList2(count: list.count)
+        var scanList = ScanList(count: list.count)
         
         var needToFix = true
         
@@ -33,10 +33,8 @@ extension Array where Element == ShapeEdge {
                 
                 if thisEdge.count.isEven {
                     list.remove(index: eIndex)
-                    scanList.remove(index: eIndex)
                     eIndex = eNode.next
-                    
-                    scanList.validate(list: list)
+
                     continue
                 }
                 
@@ -57,7 +55,7 @@ extension Array where Element == ShapeEdge {
                         continue
                     }
 
-                    assert(scanEdge.a != scanEdge.b)
+                    assert(scanEdge.isLess(thisEdge))
                     
                     let cross = thisEdge.cross(scanEdge)
                     
@@ -65,7 +63,7 @@ extension Array where Element == ShapeEdge {
                     case .not_cross:
                         scanIndex += 1
                     case .pure:
-                        // If the two segments intersect at a point that isn't an end point of either segment...
+                        // if the two segments intersect at a point that isn't an end point of either segment...
                         
                         let x = cross.point
 
