@@ -84,20 +84,6 @@ public struct ShapeEdge {
             return b0 < b1
         }
     }
-    
-    @inline(__always)
-    func isLessOrEqual(_ other: ShapeEdge) -> Bool {
-        let a0 = aBitPack
-        let a1 = other.aBitPack
-        if a0 != a1 {
-            return a0 < a1
-        } else {
-            let b0 = bBitPack
-            let b1 = other.bBitPack
-            
-            return b0 <= b1
-        }
-    }
 
     @inline(__always)
     func isEqual(_ other: ShapeEdge) -> Bool {

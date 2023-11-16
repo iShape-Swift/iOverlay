@@ -51,18 +51,7 @@ struct EdgeLinkedList {
         
         first = 0
     }
-    
-    func nextNode(index: Int) -> EdgeNode {
-        nodes.withUnsafeBufferPointer({ buffer in
-            let nextIndex = buffer[index].next
-            if nextIndex != -1 {
-                return buffer[nextIndex]
-            } else {
-                return .empty
-            }
-        })
-    }
-    
+
     mutating func remove(index: Int) {
         nodes.withUnsafeMutableBufferPointer({ buffer in
             let node = buffer[index]

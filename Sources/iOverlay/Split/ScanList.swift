@@ -20,9 +20,8 @@ struct ScanList {
         items[index]
     }
 
-    init(count: Int) {
+    init(capacity: Int) {
         items = [Int]()
-        let capacity = 2 * Int(Double(count).squareRoot())
         items.reserveCapacity(capacity)
     }
 

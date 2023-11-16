@@ -15,7 +15,9 @@ extension Array where Element == ShapeEdge {
         
         var list = EdgeLinkedList(edges: self)
         
-        var scanList = ScanList(count: list.count)
+        let capacity = 3 * Int(Double(list.count).squareRoot())
+        
+        var scanList = ScanList(capacity: capacity)
         
         var needToFix = true
         
@@ -48,7 +50,7 @@ extension Array where Element == ShapeEdge {
                     let scanNode = list.nodes[sIndex]
                     let scanEdge = scanNode.edge
                     
-                    // scan list can contain not valide edges
+                    // scan list can contain not valid edges
                     if scanEdge.bBitPack <= scanPos ||  // edge is behind scan line
                         thisEdge.isLess(scanEdge) ||    // edge is forward then this, we will add it again later
                         scanNode.isRemoved ||           // edge is not actual
@@ -68,7 +70,7 @@ extension Array where Element == ShapeEdge {
                         
                         let x = cross.point
 
-                        // devide both segments
+                        // divide both segments
                         
                         let thisLt = ShapeEdge(a: thisEdge.a, b: x, count: thisEdge.count)
                         let thisRt = ShapeEdge(a: x, b: thisEdge.b, count: thisEdge.count)
@@ -99,11 +101,11 @@ extension Array where Element == ShapeEdge {
                         
                         continue mainLoop
                     case .end_b:
-                        // scan edge end devide this edge into 2 parts
+                        // scan edge end divide this edge into 2 parts
                         
                         let x = cross.point
                         
-                        // devide this edge
+                        // divide this edge
                         
                         let thisLt = ShapeEdge(a: thisEdge.a, b: x, count: thisEdge.count)
                         let thisRt = ShapeEdge(a: x, b: thisEdge.b, count: thisEdge.count)
@@ -146,11 +148,11 @@ extension Array where Element == ShapeEdge {
                         
                         continue mainLoop
                     case .end_a:
-                        // this edge end devide scan edge into 2 parts
+                        // this edge end divide scan edge into 2 parts
                         
                         let x = cross.point
 
-                        // devide scan edge
+                        // divide scan edge
                         
                         let scanLt = ShapeEdge(a: scanEdge.a, b: x, count: scanEdge.count)
                         let scanRt = ShapeEdge(a: x, b: scanEdge.b, count: scanEdge.count)
@@ -201,7 +203,7 @@ extension Array where Element == ShapeEdge {
                         let xThis = cross.point
                         let xScan = cross.second
 
-                        // devide both segments
+                        // divide both segments
                         
                         let thisLt = ShapeEdge(a: thisEdge.a, b: xThis, count: thisEdge.count)
                         let thisRt = ShapeEdge(a: xThis, b: thisEdge.b, count: thisEdge.count)
