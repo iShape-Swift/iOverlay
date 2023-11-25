@@ -20,7 +20,7 @@ public struct ShapeEdge {
     
     let aBitPack: Int64
     let bBitPack: Int64
-    
+
     let count: ShapeCount
     
     let maxY: Int64
@@ -72,26 +72,16 @@ public struct ShapeEdge {
 
     @inline(__always)
     func isLess(_ other: ShapeEdge) -> Bool {
-        let a0 = aBitPack
-        let a1 = other.aBitPack
-        if a0 != a1 {
-            return a0 < a1
+        if aBitPack != other.aBitPack {
+            return aBitPack < other.aBitPack
         } else {
-            let b0 = bBitPack
-            let b1 = other.bBitPack
-            
-            return b0 < b1
+            return bBitPack < other.bBitPack
         }
     }
 
     @inline(__always)
     func isEqual(_ other: ShapeEdge) -> Bool {
-        let a0 = aBitPack
-        let a1 = other.aBitPack
-        let b0 = bBitPack
-        let b1 = other.bBitPack
-        
-        return a0 == a1 && b0 == b1
+        aBitPack == other.aBitPack && bBitPack == other.bBitPack
     }
 
 }

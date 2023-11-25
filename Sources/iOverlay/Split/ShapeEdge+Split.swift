@@ -55,11 +55,12 @@ extension Array where Element == ShapeEdge {
                         continue
                     }
 
-                    let cross = thisEdge.cross(scanEdge)
+                    guard let cross = thisEdge.cross(scanEdge) else {
+                        scanIndex += 1
+                        continue
+                    }
                     
                     switch cross.type {
-                    case .not_cross:
-                        scanIndex += 1
                     case .pure:
                         // if the two segments intersect at a point that isn't an end point of either segment...
                         
@@ -246,9 +247,9 @@ extension Array where Element == ShapeEdge {
 
 private extension ShapeEdge {
 
-    func cross(_ edge: ShapeEdge) -> EdgeCross {
+    func cross(_ edge: ShapeEdge) -> EdgeCross? {
         if edge.maxY < minY || edge.minY > maxY {
-            return EdgeCross.notCross
+            return nil
         } else {
             return self.edge.cross(edge.edge)
         }

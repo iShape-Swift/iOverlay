@@ -8,19 +8,20 @@
 let emptyIndex: UInt32 = .max
 
 struct EdgeLinkedListNode {
-
-    static let empty: EdgeLinkedListNode = EdgeLinkedListNode(
-        next: emptyIndex,
-        prev: emptyIndex,
-        edge: .zero
-    )
+    fileprivate (set) var next: UInt32
+    fileprivate var prev: UInt32
+    fileprivate (set) var edge: ShapeEdge
     
-    var next: UInt32
-    var prev: UInt32
-    var edge: ShapeEdge
-    
+    @inline(__always)
     var isRemoved: Bool {
         edge.count.isEven
+    }
+    
+    @inline(__always)
+    fileprivate mutating func clear() {
+        next = emptyIndex
+        prev = emptyIndex
+        edge = .zero
     }
 
 }
@@ -28,7 +29,7 @@ struct EdgeLinkedListNode {
 struct EdgeLinkedList {
     
     private var free: [UInt32]
-    var nodes: [EdgeLinkedListNode]
+    private (set) var nodes: [EdgeLinkedListNode]
     private (set) var firstIndex: UInt32
     
     var count: Int { nodes.count }
@@ -36,7 +37,9 @@ struct EdgeLinkedList {
     init(edges: ArraySlice<ShapeEdge>) {
         nodes = [EdgeLinkedListNode]()
         
-        let capacity = edges.count + 16
+        let extraCapacity = min(16, edges.count / 2)
+        
+        let capacity = edges.count + extraCapacity
         nodes.reserveCapacity(capacity)
         
         var index: UInt32 = 0
@@ -54,7 +57,7 @@ struct EdgeLinkedList {
         
         while i >= n {
             free.append(i)
-            nodes.append(EdgeLinkedListNode.empty)
+            nodes.append(EdgeLinkedListNode(next: emptyIndex, prev: emptyIndex, edge: .zero))
             i -= 1
         }
         
@@ -78,7 +81,7 @@ struct EdgeLinkedList {
             nodes[Int(node.next)] = next
         }
         
-        nodes[Int(index)] = .empty
+        nodes[Int(index)].clear()
         
         free.append(index)
     }
@@ -89,10 +92,10 @@ struct EdgeLinkedList {
     
     mutating func findFromStart(edge: ShapeEdge) -> UInt32 {
         if firstIndex != emptyIndex {
-            let first = self.nodes[Int(firstIndex)]
-            if first.edge.isEqual(edge) {
+            let firstEdge = self.nodes[Int(firstIndex)].edge
+            if firstEdge.isEqual(edge) {
                 return firstIndex
-            } else if edge.isLess(first.edge) {
+            } else if edge.isLess(firstEdge) {
                 let oldFirst = firstIndex
                 firstIndex = self.anyFree()
                 self.nodes[Int(oldFirst)].prev = firstIndex
@@ -108,99 +111,68 @@ struct EdgeLinkedList {
     }
     
     private mutating func findBack(fromIndex: UInt32, edge: ShapeEdge) -> UInt32 {
+        var nodePrev = nodes[Int(fromIndex)].prev
         var nextIndex = fromIndex
-        var next = nodes[Int(nextIndex)]
-        
-        assert(!next.isRemoved)
-        
-        while next.prev != emptyIndex {
-            let prevIndex = next.prev
-            var prev = nodes[Int(prevIndex)]
-            if prev.edge.isEqual(edge) {
-                return prevIndex
-            } else if prev.edge.isLess(edge) {
+
+        while nodePrev != emptyIndex {
+            let prevEdge = nodes[Int(nodePrev)].edge
+            if prevEdge.isEqual(edge) {
+                return nodePrev
+            } else if prevEdge.isLess(edge) {
                 // insert new
                 let newIndex = self.anyFree()
-                var newNode = EdgeLinkedListNode.empty
                 
-                prev.next = newIndex
-                next.prev = newIndex
-                
-                newNode.next = nextIndex
-                newNode.prev = prevIndex
-                
-                nodes[Int(prevIndex)] = prev
-                nodes[Int(newIndex)] = newNode
-                nodes[Int(nextIndex)] = next
+                nodes[Int(nodePrev)].next = newIndex
+                nodes[Int(newIndex)].next = nextIndex
+                nodes[Int(newIndex)].prev = nodePrev
+                nodes[Int(nextIndex)].prev = newIndex
                 
                 return newIndex
             }
             
-            nextIndex = prevIndex
-            next = prev
+            nextIndex = nodePrev
+            nodePrev = nodes[Int(nodePrev)].prev
         }
 
         // insert new as first
-        let newIndex = self.anyFree()
-        var newNode = EdgeLinkedListNode.empty
+        firstIndex = self.anyFree()
         
-        firstIndex = newIndex
-        next.prev = newIndex
+        nodes[Int(firstIndex)].next = nextIndex
+        nodes[Int(nextIndex)].prev = firstIndex
         
-        newNode.next = nextIndex
-        
-        nodes[Int(newIndex)] = newNode
-        nodes[Int(nextIndex)] = next
-        
-        return newIndex
+        return firstIndex
     }
 
     private mutating func findForward(fromIndex: UInt32, edge: ShapeEdge) -> UInt32 {
-        var prev = nodes[Int(fromIndex)]
+        var prevNext = nodes[Int(fromIndex)].next
         var prevIndex = fromIndex
-
-        assert(!prev.isRemoved)
         
-        while prev.next != emptyIndex {
-            let nextIndex = prev.next
-            var next = nodes[Int(nextIndex)]
-            if next.edge.isEqual(edge) {
+        while prevNext != emptyIndex {
+            let nextIndex = prevNext
+            let nextEdge = nodes[Int(nextIndex)].edge
+            if nextEdge.isEqual(edge) {
                 return nextIndex
-            } else if edge.isLess(next.edge) {
+            } else if edge.isLess(nextEdge) {
                 // insert new
                 let newIndex = self.anyFree()
-                var newNode = EdgeLinkedListNode.empty
                 
-                prev.next = newIndex
-                next.prev = newIndex
-                
-                newNode.next = nextIndex
-                newNode.prev = prevIndex
-                
-                nodes[Int(prevIndex)] = prev
-                nodes[Int(newIndex)] = newNode
-                nodes[Int(nextIndex)] = next
+                nodes[Int(prevIndex)].next = newIndex
+                nodes[Int(newIndex)].next = nextIndex
+                nodes[Int(newIndex)].prev = prevIndex
+                nodes[Int(nextIndex)].prev = newIndex
                 
                 return newIndex
             }
             
             prevIndex = nextIndex
-            prev = next
-            if prev.edge.isEqual(edge) {
-                return fromIndex
-            }
+            prevNext = nodes[Int(nextIndex)].next
         }
         
         // insert new as last
         let newIndex = self.anyFree()
-        var newNode = EdgeLinkedListNode.empty
-        
-        prev.next = newIndex
-        
-        newNode.prev = prevIndex
 
-        nodes[Int(prevIndex)] = prev
-        nodes[Int(newIndex)] = newNode
+        nodes[Int(prevIndex)].next = newIndex
+        nodes[Int(newIndex)].prev = prevIndex
 
         return newIndex
     }
@@ -223,7 +195,7 @@ struct EdgeLinkedList {
     private mutating func anyFree() -> UInt32 {
         if free.isEmpty {
             let newIndex = nodes.count
-            nodes.append(EdgeLinkedListNode.empty)
+            nodes.append(EdgeLinkedListNode(next: emptyIndex, prev: emptyIndex, edge: .zero))
             return UInt32(newIndex)
         } else {
             return free.removeLast()

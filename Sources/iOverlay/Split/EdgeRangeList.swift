@@ -9,7 +9,7 @@ struct EdgeRangeList {
     
     private var ranges: [Int64]
     private var lists: [EdgeLinkedList]
-    private static let rangeLength: Int = 128
+    private static let rangeLength: Int = 2
     
     func edge(index: CompositeIndex) -> ShapeEdge {
         self.lists[Int(index.main)].nodes[Int(index.list)].edge
