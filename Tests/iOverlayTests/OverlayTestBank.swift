@@ -67,3 +67,91 @@ struct OverlayTestBank {
     }
 }
 
+extension FixShape {
+    
+    func compare(_ other: FixShape) -> Bool {
+        guard self.paths.count == other.paths.count else {
+            return false
+        }
+        
+        for i in 0..<paths.count {
+            if self.compare(other.paths, shift: i) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    
+    func compare(_ other: [FixPath], shift: Int) -> Bool {
+        let n = paths.count
+        for i in 0..<n {
+            let a0 = paths[i]
+            let a1 = other[(i + shift) % n]
+            if !a0.compare(a1) {
+                return false
+            }
+        }
+        return true
+    }
+
+}
+
+extension Array where Element == FixShape {
+    
+    func compare(_ other: [FixShape]) -> Bool {
+        guard self.count == other.count else {
+            return false
+        }
+        for i in 0..<count {
+            if self.compare(other, shift: i) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    func compare(_ other: [FixShape], shift: Int) -> Bool {
+        let n = self.count
+        for i in 0..<n {
+            let a0 = self[i]
+            let a1 = other[(i + shift) % n]
+            if !a0.compare(a1) {
+                return false
+            }
+        }
+        return true
+    }
+
+}
+
+extension FixPath {
+    
+    func compare(_ other: FixPath) -> Bool {
+        guard self.count == other.count else {
+            return false
+        }
+        for i in 0..<count {
+            if self.compare(other, shift: i) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    func compare(_ other: FixPath, shift: Int) -> Bool {
+        let n = self.count
+        for i in 0..<n {
+            let a0 = self[i]
+            let a1 = other[(i + shift) % n]
+            if a0 != a1 {
+                return false
+            }
+        }
+        return true
+    }
+
+}

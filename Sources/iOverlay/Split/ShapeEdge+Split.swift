@@ -13,9 +13,9 @@ extension Array where Element == ShapeEdge {
     mutating func split() {
         // at this moment array is sorted
         
-        var list = EdgeLinkedList(edges: self)
+        var list = EdgeRangeList(edges: self)
         
-        let capacity = 3 * Int(Double(list.count).squareRoot())
+        let capacity = 3 * Int(Double(self.count).squareRoot())
         
         var scanList = ScanList(capacity: capacity)
         
@@ -25,17 +25,14 @@ extension Array where Element == ShapeEdge {
             scanList.clear()
             needToFix = false
             
-            var eIndex = list.first
+            var eIndex = list.first()
 
         mainLoop:
-            while eIndex >= 0 {
-                let eNode = list.nodes[eIndex]
+            while eIndex.isValid {
+                let thisEdge = list.edge(index: eIndex)
 
-                let thisEdge = eNode.edge
-                
                 if thisEdge.count.isEven {
-                    list.remove(index: eIndex)
-                    eIndex = eNode.next
+                    eIndex = list.removeAndNext(index: eIndex)
 
                     continue
                 }
@@ -47,13 +44,11 @@ extension Array where Element == ShapeEdge {
                 // Try to intersect the current segment with all the segments in the scan list.
                 while scanIndex < scanList.count {
                     let sIndex = scanList[scanIndex]
-                    let scanNode = list.nodes[sIndex]
-                    let scanEdge = scanNode.edge
+                    let scanEdge = list.edge(index: sIndex)
                     
                     // scan list can contain not valid edges
                     if scanEdge.bBitPack <= scanPos ||  // edge is behind scan line
                         thisEdge.isLess(scanEdge) ||    // edge is forward then this, we will add it again later
-                        scanNode.isRemoved ||           // edge is not actual
                         scanEdge.count.isEven           // overlaps count is even
                     {
                         scanList.removeBySwap(index: scanIndex)
@@ -239,26 +234,24 @@ extension Array where Element == ShapeEdge {
                 // no intersections, add to scan
                 scanList.unsafeAdd(index: eIndex)
                 
-                eIndex = eNode.next
+                eIndex = list.next(index: eIndex)
                 
             } // while mainLoop
         }
         
-        
         self = list.edges()
     }
-   
 }
 
 
 private extension ShapeEdge {
 
     func cross(_ edge: ShapeEdge) -> EdgeCross {
-        guard edge.minY <= maxY && edge.maxY >= minY else {
+        if edge.maxY < minY || edge.minY > maxY {
             return EdgeCross.notCross
+        } else {
+            return self.edge.cross(edge.edge)
         }
-
-        return self.edge.cross(edge.edge)
     }
 
     @inline(__always)

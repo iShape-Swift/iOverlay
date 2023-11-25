@@ -10,29 +10,29 @@ import iFixFloat
 
 struct ScanList {
     
-    private var items: [Int]
+    private var items: [CompositeIndex]
     
     var count: Int {
         items.count
     }
     
-    subscript(index: Int) -> Int {
+    subscript(index: Int) -> CompositeIndex {
         items[index]
     }
 
     init(capacity: Int) {
-        items = [Int]()
+        items = [CompositeIndex]()
         items.reserveCapacity(capacity)
     }
 
-    mutating func add(index: Int) {
+    mutating func add(index: CompositeIndex) {
         guard !items.contains(where: { $0 == index }) else {
             return
         }
         items.append(index)
     }
     
-    mutating func unsafeAdd(index: Int) {
+    mutating func unsafeAdd(index: CompositeIndex) {
         items.append(index)
     }
 

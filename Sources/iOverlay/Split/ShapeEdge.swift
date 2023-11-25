@@ -19,7 +19,6 @@ public struct ShapeEdge {
     public let b: FixVec        // end
     
     let aBitPack: Int64
-    
     let bBitPack: Int64
     
     let count: ShapeCount
