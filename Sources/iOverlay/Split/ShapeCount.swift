@@ -9,10 +9,10 @@ public struct ShapeCount {
 
     var isEven: Bool { subj % 2 == 0 && clip % 2 == 0 }
     
-    public let subj: Int
-    public let clip: Int
+    public private (set) var subj: Int32
+    public private (set) var clip: Int32
 
-    init(subj: Int, clip: Int) {
+    init(subj: Int32, clip: Int32) {
         self.subj = subj
         self.clip = clip
     }

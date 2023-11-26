@@ -21,7 +21,7 @@ public struct ShapeEdge {
     let aBitPack: Int64
     let bBitPack: Int64
 
-    let count: ShapeCount
+    var count: ShapeCount
     
     let maxY: Int64
     let minY: Int64

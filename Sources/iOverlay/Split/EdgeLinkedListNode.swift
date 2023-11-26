@@ -90,6 +90,10 @@ struct EdgeLinkedList {
         self.nodes[Int(index)].edge = edge
     }
     
+    mutating func update(index: UInt32, count: ShapeCount) {
+        self.nodes[Int(index)].edge.count = count
+    }
+    
     mutating func findFromStart(edge: ShapeEdge) -> UInt32 {
         if firstIndex != emptyIndex {
             let firstEdge = self.nodes[Int(firstIndex)].edge
@@ -116,9 +120,7 @@ struct EdgeLinkedList {
 
         while nodePrev != emptyIndex {
             let prevEdge = nodes[Int(nodePrev)].edge
-            if prevEdge.isEqual(edge) {
-                return nodePrev
-            } else if prevEdge.isLess(edge) {
+            if prevEdge.isLess(edge) {
                 // insert new
                 let newIndex = self.anyFree()
                 
@@ -128,6 +130,8 @@ struct EdgeLinkedList {
                 nodes[Int(nextIndex)].prev = newIndex
                 
                 return newIndex
+            } else if prevEdge.isEqual(edge) {
+                return nodePrev
             }
             
             nextIndex = nodePrev
@@ -150,9 +154,7 @@ struct EdgeLinkedList {
         while prevNext != emptyIndex {
             let nextIndex = prevNext
             let nextEdge = nodes[Int(nextIndex)].edge
-            if nextEdge.isEqual(edge) {
-                return nextIndex
-            } else if edge.isLess(nextEdge) {
+            if edge.isLess(nextEdge) {
                 // insert new
                 let newIndex = self.anyFree()
                 
@@ -162,6 +164,8 @@ struct EdgeLinkedList {
                 nodes[Int(nextIndex)].prev = newIndex
                 
                 return newIndex
+            } else if nextEdge.isEqual(edge) {
+                return nextIndex
             }
             
             prevIndex = nextIndex

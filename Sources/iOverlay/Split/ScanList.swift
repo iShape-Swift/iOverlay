@@ -16,8 +16,11 @@ struct ScanList {
         items.count
     }
     
+    @inline(__always)
     subscript(index: Int) -> CompositeIndex {
-        items[index]
+        items.withUnsafeBufferPointer { buffer in
+            buffer[index]
+        }
     }
 
     init(capacity: Int) {

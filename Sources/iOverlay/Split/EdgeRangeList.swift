@@ -10,9 +10,14 @@ struct EdgeRangeList {
     private var ranges: [Int64]
     private var lists: [EdgeLinkedList]
     private static let rangeLength: Int = 2
-    
+
     func edge(index: CompositeIndex) -> ShapeEdge {
-        self.lists[Int(index.main)].nodes[Int(index.list)].edge
+        self.lists.withUnsafeBufferPointer { listsBuffer -> ShapeEdge in
+            let mainList = listsBuffer.baseAddress!.advanced(by: Int(index.main)).pointee
+            return mainList.nodes.withUnsafeBufferPointer { nodesBuffer -> ShapeEdge in
+                nodesBuffer.baseAddress!.advanced(by: Int(index.list)).pointee.edge
+            }
+        }
     }
 
     func first() -> CompositeIndex {
@@ -30,7 +35,6 @@ struct EdgeRangeList {
         }
         
         return CompositeIndex(main: .max, list: .max)
-
     }
 
     func next(index: CompositeIndex) -> CompositeIndex {
@@ -57,17 +61,20 @@ struct EdgeRangeList {
     mutating func update(index: CompositeIndex, edge: ShapeEdge) {
         self.lists[Int(index.main)].update(index: index.list, edge: edge)
     }
+  
+    mutating func update(index: CompositeIndex, count: ShapeCount) {
+        self.lists[Int(index.main)].update(index: index.list, count: count)
+    }
     
     mutating func addAndMerge(anchorIndex: CompositeIndex, newEdge: ShapeEdge) -> CompositeIndex {
         let index = self.findIndex(anchorIndex: anchorIndex, edge: newEdge)
         let edge = self.edge(index: index)
         if edge.isEqual(newEdge) {
-            let count = edge.count.add(newEdge.count)
-            self.update(index: index, edge: ShapeEdge(parent: newEdge, count: count))
+            self.update(index: index, count: edge.count.add(newEdge.count))
         } else {
             self.update(index: index, edge: newEdge)
         }
-        
+
         return index
     }
     
@@ -130,7 +137,13 @@ struct EdgeRangeList {
     }
     
     func edges() -> [ShapeEdge] {
+        var n = 0
+        for list in lists {
+            n += list.nodes.count
+        }
         var result = [ShapeEdge]()
+        result.reserveCapacity(n)
+        
         var index = self.first()
 
         while index.isValid {
