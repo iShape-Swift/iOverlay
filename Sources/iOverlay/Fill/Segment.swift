@@ -8,19 +8,19 @@
 import iFixFloat
 import iShape
 
-public typealias SegmentFill = Int
+public typealias SegmentFill = UInt8
 
 public extension SegmentFill {
     
-    static let subjectTop       = 0b0001
-    static let subjectBottom    = 0b0010
-    static let clipTop          = 0b0100
-    static let clipBottom       = 0b1000
+    static let subjectTop: UInt8       = 0b0001
+    static let subjectBottom: UInt8    = 0b0010
+    static let clipTop: UInt8          = 0b0100
+    static let clipBottom: UInt8       = 0b1000
     
-    static let subjectBoth = subjectTop | subjectBottom
-    static let clipBoth = clipTop | clipBottom
-    static let bothTop = subjectTop | clipTop
-    static let bothBottom = subjectBottom | clipBottom
+    static let subjectBoth: UInt8 = subjectTop | subjectBottom
+    static let clipBoth: UInt8 = clipTop | clipBottom
+    static let bothTop: UInt8 = subjectTop | clipTop
+    static let bothBottom: UInt8 = subjectBottom | clipBottom
     
     static let fillAll = subjectBoth | clipBoth
 
@@ -55,9 +55,10 @@ public struct Segment {
     // start < end
     public let a: FixVec        // start
     public let b: FixVec        // end
+
     public let shape: ShapeType
     public var fill: SegmentFill
-
+    
     init(a: FixVec, b: FixVec, shape: ShapeType, fill: SegmentFill) {
         self.a = a
         self.b = b
