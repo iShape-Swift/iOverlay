@@ -10,45 +10,35 @@ import iFixFloat
 
 struct ScanList {
     
-    private var items: [CompositeIndex]
-    
-    var count: Int {
-        items.count
-    }
-    
-    @inline(__always)
-    subscript(index: Int) -> CompositeIndex {
-        items.withUnsafeBufferPointer { buffer in
-            buffer[index]
-        }
-    }
+    private var space: LineSpace<VersionedIndex>
 
-    init(capacity: Int) {
-        items = [CompositeIndex]()
-        items.reserveCapacity(capacity)
-    }
-
-    mutating func add(index: CompositeIndex) {
-        guard !items.contains(where: { $0 == index }) else {
-            return
+    init(edges: [ShapeEdge]) {
+        var yMin = Int64.max
+        var yMax = Int64.min
+        for edge in edges {
+            if edge.a.y > edge.b.y {
+                yMin = min(edge.b.y, yMin)
+                yMax = max(edge.a.y, yMax)
+            } else {
+                yMin = min(edge.a.y, yMin)
+                yMax = max(edge.b.y, yMax)
+            }
         }
-        items.append(index)
+        
+        let maxLevel = Int(Double(edges.count).squareRoot()).logTwo
+        
+        space = LineSpace(level: maxLevel, range: LineRange(min: Int32(yMin), max: Int32(yMax)))
     }
     
-    mutating func unsafeAdd(index: CompositeIndex) {
-        items.append(index)
+    mutating func iterateAllInRange(range: LineRange, callBack: (VersionedIndex) -> (IterCommand<VersionedIndex>)) -> Bool {
+        space.iterateSegmentsInRange(range: range, callback: callBack)
+    }
+    
+    mutating func insert(segment: LineSegment<VersionedIndex>) {
+        space.insert(segment: segment)
     }
 
     mutating func clear() {
-        items.removeAll(keepingCapacity: true)
+        space.clear()
     }
-
-    mutating func removeBySwap(index: Int) {
-        if index < items.count - 1 {
-            items[index] = items.removeLast()
-        } else {
-            items.removeLast()
-        }
-    }
-    
 }

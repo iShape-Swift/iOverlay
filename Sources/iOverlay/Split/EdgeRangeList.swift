@@ -10,87 +10,98 @@ struct EdgeRangeList {
     private var ranges: [Int64]
     private var lists: [EdgeLinkedList]
     private static let rangeLength: Int = 2
-
-    func edge(index: CompositeIndex) -> ShapeEdge {
+    
+    func edge(index: DualIndex) -> ShapeEdge {
         self.lists.withUnsafeBufferPointer { listsBuffer -> ShapeEdge in
-            let mainList = listsBuffer.baseAddress!.advanced(by: Int(index.main)).pointee
+            let mainList = listsBuffer.baseAddress!.advanced(by: Int(index.base)).pointee
             return mainList.nodes.withUnsafeBufferPointer { nodesBuffer -> ShapeEdge in
-                nodesBuffer.baseAddress!.advanced(by: Int(index.list)).pointee.edge
+                nodesBuffer.baseAddress!.advanced(by: Int(index.node)).pointee.edge
             }
         }
     }
+    
+    func validateEdge(vIndex: VersionedIndex) -> ShapeEdge? {
+        let node = self.lists[Int(vIndex.index.base)].nodes[Int(vIndex.index.node)]
+        if node.isRemoved {
+            return nil
+        } else {
+            return node.edge
+        }
+    }
 
-    func first() -> CompositeIndex {
+    func first() -> VersionedIndex {
         self.first(index: 0)
     }
     
-    private func first(index: UInt32) -> CompositeIndex {
+    private func first(index: UInt32) -> VersionedIndex {
         var i = Int(index)
         while i < lists.count {
             let firstIndex = lists[i].firstIndex
             if firstIndex != .max {
-                return CompositeIndex(main: UInt32(i), list: firstIndex)
+                let node = lists[i].nodes[Int(firstIndex)]
+                return VersionedIndex(version: node.version, index: .init(base: UInt32(i), node: firstIndex))
             }
             i += 1
         }
         
-        return CompositeIndex(main: .max, list: .max)
+        return .empty
     }
 
-    func next(index: CompositeIndex) -> CompositeIndex {
-        let node = lists[Int(index.main)].nodes[Int(index.list)]
+    func next(index: DualIndex) -> VersionedIndex {
+        let node = lists[Int(index.base)].nodes[Int(index.node)]
         if node.next != .max {
-            return CompositeIndex(main: index.main, list: node.next)
-        } else if index.main < lists.count {
-            return self.first(index: index.main + 1)
+            return VersionedIndex(version: node.version, index: .init(base: index.base, node: node.next))
+        } else if index.base < lists.count {
+            return self.first(index: index.base + 1)
         } else {
             return .empty
         }
     }
 
-    mutating func removeAndNext(index: CompositeIndex) -> CompositeIndex {
+    mutating func removeAndNext(index: DualIndex) -> VersionedIndex {
         let nextIndex = self.next(index: index)
-        self.lists[Int(index.main)].remove(index: index.list)
+        self.lists[Int(index.base)].remove(index: index.node)
         return nextIndex
     }
     
-    mutating func remove(index: CompositeIndex) {
-        self.lists[Int(index.main)].remove(index: index.list)
+    mutating func remove(index: DualIndex) {
+        self.lists[Int(index.base)].remove(index: index.node)
     }
     
-    mutating func update(index: CompositeIndex, edge: ShapeEdge) {
-        self.lists[Int(index.main)].update(index: index.list, edge: edge)
+    mutating func update(index: DualIndex, edge: ShapeEdge) -> UInt32  {
+        self.lists[Int(index.base)].update(index: index.node, edge: edge)
     }
   
-    mutating func update(index: CompositeIndex, count: ShapeCount) {
-        self.lists[Int(index.main)].update(index: index.list, count: count)
+    mutating func update(index: DualIndex, count: ShapeCount) -> UInt32 {
+        self.lists[Int(index.base)].update(index: index.node, count: count)
     }
     
-    mutating func addAndMerge(anchorIndex: CompositeIndex, newEdge: ShapeEdge) -> CompositeIndex {
+    mutating func addAndMerge(anchorIndex: DualIndex, newEdge: ShapeEdge) -> VersionedIndex {
         let index = self.findIndex(anchorIndex: anchorIndex, edge: newEdge)
         let edge = self.edge(index: index)
+        let version: UInt32
         if edge.isEqual(newEdge) {
-            self.update(index: index, count: edge.count.add(newEdge.count))
+            version = self.update(index: index, count: edge.count.add(newEdge.count))
         } else {
-            self.update(index: index, edge: newEdge)
+            version = self.update(index: index, edge: newEdge)
         }
 
-        return index
+        return VersionedIndex(version: version, index: index)
     }
     
-    mutating func findIndex(anchorIndex: CompositeIndex, edge: ShapeEdge) -> CompositeIndex {
+    mutating func findIndex(anchorIndex: DualIndex, edge: ShapeEdge) -> DualIndex {
         let a = edge.aBitPack
-        let mainIndex: UInt32
-        let listIndex: UInt32
-        if ranges[Int(anchorIndex.main)] < a && a <= ranges[Int(anchorIndex.main + 1)] {
-            mainIndex = anchorIndex.main
-            listIndex = lists[Int(mainIndex)].find(anchorIndex: anchorIndex.list, edge: edge)
+        let base: UInt32
+        let node: UInt32
+        if ranges[Int(anchorIndex.base)] < a && a <= ranges[Int(anchorIndex.base + 1)] {
+            base = anchorIndex.base
+            node = lists[Int(base)].find(anchorIndex: anchorIndex.node, edge: edge)
         } else {
-            mainIndex = UInt32(ranges.findIndex(target: a)) - 1 // -1 is ranges offset
-            listIndex = lists[Int(mainIndex)].findFromStart(edge: edge)
+            base = UInt32(ranges.findIndex(target: a)) - 1 // -1 is ranges offset
+            node = lists[Int(base)].findFromStart(edge: edge)
         }
 
-        return CompositeIndex(main: mainIndex, list: listIndex)
+        return DualIndex(base: base, node: node)
     }
     
     init(edges: [ShapeEdge]) {
@@ -144,11 +155,11 @@ struct EdgeRangeList {
         var result = [ShapeEdge]()
         result.reserveCapacity(n)
         
-        var index = self.first()
+        var vIndex = self.first()
 
-        while index.isValid {
-            result.append(edge(index: index))
-            index = self.next(index: index)
+        while vIndex.isNotNil {
+            result.append(edge(index: vIndex.index))
+            vIndex = self.next(index: vIndex.index)
         }
         
         return result

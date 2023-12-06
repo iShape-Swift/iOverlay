@@ -8,22 +8,41 @@
 let emptyIndex: UInt32 = .max
 
 struct EdgeLinkedListNode {
+    
+    fileprivate (set) var version: UInt32
     fileprivate (set) var next: UInt32
     fileprivate var prev: UInt32
-    fileprivate (set) var edge: ShapeEdge
+    private (set) var edge: ShapeEdge
     
     @inline(__always)
     var isRemoved: Bool {
-        edge.count.isEven
+        version == 0
     }
     
     @inline(__always)
     fileprivate mutating func clear() {
         next = emptyIndex
         prev = emptyIndex
+        #if DEBUG
         edge = .zero
+        #endif
+        version += 1
     }
 
+    @inline(__always)
+    mutating func update(edge: ShapeEdge) -> UInt32 {
+        self.version += 1
+        self.edge = edge
+        return version
+    }
+    
+    @inline(__always)
+    mutating func update(count: ShapeCount) -> UInt32 {
+        self.version += 1
+        self.edge.count = count
+        return version
+    }
+    
 }
 
 struct EdgeLinkedList {
@@ -44,7 +63,7 @@ struct EdgeLinkedList {
         
         var index: UInt32 = 0
         for edge in edges {
-            let node = EdgeLinkedListNode(next: index + 1, prev: index &- 1, edge: edge)
+            let node = EdgeLinkedListNode(version: 1, next: index + 1, prev: index &- 1, edge: edge)
             nodes.append(node)
             index += 1
         }
@@ -57,7 +76,7 @@ struct EdgeLinkedList {
         
         while i >= n {
             free.append(i)
-            nodes.append(EdgeLinkedListNode(next: emptyIndex, prev: emptyIndex, edge: .zero))
+            nodes.append(EdgeLinkedListNode(version: 0, next: emptyIndex, prev: emptyIndex, edge: .zero))
             i -= 1
         }
         
@@ -86,12 +105,12 @@ struct EdgeLinkedList {
         free.append(index)
     }
 
-    mutating func update(index: UInt32, edge: ShapeEdge) {
-        self.nodes[Int(index)].edge = edge
+    mutating func update(index: UInt32, edge: ShapeEdge) -> UInt32 {
+        self.nodes[Int(index)].update(edge: edge)
     }
     
-    mutating func update(index: UInt32, count: ShapeCount) {
-        self.nodes[Int(index)].edge.count = count
+    mutating func update(index: UInt32, count: ShapeCount) -> UInt32 {
+        self.nodes[Int(index)].update(count: count)
     }
     
     mutating func findFromStart(edge: ShapeEdge) -> UInt32 {
@@ -199,7 +218,7 @@ struct EdgeLinkedList {
     private mutating func anyFree() -> UInt32 {
         if free.isEmpty {
             let newIndex = nodes.count
-            nodes.append(EdgeLinkedListNode(next: emptyIndex, prev: emptyIndex, edge: .zero))
+            nodes.append(EdgeLinkedListNode(version: 1, next: emptyIndex, prev: emptyIndex, edge: .zero))
             return UInt32(newIndex)
         } else {
             return free.removeLast()

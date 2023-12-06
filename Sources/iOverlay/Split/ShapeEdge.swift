@@ -22,9 +22,13 @@ public struct ShapeEdge {
     let bBitPack: Int64
 
     var count: ShapeCount
-    
-    let maxY: Int64
-    let minY: Int64
+    var verticalRange: LineRange {
+        if a.y > b.y {
+            return LineRange(min: Int32(b.y), max: Int32(a.y))
+        } else {
+            return LineRange(min: Int32(a.y), max: Int32(b.y))
+        }
+    }
 
     @inline(__always)
     init(a: FixVec, b: FixVec, count: ShapeCount) {
@@ -43,14 +47,6 @@ public struct ShapeEdge {
             self.bBitPack = aBitPack
         }
         
-        if a.y < b.y {
-            maxY = b.y
-            minY = a.y
-        } else {
-            maxY = a.y
-            minY = b.y
-        }
-        
         self.count = count
     }
 
@@ -58,8 +54,6 @@ public struct ShapeEdge {
     init(parent: ShapeEdge, count: ShapeCount) {
         self.a = parent.a
         self.b = parent.b
-        self.minY = parent.minY
-        self.maxY = parent.maxY
         self.count = count
         self.aBitPack = parent.aBitPack
         self.bBitPack = parent.bBitPack
