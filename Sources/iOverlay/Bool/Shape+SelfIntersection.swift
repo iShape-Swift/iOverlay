@@ -12,7 +12,7 @@ public extension FixShape {
     func resolveSelfIntersection(minArea: Int64 = 16) -> [FixShape] {
         var overlay = Overlay(capacity: paths.count)
         overlay.add(paths: paths, type: .subject)
-        return overlay.buildGraph().extractShapes(fillRule: .subject, minArea: minArea)
+        return overlay.buildGraph().extractShapes(overlayRule: .subject, minArea: minArea)
     }
     
 }

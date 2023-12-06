@@ -19,12 +19,12 @@ final class iOverlayTests: XCTestCase {
         
         let graph = overlay.buildGraph()
         
-        let clip = graph.extractShapes(fillRule: .clip)
-        let subject = graph.extractShapes(fillRule: .subject)
-        let difference = graph.extractShapes(fillRule: .difference)
-        let intersect = graph.extractShapes(fillRule: .intersect)
-        let union = graph.extractShapes(fillRule: .union)
-        let xor = graph.extractShapes(fillRule: .xor)
+        let clip = graph.extractShapes(overlayRule: .clip)
+        let subject = graph.extractShapes(overlayRule: .subject)
+        let difference = graph.extractShapes(overlayRule: .difference)
+        let intersect = graph.extractShapes(overlayRule: .intersect)
+        let union = graph.extractShapes(overlayRule: .union)
+        let xor = graph.extractShapes(overlayRule: .xor)
 
         XCTAssertEqual(test.clip, clip)
         XCTAssertEqual(test.subject, subject)

@@ -10,8 +10,8 @@ import iFixFloat
 
 extension Array where Element == OverlayLink {
 
-    func filter(fillRule: FillRule) -> [Bool] {
-        switch fillRule {
+    func filter(overlayRule: OverlayRule) -> [Bool] {
+        switch overlayRule {
         case .subject:
             return filterSubject()
         case .clip:

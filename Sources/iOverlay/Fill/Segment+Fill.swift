@@ -46,15 +46,15 @@ extension Array where Element == Segment {
                     if scan.b.x <= x {
                         scanList.swapRemove(at: j)
                     } else {
-
+                        assert(scan.b.x > segm.a.x)
+                        
                         if scan.a.x == segm.a.x && scan.a.y == segm.a.y {
                             // have a common point "a"
 
                             if Triangle.isClockwise(p0: scan.a, p1: segm.b, p2: scan.b) {
                                 count = count.increment(shape: scan.shape)
                             }
-                            
-                        } else if scan.b.x > segm.a.x && Triangle.isClockwise(p0: scan.a, p1: segm.a, p2: scan.b) {
+                        } else if Triangle.isClockwise(p0: scan.a, p1: segm.a, p2: scan.b) {
                             count = count.increment(shape: scan.shape)
                         }
                         

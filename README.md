@@ -89,19 +89,19 @@ overlay.add(path: [
 let graph = overlay.buildGraph()
 
 // get union shapes
-let union = graph.extractShapes(fillRule: FillRule.union)
+let union = graph.extractShapes(overlayRule: OverlayRule.union)
 
 // get difference shapes
-let difference = graph.extractShapes(fillRule: FillRule.difference)
+let difference = graph.extractShapes(overlayRule: OverlayRule.difference)
 
 // get intersect shapes
-let intersect = graph.extractShapes(fillRule: FillRule.intersect)
+let intersect = graph.extractShapes(overlayRule: OverlayRule.intersect)
 
 // get exclusion shapes
-let xor = graph.extractShapes(fillRule: FillRule.xor)
+let xor = graph.extractShapes(overlayRule: OverlayRule.xor)
 
 // get clean shapes from subject, self intersections will be removed
-let xor = graph.extractShapes(fillRule: FillRule.subject)
+let xor = graph.extractShapes(overlayRule: OverlayRule.subject)
 ```
 
 ### Union

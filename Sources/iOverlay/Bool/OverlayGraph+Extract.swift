@@ -10,8 +10,8 @@ import iFixFloat
 
 public extension OverlayGraph {
 
-    func extractShapes(fillRule: FillRule, minArea: FixFloat = 16) -> [FixShape] {
-        var visited = self.links.filter(fillRule: fillRule)
+    func extractShapes(overlayRule: OverlayRule, minArea: FixFloat = 16) -> [FixShape] {
+        var visited = self.links.filter(overlayRule: overlayRule)
 
         var holes = [Contour]()
         var shapes = [FixShape]()
@@ -19,7 +19,7 @@ public extension OverlayGraph {
         
         for i in 0..<links.count {
             if !visited[i] {
-                let contour = self.getContour(fillRule: fillRule, minArea: minArea, index: i, visited: &visited)
+                let contour = self.getContour(overlayRule: overlayRule, minArea: minArea, index: i, visited: &visited)
                 
                 if !contour.path.isEmpty {
                     if contour.isCavity {
@@ -76,7 +76,7 @@ public extension OverlayGraph {
         return shapes
     }
     
-    private func getContour(fillRule: FillRule, minArea: FixFloat, index: Int, visited: inout [Bool]) -> Contour {
+    private func getContour(overlayRule: OverlayRule, minArea: FixFloat, index: Int, visited: inout [Bool]) -> Contour {
         var path = FixPath()
         var next = index
 
@@ -98,7 +98,7 @@ public extension OverlayGraph {
             if node.count == 2 {
                 next = node.other(index: next)
             } else {
-                let isFillTop = fillRule.isFillTop(fill: link.fill)
+                let isFillTop = overlayRule.isFillTop(fill: link.fill)
                 let isCW = OverlayGraph.isClockwise(a: a.point, b: b.point, isTopInside: isFillTop)
                 next = self.findNearestLinkTo(target: a, center: b, ignore: next, inClockWise: isCW, visited: visited)
                 guard next >= 0 else {
@@ -122,7 +122,7 @@ public extension OverlayGraph {
             
         } while next != index
 
-        let isCavity = fillRule.isFillBottom(fill: leftLink.fill)
+        let isCavity = overlayRule.isFillBottom(fill: leftLink.fill)
         
         path.validate(minArea: minArea)
         
@@ -147,7 +147,7 @@ public extension OverlayGraph {
 
 }
 
-private extension FillRule {
+private extension OverlayRule {
     
     func isFillTop(fill: SegmentFill) -> Bool {
         switch self {
