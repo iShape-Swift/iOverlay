@@ -13,9 +13,9 @@ extension Array where Element == ShapeEdge {
     mutating func split() {
         // at this moment array is sorted
         
-        var list = EdgeRangeList(edges: self)
+        var list = SplitRangeList(edges: self)
         
-        var scanList = ScanList(edges: self)
+        var scanList = SplitScanList(edges: self)
         
         var needToFix = true
         

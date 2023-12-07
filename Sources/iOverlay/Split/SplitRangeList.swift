@@ -1,14 +1,14 @@
 //
-//  EdgeRangeList.swift
+//  SplitRangeList.swift
 //
 //
 //  Created by Nail Sharipov on 22.11.2023.
 //
 
-struct EdgeRangeList {
+struct SplitRangeList {
     
     private var ranges: [Int64]
-    private var lists: [EdgeLinkedList]
+    private var lists: [SplitLinkedList]
     private static let rangeLength: Int = 2
     
     func edge(index: DualIndex) -> ShapeEdge {
@@ -115,7 +115,7 @@ struct EdgeRangeList {
         ranges.reserveCapacity(n + 1)
         ranges.append(Int64.min)
         
-        var lists = [EdgeLinkedList]()
+        var lists = [SplitLinkedList]()
         lists.reserveCapacity(n)
         
         let minLength = Self.rangeLength / 2 + 1
@@ -134,12 +134,12 @@ struct EdgeRangeList {
             
             if i + minLength >= edges.count {
                 let slice = edges[i0..<edges.count]
-                lists.append(EdgeLinkedList(edges: slice))
+                lists.append(SplitLinkedList(edges: slice))
                 ranges.append(Int64.max)
                 break
             } else {
                 let slice = edges[i0..<i]
-                lists.append(EdgeLinkedList(edges: slice))
+                lists.append(SplitLinkedList(edges: slice))
                 ranges.append(a.bitPack)
             }
         }

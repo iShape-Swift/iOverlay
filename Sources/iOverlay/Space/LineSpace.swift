@@ -17,9 +17,9 @@ struct LineContainer<Id> {
 
 struct LineSpace<Id> {
 
-    private let scale: Int
-    private let offset: Int
+    let scale: Int
     private let maxLevel: Int
+    private let offset: Int
     private var heap: [[LineSegment<Id>]]
     private var heapBuffer: [Int] = []
     private var searchBuffer: [LineContainer<Id>] = []
@@ -35,7 +35,7 @@ struct LineSpace<Id> {
         scale = dLog - maxLevel
         assert(scale > 0)
 
-        let size = Self.spaceCount(level: n)
+        let size = Self.spaceCount(level: maxLevel)
         heap = [[LineSegment]](repeating: [], count: size)
     }
     

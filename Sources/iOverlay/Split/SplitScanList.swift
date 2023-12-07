@@ -1,5 +1,5 @@
 //
-//  ScanList.swift
+//  SplitScanList.swift
 //  
 //
 //  Created by Nail Sharipov on 06.08.2023.
@@ -8,7 +8,7 @@
 import iShape
 import iFixFloat
 
-struct ScanList {
+struct SplitScanList {
     
     private var space: LineSpace<VersionedIndex>
 

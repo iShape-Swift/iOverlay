@@ -1,5 +1,5 @@
 //
-//  EdgeLinkedListNode.swift
+//  SplitLinkedList.swift
 //
 //
 //  Created by Nail Sharipov on 22.11.2023.
@@ -7,7 +7,7 @@
 
 let emptyIndex: UInt32 = .max
 
-struct EdgeLinkedListNode {
+struct SplitLinkedListNode {
     
     fileprivate (set) var version: UInt32
     fileprivate (set) var next: UInt32
@@ -45,16 +45,16 @@ struct EdgeLinkedListNode {
     
 }
 
-struct EdgeLinkedList {
+struct SplitLinkedList {
     
     private var free: [UInt32]
-    private (set) var nodes: [EdgeLinkedListNode]
+    private (set) var nodes: [SplitLinkedListNode]
     private (set) var firstIndex: UInt32
     
     var count: Int { nodes.count }
     
     init(edges: ArraySlice<ShapeEdge>) {
-        nodes = [EdgeLinkedListNode]()
+        nodes = [SplitLinkedListNode]()
         
         let extraCapacity = min(16, edges.count / 2)
         
@@ -63,7 +63,7 @@ struct EdgeLinkedList {
         
         var index: UInt32 = 0
         for edge in edges {
-            let node = EdgeLinkedListNode(version: 1, next: index + 1, prev: index &- 1, edge: edge)
+            let node = SplitLinkedListNode(version: 1, next: index + 1, prev: index &- 1, edge: edge)
             nodes.append(node)
             index += 1
         }
@@ -76,7 +76,7 @@ struct EdgeLinkedList {
         
         while i >= n {
             free.append(i)
-            nodes.append(EdgeLinkedListNode(version: 0, next: emptyIndex, prev: emptyIndex, edge: .zero))
+            nodes.append(SplitLinkedListNode(version: 0, next: emptyIndex, prev: emptyIndex, edge: .zero))
             i -= 1
         }
         
@@ -218,7 +218,7 @@ struct EdgeLinkedList {
     private mutating func anyFree() -> UInt32 {
         if free.isEmpty {
             let newIndex = nodes.count
-            nodes.append(EdgeLinkedListNode(version: 1, next: emptyIndex, prev: emptyIndex, edge: .zero))
+            nodes.append(SplitLinkedListNode(version: 1, next: emptyIndex, prev: emptyIndex, edge: .zero))
             return UInt32(newIndex)
         } else {
             return free.removeLast()
