@@ -10,23 +10,19 @@ struct LineSegment<Id> {
     let range: LineRange
 }
 
-enum IterCommand<Id> {
-    case next
-    case removeAndNext
-    case stop
-    case addAndStop(LineSegment<Id>)
+struct LineContainer<Id> {
+    let id: Id
+    let index: DualIndex
 }
 
 struct LineSpace<Id> {
-
-    typealias NextEdge = (Id) -> IterCommand<Id>
-    typealias Iteration = (Int) -> ()
 
     private let scale: Int
     private let offset: Int
     private let maxLevel: Int
     private var heap: [[LineSegment<Id>]]
-    private var iterationBuffer: [Int]
+    private var heapBuffer: [Int] = []
+    private var searchBuffer: [LineContainer<Id>] = []
 
     init(level n: Int, range: LineRange) {
         let xMin = Int(range.min)
@@ -41,9 +37,6 @@ struct LineSpace<Id> {
 
         let size = Self.spaceCount(level: n)
         heap = [[LineSegment]](repeating: [], count: size)
-        
-        iterationBuffer = []
-        iterationBuffer.reserveCapacity(size)
     }
     
     mutating func insert(segment: LineSegment<Id>) {
@@ -62,8 +55,8 @@ struct LineSpace<Id> {
         var iMin = Int(range.min) + offset
         var iMax = Int(range.max) + offset
         
-        let dif = (iMax - iMin) >> scale
-        let dLog = dif.logTwo + 1
+        let dif = (iMax - iMin) >> (scale - 1)
+        let dLog = dif.logTwo
         
         let level = max(0, maxLevel - dLog)
         let s = scale + dLog
@@ -77,11 +70,10 @@ struct LineSpace<Id> {
         return heapIndex
     }
     
-//#if DEBUG
     // Test purpose only, must be same logic as in iterateAllInRange
     func heapIndices(range: LineRange) -> [Int] {
         var result = [Int]()
-        self.fill(range: range, heapIndices: &result)
+        self.fillHeap(range: range, buffer: &result)
         return result
     }
     
@@ -99,11 +91,8 @@ struct LineSpace<Id> {
         
         return result
     }
-    
-//#endif
 
-    private func fill(range: LineRange, heapIndices: inout[Int]) {
-
+    private func fillHeap(range: LineRange, buffer: inout [Int]) {
         let x0 = Int(range.min) + offset
         let x1 = Int(range.max) + offset
         
@@ -116,7 +105,10 @@ struct LineSpace<Id> {
             let indexOffset = Self.spaceCount(level: level)
             
             for x in xLeft...xRight {
-                heapIndices.append(indexOffset + x)
+                let index = indexOffset + x
+                if !heap[index].isEmpty {
+                    buffer.append(index)
+                }
             }
 
             xLeft = xLeft >> 1
@@ -148,67 +140,45 @@ struct LineSpace<Id> {
             xRight = Swift.min(xRight, xMax)
             
             for x in xLeft...xRight {
-                heapIndices.append(indexOffset + x)
-            }
-        }
-
-        heapIndices.append(0)
-    }
-
-    mutating func iterateSegmentsInRange(range: LineRange, callback: NextEdge) -> Bool {
-        iterationBuffer.removeAll(keepingCapacity: true)
-        self.fill(range: range, heapIndices: &iterationBuffer)
-        
-        for index in iterationBuffer where !heap[index].isEmpty {
-            if self.iterate(index: index, range: range, callback: callback) {
-                return false
-            }
-        }
-        
-        return true
-    }
-    
-    private mutating func iterate(index: Int, range: LineRange, callback: NextEdge) -> Bool {
-        var list = heap[index]
-
-        var isModified = false
-        var isBreak = false
-        var i = 0
-        loop:
-        while i < list.count {
-            let segment = list[i]
-            if range.isOverlap(segment.range) {
-                let command = callback(segment.id)
-                
-                switch command {
-                case .next:
-                    break
-                case .removeAndNext:
-                    if i + 1 < list.count {
-                        list[i] = list.removeLast()
-                    } else {
-                        list.removeLast()
-                    }
-                    
-                    isModified = true
-                    continue
-                case .stop:
-                    isBreak = true
-                    break loop
-                case .addAndStop(let segment):
-                    self.insert(segment: segment)
-                    isBreak = true
-                    break loop
+                let index = indexOffset + x
+                if !heap[index].isEmpty {
+                    buffer.append(index)
                 }
             }
-            i += 1
         }
-        
-        if isModified {
-            heap[index] = list
+
+        if !heap[0].isEmpty {
+            buffer.append(0)
         }
-        
-        return isBreak
+    }
+    
+    mutating func allInRange(range: LineRange) -> [LineContainer<Id>] {
+        heapBuffer.removeAll(keepingCapacity: true)
+        self.fillHeap(range: range, buffer: &heapBuffer)
+
+        searchBuffer.removeAll(keepingCapacity: true)
+        for heapIndex in heapBuffer {
+            let segments = heap[heapIndex]
+
+            for segmentIndex in 0..<segments.count {
+                if range.isOverlap(segments[segmentIndex].range) {
+                    searchBuffer.append(.init(id: segments[segmentIndex].id, index: .init(major: UInt32(heapIndex), minor: UInt32(segmentIndex))))
+                }
+            }
+        }
+
+        return searchBuffer
+    }
+    
+    mutating func remove(index: DualIndex) {
+        let heapIndex = Int(index.major)
+        let listIndex = Int(index.minor)
+
+        if listIndex + 1 < heap[heapIndex].count {
+            heap[heapIndex][listIndex] = heap[heapIndex].removeLast()
+        } else {
+            heap[heapIndex].removeLast()
+        }
     }
     
     private static func spaceCount(level: Int) -> Int {
@@ -224,9 +194,7 @@ struct LineSpace<Id> {
         let second = secondLevel.powerOfTwo - secondLevel - 1
         return main + second
     }
-
 }
-
 
 extension Int {
     

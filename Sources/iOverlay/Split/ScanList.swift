@@ -30,12 +30,18 @@ struct ScanList {
         space = LineSpace(level: maxLevel, range: LineRange(min: Int32(yMin), max: Int32(yMax)))
     }
     
-    mutating func iterateAllInRange(range: LineRange, callBack: (VersionedIndex) -> (IterCommand<VersionedIndex>)) -> Bool {
-        space.iterateSegmentsInRange(range: range, callback: callBack)
+    mutating func allInRange(range: LineRange) -> [LineContainer<VersionedIndex>] {
+        space.allInRange(range: range)
     }
     
     mutating func insert(segment: LineSegment<VersionedIndex>) {
         space.insert(segment: segment)
+    }
+
+    mutating func remove(indices: [DualIndex]) {
+        for index in indices {
+            space.remove(index: index)
+        }
     }
 
     mutating func clear() {

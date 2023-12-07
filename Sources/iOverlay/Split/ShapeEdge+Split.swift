@@ -19,6 +19,8 @@ extension Array where Element == ShapeEdge {
         
         var needToFix = true
         
+        var idsToRemove = [DualIndex]()
+        
         while needToFix {
             scanList.clear()
             needToFix = false
@@ -34,17 +36,31 @@ extension Array where Element == ShapeEdge {
                     continue
                 }
                 
-                let vRange = thisEdge.verticalRange
+                let candidates = scanList.allInRange(range: thisEdge.verticalRange)
                 
-                let isCompleted = scanList.iterateAllInRange(range: vRange) { vIndex in
-                    guard let scanEdge = list.validateEdge(vIndex: vIndex), !scanEdge.isLess(thisEdge) else {
-                        return .removeAndNext
+                idsToRemove.removeAll(keepingCapacity: true)
+
+                var newScanSegment: LineSegment<VersionedIndex>? = nil
+                var isCross = false
+                
+            scan_loop:
+                for item in candidates {
+                    guard
+                        let scanEdge = list.validateEdge(vIndex: item.id),
+                        scanEdge.bBitPack > thisEdge.aBitPack
+                    else {
+                        idsToRemove.append(item.index)
+                        continue
                     }
 
                     guard let cross = thisEdge.edge.cross(scanEdge.edge) else {
-                        return .next
+                        continue
                     }
-
+                    
+                    let vIndex = item.id
+                    
+                    isCross = true
+                    
                     switch cross.type {
                     case .pure:
                         // if the two segments intersect at a point that isn't an end point of either segment...
@@ -78,7 +94,9 @@ extension Array where Element == ShapeEdge {
                         
                         eIndex = newThisLeft
                         
-                        return .addAndStop(.init(id: newScanLeft, range: scanLt.verticalRange))
+                        newScanSegment = .init(id: newScanLeft, range: scanLt.verticalRange)
+                        
+                        break scan_loop
                     case .end_b:
                         // scan edge end divide this edge into 2 parts
                         
@@ -101,8 +119,8 @@ extension Array where Element == ShapeEdge {
                         // new point must be exactly on the same line
                         let isBend = thisEdge.isNotSameLine(x)
                         needToFix = needToFix || isBend
-                        
-                        return .stop
+
+                        break scan_loop
                     case .overlay_b:
                         // split this into 3 segments
 
@@ -125,7 +143,7 @@ extension Array where Element == ShapeEdge {
                         
                         eIndex = newThis0
                         
-                        return .stop
+                        break scan_loop
                     case .end_a:
                         // this edge end divide scan edge into 2 parts
                         
@@ -149,7 +167,9 @@ extension Array where Element == ShapeEdge {
                         
                         // do not update eIndex
                         
-                        return .addAndStop(.init(id: newScanLeft, range: scanLt.verticalRange))
+                        newScanSegment = .init(id: newScanLeft, range: scanLt.verticalRange)
+                        
+                        break scan_loop
                     case .overlay_a:
                         // split scan into 3 segments
                         
@@ -171,7 +191,9 @@ extension Array where Element == ShapeEdge {
                         
                         // do not update eIndex
                         
-                        return .addAndStop(.init(id: newScan0, range: scan0.verticalRange))
+                        newScanSegment = .init(id: newScan0, range: scan0.verticalRange)
+                        
+                        break scan_loop
                     case .penetrate:
                         // penetrate each other
                         
@@ -205,15 +227,28 @@ extension Array where Element == ShapeEdge {
                         
                         eIndex = newThisLeft
                         
-                        return .addAndStop(.init(id: newScanLeft, range: scanLt.verticalRange))
+                        newScanSegment = .init(id: newScanLeft, range: scanLt.verticalRange)
+                        
+                        break scan_loop
                     }
                 }
-
-                if isCompleted {
-                    scanList.insert(segment: LineSegment<VersionedIndex>(id: eIndex, range: vRange))
+                
+                if !idsToRemove.isEmpty {
+                    scanList.remove(indices: idsToRemove)
+                    idsToRemove.removeAll(keepingCapacity: true)
+                }
+                
+                if isCross {
+                    if let scanSegement = newScanSegment {
+                        scanList.insert(segment: scanSegement)
+                    }
+                } else {
+                    scanList.insert(segment: LineSegment<VersionedIndex>(id: eIndex, range: thisEdge.verticalRange))
                     eIndex = list.next(index: eIndex.index)
                 }
+                
             } // while
+            
         } // while
         
         self = list.edges()

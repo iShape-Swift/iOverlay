@@ -13,16 +13,16 @@ struct EdgeRangeList {
     
     func edge(index: DualIndex) -> ShapeEdge {
         self.lists.withUnsafeBufferPointer { listsBuffer -> ShapeEdge in
-            let mainList = listsBuffer.baseAddress!.advanced(by: Int(index.base)).pointee
+            let mainList = listsBuffer.baseAddress!.advanced(by: Int(index.major)).pointee
             return mainList.nodes.withUnsafeBufferPointer { nodesBuffer -> ShapeEdge in
-                nodesBuffer.baseAddress!.advanced(by: Int(index.node)).pointee.edge
+                nodesBuffer.baseAddress!.advanced(by: Int(index.minor)).pointee.edge
             }
         }
     }
     
     func validateEdge(vIndex: VersionedIndex) -> ShapeEdge? {
-        let node = self.lists[Int(vIndex.index.base)].nodes[Int(vIndex.index.node)]
-        if node.isRemoved {
+        let node = self.lists[Int(vIndex.index.major)].nodes[Int(vIndex.index.minor)]
+        if node.version != vIndex.version {
             return nil
         } else {
             return node.edge
@@ -39,7 +39,7 @@ struct EdgeRangeList {
             let firstIndex = lists[i].firstIndex
             if firstIndex != .max {
                 let node = lists[i].nodes[Int(firstIndex)]
-                return VersionedIndex(version: node.version, index: .init(base: UInt32(i), node: firstIndex))
+                return VersionedIndex(version: node.version, index: .init(major: UInt32(i), minor: firstIndex))
             }
             i += 1
         }
@@ -48,11 +48,12 @@ struct EdgeRangeList {
     }
 
     func next(index: DualIndex) -> VersionedIndex {
-        let node = lists[Int(index.base)].nodes[Int(index.node)]
+        let node = lists[Int(index.major)].nodes[Int(index.minor)]
         if node.next != .max {
-            return VersionedIndex(version: node.version, index: .init(base: index.base, node: node.next))
-        } else if index.base < lists.count {
-            return self.first(index: index.base + 1)
+            let version = lists[Int(index.major)].nodes[Int(node.next)].version
+            return VersionedIndex(version: version, index: .init(major: index.major, minor: node.next))
+        } else if index.major < lists.count {
+            return self.first(index: index.major + 1)
         } else {
             return .empty
         }
@@ -60,20 +61,20 @@ struct EdgeRangeList {
 
     mutating func removeAndNext(index: DualIndex) -> VersionedIndex {
         let nextIndex = self.next(index: index)
-        self.lists[Int(index.base)].remove(index: index.node)
+        self.lists[Int(index.major)].remove(index: index.minor)
         return nextIndex
     }
     
     mutating func remove(index: DualIndex) {
-        self.lists[Int(index.base)].remove(index: index.node)
+        self.lists[Int(index.major)].remove(index: index.minor)
     }
     
     mutating func update(index: DualIndex, edge: ShapeEdge) -> UInt32  {
-        self.lists[Int(index.base)].update(index: index.node, edge: edge)
+        self.lists[Int(index.major)].update(index: index.minor, edge: edge)
     }
   
     mutating func update(index: DualIndex, count: ShapeCount) -> UInt32 {
-        self.lists[Int(index.base)].update(index: index.node, count: count)
+        self.lists[Int(index.major)].update(index: index.minor, count: count)
     }
     
     mutating func addAndMerge(anchorIndex: DualIndex, newEdge: ShapeEdge) -> VersionedIndex {
@@ -93,15 +94,15 @@ struct EdgeRangeList {
         let a = edge.aBitPack
         let base: UInt32
         let node: UInt32
-        if ranges[Int(anchorIndex.base)] < a && a <= ranges[Int(anchorIndex.base + 1)] {
-            base = anchorIndex.base
-            node = lists[Int(base)].find(anchorIndex: anchorIndex.node, edge: edge)
+        if ranges[Int(anchorIndex.major)] < a && a <= ranges[Int(anchorIndex.major + 1)] {
+            base = anchorIndex.major
+            node = lists[Int(base)].find(anchorIndex: anchorIndex.minor, edge: edge)
         } else {
             base = UInt32(ranges.findIndex(target: a)) - 1 // -1 is ranges offset
             node = lists[Int(base)].findFromStart(edge: edge)
         }
 
-        return DualIndex(base: base, node: node)
+        return DualIndex(major: base, minor: node)
     }
     
     init(edges: [ShapeEdge]) {

@@ -22,6 +22,7 @@ public struct ShapeEdge {
     let bBitPack: Int64
 
     var count: ShapeCount
+    
     var verticalRange: LineRange {
         if a.y > b.y {
             return LineRange(min: Int32(b.y), max: Int32(a.y))
