@@ -9,10 +9,10 @@ import iShape
 
 public extension FixShape {
     
-    func resolveSelfIntersection(minArea: Int64 = 16) -> [FixShape] {
+    func resolveSelfIntersection(fillRule: FillRule = .nonZero, minArea: Int64 = 0) -> [FixShape] {
         var overlay = Overlay(capacity: paths.count)
         overlay.add(paths: paths, type: .subject)
-        return overlay.buildGraph().extractShapes(overlayRule: .subject, minArea: minArea)
+        return overlay.buildGraph(fillRule: fillRule).extractShapes(overlayRule: .subject, minArea: minArea)
     }
     
 }

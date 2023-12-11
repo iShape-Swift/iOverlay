@@ -10,7 +10,7 @@ import iFixFloat
 
 public extension OverlayGraph {
 
-    func extractShapes(overlayRule: OverlayRule, minArea: FixFloat = 16) -> [FixShape] {
+    func extractShapes(overlayRule: OverlayRule, minArea: FixFloat = 0) -> [FixShape] {
         var visited = self.links.filter(overlayRule: overlayRule)
 
         var holes = [Contour]()
@@ -18,6 +18,9 @@ public extension OverlayGraph {
         var shapeBnds = [FixBnd]()
         
         for i in 0..<links.count {
+            if i < 1000 || i % 10000 == 0 {
+                print("i : \(i)")
+            }
             if !visited[i] {
                 let contour = self.getContour(overlayRule: overlayRule, minArea: minArea, index: i, visited: &visited)
                 
@@ -86,7 +89,7 @@ public extension OverlayGraph {
         var b = link.b
         
         var leftLink = link
-        
+
         var newVisited = [Int]()
 
         // find a closed tour
@@ -131,6 +134,8 @@ public extension OverlayGraph {
         }
 
         let boundary = !path.isEmpty ? FixBnd(points: path) : FixBnd.zero
+
+        print("path count \(path.count)")
         
         return Contour(path: path, boundary: boundary, start: leftLink.a.point, isCavity: isCavity)
     }
@@ -232,7 +237,7 @@ private extension FixPath {
                 }
                 
                 if a.x <= p.x && p.x <= b.x {
-                    let y = FixPath.getVerticalIntersection(p0: a, p1: b, p: p)
+                    let y = FixPath.getVerticalIntersection(p0: a, p1: b, x: p.x)
                     
                     if p.y > y && y > nearestY {
                         nearestY = y
@@ -242,14 +247,15 @@ private extension FixPath {
 
             p0 = pi
         }
+        assert(nearestY != Int64.min)
 
         return p.y - nearestY
     }
     
-    private static func getVerticalIntersection(p0: FixVec, p1: FixVec, p: FixVec) -> Int64 {
+    private static func getVerticalIntersection(p0: FixVec, p1: FixVec, x: FixFloat) -> Int64 {
         let y01 = p0.y - p1.y
         let x01 = p0.x - p1.x
-        let xx0 = p.x - p0.x
+        let xx0 = x - p0.x
 
         return (y01 * xx0) / x01 + p0.y
     }

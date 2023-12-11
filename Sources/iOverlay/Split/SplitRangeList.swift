@@ -148,21 +148,22 @@ struct SplitRangeList {
         self.lists = lists
     }
     
-    func edges() -> [ShapeEdge] {
+    func segments() -> [Segment] {
         var n = 0
         for list in lists {
             n += list.nodes.count
         }
-        var result = [ShapeEdge]()
+        var result = [Segment]()
         result.reserveCapacity(n)
         
         var vIndex = self.first()
 
         while vIndex.isNotNil {
-            result.append(edge(index: vIndex.index))
+            let e = edge(index: vIndex.index)
+            result.append(Segment(edge: e))
             vIndex = self.next(index: vIndex.index)
         }
-        
+
         return result
     }
     

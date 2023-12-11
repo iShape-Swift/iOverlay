@@ -23,15 +23,6 @@ public struct ShapeEdge {
 
     var count: ShapeCount
     
-    var verticalRange: LineRange {
-        if a.y > b.y {
-            return LineRange(min: Int32(b.y), max: Int32(a.y))
-        } else {
-            return LineRange(min: Int32(a.y), max: Int32(b.y))
-        }
-    }
-
-    @inline(__always)
     init(a: FixVec, b: FixVec, count: ShapeCount) {
         let aBitPack = a.bitPack
         let bBitPack = b.bitPack
@@ -47,7 +38,6 @@ public struct ShapeEdge {
             self.aBitPack = bBitPack
             self.bBitPack = aBitPack
         }
-        
         self.count = count
     }
 
@@ -58,11 +48,6 @@ public struct ShapeEdge {
         self.count = count
         self.aBitPack = parent.aBitPack
         self.bBitPack = parent.bBitPack
-    }
-
-    @inline(__always)
-    func merge(_ other: ShapeEdge) -> ShapeEdge {
-        ShapeEdge(a: a, b: b, count: self.count.add(other.count))
     }
 
     @inline(__always)

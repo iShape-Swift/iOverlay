@@ -51,18 +51,17 @@ public extension SegmentFill {
 }
 
 public struct Segment {
-    
+
     // start < end
     public let a: FixVec        // start
     public let b: FixVec        // end
-
-    public let shape: ShapeType
+    public let count: ShapeCount
     public var fill: SegmentFill
-    
-    init(a: FixVec, b: FixVec, shape: ShapeType, fill: SegmentFill) {
-        self.a = a
-        self.b = b
-        self.shape = shape
-        self.fill = fill
+
+    init(edge: ShapeEdge) {
+        self.a = edge.a
+        self.b = edge.b
+        self.fill = 0
+        self.count = edge.count
     }
 }

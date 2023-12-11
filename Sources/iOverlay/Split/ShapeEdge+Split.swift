@@ -10,7 +10,7 @@ import iShape
 
 extension Array where Element == ShapeEdge {
     
-    mutating func split() {
+    mutating func split() -> [Segment] {
         // at this moment array is sorted
         
         var list = SplitRangeList(edges: self)
@@ -30,7 +30,7 @@ extension Array where Element == ShapeEdge {
             while eIndex.isNotNil {
                 let thisEdge = list.edge(index: eIndex.index)
 
-                if thisEdge.count.isEven {
+                if thisEdge.count.isEmpty {
                     eIndex = list.removeAndNext(index: eIndex.index)
 
                     continue
@@ -251,7 +251,7 @@ extension Array where Element == ShapeEdge {
             
         } // while
         
-        self = list.edges()
+        return list.segments()
     }
 }
 
@@ -261,5 +261,13 @@ private extension ShapeEdge {
     @inline(__always)
     func isNotSameLine(_ point: FixVec) -> Bool {
         Triangle.isNotLine(p0: a, p1: b, p2: point)
+    }
+    
+    var verticalRange: LineRange {
+        if a.y > b.y {
+            return LineRange(min: Int32(b.y), max: Int32(a.y))
+        } else {
+            return LineRange(min: Int32(a.y), max: Int32(b.y))
+        }
     }
 }

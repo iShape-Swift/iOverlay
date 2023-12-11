@@ -1,5 +1,6 @@
 import XCTest
 import iShape
+import iFixFloat
 @testable import iOverlay
 
 extension FixShape: Equatable {
@@ -17,7 +18,7 @@ final class iOverlayTests: XCTestCase {
         overlay.add(paths: test.subjPaths, type: .subject)
         overlay.add(paths: test.clipPaths, type: .clip)
         
-        let graph = overlay.buildGraph()
+        let graph = overlay.buildGraph(fillRule: .evenOdd)
         
         let clip = graph.extractShapes(overlayRule: .clip)
         let subject = graph.extractShapes(overlayRule: .subject)

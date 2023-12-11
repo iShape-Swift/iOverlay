@@ -8,6 +8,11 @@
 import iShape
 import iFixFloat
 
+public enum ShapeType {
+    case clip
+    case subject
+}
+
 public struct Overlay {
 
     public internal (set) var edges: [ShapeEdge]
@@ -22,40 +27,30 @@ public struct Overlay {
         self.add(paths: subjectPaths, type: .subject)
         self.add(paths: clipPaths, type: .clip)
     }
-
-    public mutating func add(path: FixPath, type: ShapeType) {
-        let count = type == .clip ? ShapeCount(subj: 0, clip: 1) : ShapeCount(subj: 1, clip: 0)
-        self.add(path: path, shapeCount: count)
+    
+    public mutating func add(shape: FixShape, type: ShapeType) {
+        self.add(paths: shape.paths, type: type)
     }
     
     public mutating func add(paths: [FixPath], type: ShapeType) {
-        let count = type == .clip ? ShapeCount(subj: 0, clip: 1) : ShapeCount(subj: 1, clip: 0)
-        self.add(paths: paths, shapeCount: count)
-    }
-    
-    public mutating func add(shape: FixShape, type: ShapeType) {
-        let count = type == .clip ? ShapeCount(subj: 0, clip: 1) : ShapeCount(subj: 1, clip: 0)
-        self.add(paths: shape.paths, shapeCount: count)
-    }
-    
-    private mutating func add(paths: [FixPath], shapeCount: ShapeCount) {
         for path in paths {
-            self.add(path: path, shapeCount: shapeCount)
+            self.add(path: path, type: type)
         }
     }
     
-    private mutating func add(path: FixPath, shapeCount: ShapeCount) {
-        let pathEdges = path.removedDegenerates().createEdges(shapeCount: shapeCount)
+    public mutating func add(path: FixPath, type: ShapeType) {
+        let pathEdges = path.removedDegenerates().createEdges(type: type)
         edges.append(contentsOf: pathEdges)
     }
 
-    public mutating func buildSegments() -> [Segment] {
+    public func buildSegments(fillRule: FillRule) -> [Segment] {
         guard !edges.isEmpty else {
             return []
         }
         
         let sortedList = edges.sorted(by: { $0.isLess($1) })
-        edges.removeAll(keepingCapacity: true)
+        var buffer = [ShapeEdge]()
+        buffer.reserveCapacity(sortedList.count)
         
         var prev = sortedList[0]
         
@@ -63,58 +58,35 @@ public struct Overlay {
             let next = sortedList[i]
             
             if prev.isEqual(next) {
-                prev = prev.merge(next)
+                prev = ShapeEdge(parent: prev, count: prev.count.add(next.count))
             } else {
-                if !prev.count.isEven {
-                    edges.append(prev)
+                if !prev.count.isEmpty {
+                    buffer.append(prev)
                 }
                 prev = next
             }
         }
 
-        if !prev.count.isEven {
-            edges.append(prev)
+        if !prev.count.isEmpty {
+            buffer.append(prev)
         }
         
-        edges.split()
-
-        var segments = [Segment]()
-        segments.reserveCapacity(edges.count)
-
-        for edge in edges {
-            let isSubj = edge.count.subj % 2 == 1
-            let isClip = edge.count.clip % 2 == 1
-            
-            if isSubj || isClip {
-                let clip = isClip ? ShapeType.clip : 0
-                let subj = isSubj ? ShapeType.subject : 0
-                let shape = clip | subj
-
-                let segment = Segment(
-                    a: edge.a,
-                    b: edge.b,
-                    shape: shape,
-                    fill: 0
-                )
-            
-                segments.append(segment)
-            }
-        }
+        var segments = buffer.split()
         
-        segments.fill()
+        segments.fill(fillRule: fillRule)
         
         return segments
     }
 
-    public mutating func buildGraph() -> OverlayGraph {
-        OverlayGraph(segments: self.buildSegments())
+    public mutating func buildGraph(fillRule: FillRule = .nonZero) -> OverlayGraph {
+        OverlayGraph(segments: self.buildSegments(fillRule: fillRule))
     }
 
 }
 
 private extension FixPath {
     
-    func createEdges(shapeCount: ShapeCount) -> [ShapeEdge] {
+    func createEdges(type: ShapeType) -> [ShapeEdge] {
         let n = count
         guard n > 2 else {
             return []
@@ -123,12 +95,21 @@ private extension FixPath {
         var edges = [ShapeEdge](repeating: .zero, count: n)
         
         let i0 = n - 1
-        var a = self[i0]
+        var p0 = self[i0]
         
         for i in 0..<n {
-            let b = self[i]
-            edges[i] = ShapeEdge(a: a, b: b, count: shapeCount)
-            a = b
+            let p1 = self[i]
+
+            let value: Int32 = p0.bitPack <= p1.bitPack ? 1 : -1
+            
+            switch type {
+            case .subject:
+                edges[i] = ShapeEdge(a: p0, b: p1, count: ShapeCount(subj: value, clip: 0))
+            case .clip:
+                edges[i] = ShapeEdge(a: p0, b: p1, count: ShapeCount(subj: 0, clip: value))
+            }
+            
+            p0 = p1
         }
         
         return edges

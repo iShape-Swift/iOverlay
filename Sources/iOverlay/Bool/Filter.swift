@@ -34,7 +34,7 @@ extension Array where Element == OverlayLink {
         for i in 0..<n {
             let fill = self[i].fill
             
-            // Skip edge if it it inside or not belong subject
+            // Skip edge if it it inside or not belong to subject
             
             let isTop = fill & .subjectTop == .subjectTop
             let isBot = fill & .subjectBottom == .subjectBottom
@@ -70,17 +70,12 @@ extension Array where Element == OverlayLink {
         for i in 0..<n {
             let fill = self[i].fill
             
-            // Skip edge if it not from same side. If edge is inside for one polygon is ok too
+            // One side must belong to both but not two side at once
             
-            let isTopSubject = fill & .subjectTop == .subjectTop
-            let isTopClip = fill & .clipTop == .clipTop
+            let isTop = fill & .bothTop == .bothTop
+            let isBot = fill & .bothBottom == .bothBottom
 
-            let isBottomSubject = fill & .subjectBottom == .subjectBottom
-            let isBottomClip = fill & .clipBottom == .clipBottom
-            
-            let skipEdge = !(isTopSubject && isTopClip || isBottomSubject && isBottomClip)
-            
-            skip[i] = skipEdge
+            skip[i] = !(isTop || isBot) || isTop && isBot
         }
         
         return skip
@@ -93,12 +88,12 @@ extension Array where Element == OverlayLink {
         for i in 0..<n {
             let fill = self[i].fill
 
-            // Skip edge if it has polygon from both sides (subject or clip). One side must be empty
+            // One side must be empty
             
-            let isTopNotEmpty = fill & .bothTop != 0
-            let isBotNotEmpty = fill & .bothBottom != 0
+            let isTopEmpty = fill & .bothTop == 0
+            let isBotEmpty = fill & .bothBottom == 0
             
-            skip[i] = isTopNotEmpty && isBotNotEmpty
+            skip[i] = !(isTopEmpty || isBotEmpty)
         }
         
         return skip
@@ -111,12 +106,14 @@ extension Array where Element == OverlayLink {
         for i in 0..<n {
             let fill = self[i].fill
             
-            // Skip edge if it does not have only subject side
+            // One side must belong only subject
+            // Can not be subject inner edge
             
+            let subjectInner = fill == .subjectBoth
             let topOnlySubject = fill & .bothTop == .subjectTop
             let botOnlySubject = fill & .bothBottom == .subjectBottom
             
-            skip[i] = !(topOnlySubject || botOnlySubject)
+            skip[i] = !(topOnlySubject || botOnlySubject) || subjectInner
         }
         
         return skip
@@ -129,14 +126,18 @@ extension Array where Element == OverlayLink {
         for i in 0..<n {
             let fill = self[i].fill
             
-            // Skip edge if clip and subject share it
+            // One side must belong only to one polygon
+            // No inner sides
             
-            let sameTop = fill == .bothTop
-            let sameBottom = fill == .bothBottom
-            let sameSide0 = fill == .subjectTop | .clipBottom
-            let sameSide1 = fill == .subjectBottom | .clipTop
+            let topOnlySubject = fill & .bothTop == .subjectTop
+            let botOnlySubject = fill & .bothBottom == .subjectBottom
+            let topOnlyClip = fill & .bothTop == .clipTop
+            let botOnlyClip = fill & .bothBottom == .clipBottom
+            let subjectInner = fill == .subjectBoth
+            let clipInner = fill == .clipBoth
+            let bothInner = fill == .fillAll
             
-            skip[i] = sameTop || sameBottom || sameSide0 || sameSide1
+            skip[i] = !(topOnlySubject || botOnlySubject || topOnlyClip || botOnlyClip) || subjectInner || clipInner || bothInner
         }
         
         return skip

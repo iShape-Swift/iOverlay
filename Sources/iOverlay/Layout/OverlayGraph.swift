@@ -17,6 +17,7 @@ public struct OverlayGraph {
     init(segments: [Segment]) {
         let n = segments.count
         var links = [OverlayLink](repeating: .init(a: .zero, b: .zero, fill: 0), count: n)
+        print(n)
         
         var vStore = [FixVec: Int]()
         vStore.reserveCapacity(2 * n)
@@ -86,7 +87,7 @@ public struct OverlayGraph {
         self.indices = indices
         self.links = links
     }
-    
+
     // Finds the nearest link to a given target point.
     func findNearestLinkTo(target: IndexPoint, center: IndexPoint, ignore: Int, inClockWise: Bool, visited: [Bool]) -> Int {
         let node = nodes[center.index]
@@ -130,7 +131,7 @@ public struct OverlayGraph {
             }
             i += 1
         }
-        
+
         return minIndex
     }
 }

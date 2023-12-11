@@ -29,7 +29,7 @@ struct FillScanList {
         
         let maxLevel = Int(Double(segments.count).squareRoot()).logTwo
         
-        bottom = Int32(yMax)
+        bottom = Int32(yMin)
         space = LineSpace(level: maxLevel, range: LineRange(min: Int32(yMin), max: Int32(yMax)))
         delta = Int32(1 << space.scale)
     }
@@ -39,9 +39,9 @@ struct FillScanList {
         return LineRange(min: minY, max: start)
     }
     
-    func next(range: LineRange) -> LineRange? {
+    func next(range: LineRange) -> LineRange {
         guard range.min > bottom else {
-            return nil
+            return LineRange(min: .min, max: .min)
         }
         let radius = (range.max - range.min) << 1
         let minY = max(range.min - radius, bottom)
