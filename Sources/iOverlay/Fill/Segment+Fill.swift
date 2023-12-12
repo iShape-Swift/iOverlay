@@ -86,7 +86,7 @@ extension Array where Element == Segment {
                             if cy <= y {
                                 if bestIndex == .max {
                                     if cy == y {
-                                        if Triangle.isClockwise(p0: FixVec(x, cy), p1: self[segIndex].a, p2: self[segIndex].b) {
+                                        if Triangle.isClockwise(p0: FixVec(x, cy), p1: self[segIndex].b, p2: self[segIndex].a) {
                                             bestIndex = segIndex
                                             bestY = cy
                                         }
