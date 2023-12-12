@@ -47,7 +47,7 @@ extension Array where Element == ShapeEdge {
                 for item in candidates {
                     guard
                         let scanEdge = list.validateEdge(vIndex: item.id),
-                        scanEdge.bBitPack > thisEdge.aBitPack
+                        scanEdge.b.bitPack > thisEdge.a.bitPack
                     else {
                         idsToRemove.append(item.index)
                         continue

@@ -17,9 +17,6 @@ public struct ShapeEdge {
     // start < end
     public let a: FixVec        // start
     public let b: FixVec        // end
-    
-    let aBitPack: Int64
-    let bBitPack: Int64
 
     var count: ShapeCount
     
@@ -30,13 +27,9 @@ public struct ShapeEdge {
         if aBitPack <= bBitPack {
             self.a = a
             self.b = b
-            self.aBitPack = aBitPack
-            self.bBitPack = bBitPack
         } else {
             self.a = b
             self.b = a
-            self.aBitPack = bBitPack
-            self.bBitPack = aBitPack
         }
         self.count = count
     }
@@ -46,22 +39,22 @@ public struct ShapeEdge {
         self.a = parent.a
         self.b = parent.b
         self.count = count
-        self.aBitPack = parent.aBitPack
-        self.bBitPack = parent.bBitPack
     }
 
     @inline(__always)
     func isLess(_ other: ShapeEdge) -> Bool {
-        if aBitPack != other.aBitPack {
-            return aBitPack < other.aBitPack
+        let a0 = self.a.bitPack
+        let a1 = other.a.bitPack
+        if a0 != a1 {
+            return a0 < a1
         } else {
-            return bBitPack < other.bBitPack
+            return self.b.bitPack < other.b.bitPack
         }
     }
 
     @inline(__always)
     func isEqual(_ other: ShapeEdge) -> Bool {
-        aBitPack == other.aBitPack && bBitPack == other.bBitPack
+        a == other.a && b == other.b
     }
 
 }
