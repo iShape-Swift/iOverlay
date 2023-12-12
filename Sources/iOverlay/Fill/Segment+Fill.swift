@@ -110,7 +110,7 @@ extension Array where Element == Segment {
                     }
                     
                     if !rBuf.isEmpty {
-                        scanList.remove(indices: rBuf)
+                        scanList.remove(indices: &rBuf)
                     }
                     
                     if bestIndex == .max {

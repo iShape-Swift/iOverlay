@@ -17,8 +17,7 @@ public struct OverlayGraph {
     init(segments: [Segment]) {
         let n = segments.count
         var links = [OverlayLink](repeating: .init(a: .zero, b: .zero, fill: 0), count: n)
-        print(n)
-        
+
         var vStore = [FixVec: Int]()
         vStore.reserveCapacity(2 * n)
         

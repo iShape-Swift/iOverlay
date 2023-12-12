@@ -56,7 +56,20 @@ struct FillScanList {
         space.insert(segment: segment)
     }
 
-    mutating func remove(indices: [DualIndex]) {
+    mutating func remove(indices: inout [DualIndex]) {
+        guard indices.count > 1 else {
+            space.remove(index: indices[0])
+            return
+        }
+        
+        indices.sort(by: {
+            if $0.major == $1.major {
+                return $0.minor > $1.minor
+            } else {
+                return $0.major < $1.major
+            }
+        })
+
         for index in indices {
             space.remove(index: index)
         }

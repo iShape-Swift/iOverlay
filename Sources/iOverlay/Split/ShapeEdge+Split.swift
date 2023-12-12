@@ -234,7 +234,7 @@ extension Array where Element == ShapeEdge {
                 }
                 
                 if !idsToRemove.isEmpty {
-                    scanList.remove(indices: idsToRemove)
+                    scanList.remove(indices: &idsToRemove)
                     idsToRemove.removeAll(keepingCapacity: true)
                 }
                 

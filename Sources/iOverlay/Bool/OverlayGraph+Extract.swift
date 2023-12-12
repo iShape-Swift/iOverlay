@@ -18,9 +18,6 @@ public extension OverlayGraph {
         var shapeBnds = [FixBnd]()
         
         for i in 0..<links.count {
-            if i < 1000 || i % 10000 == 0 {
-                print("i : \(i)")
-            }
             if !visited[i] {
                 let contour = self.getContour(overlayRule: overlayRule, minArea: minArea, index: i, visited: &visited)
                 
@@ -135,8 +132,6 @@ public extension OverlayGraph {
 
         let boundary = !path.isEmpty ? FixBnd(points: path) : FixBnd.zero
 
-        print("path count \(path.count)")
-        
         return Contour(path: path, boundary: boundary, start: leftLink.a.point, isCavity: isCavity)
     }
 
