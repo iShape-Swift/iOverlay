@@ -142,7 +142,7 @@ extension Array where Element == Segment {
 }
 
 private extension Segment {
-    subj == 0 && clip == 0
+    
     var isVertical: Bool {
         a.x == b.x
     }

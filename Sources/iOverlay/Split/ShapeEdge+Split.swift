@@ -10,7 +10,7 @@ import iShape
 
 extension Array where Element == ShapeEdge {
     
-    mutating func split() -> [Segment] {
+    func split() -> [Segment] {
         // at this moment array is sorted
         
         var list = SplitRangeList(edges: self)
@@ -239,8 +239,8 @@ extension Array where Element == ShapeEdge {
                 }
                 
                 if isCross {
-                    if let scanSegement = newScanSegment {
-                        scanList.insert(segment: scanSegement)
+                    if let scanSegment = newScanSegment {
+                        scanList.insert(segment: scanSegment)
                     }
                 } else {
                     scanList.insert(segment: LineSegment<VersionedIndex>(id: eIndex, range: thisEdge.verticalRange))

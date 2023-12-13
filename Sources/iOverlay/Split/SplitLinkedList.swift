@@ -7,6 +7,7 @@
 
 let emptyIndex: UInt32 = .max
 
+
 struct SplitLinkedListNode {
     
     fileprivate (set) var version: UInt32
@@ -54,11 +55,10 @@ struct SplitLinkedList {
     var count: Int { nodes.count }
     
     init(edges: ArraySlice<ShapeEdge>) {
-        nodes = [SplitLinkedListNode]()
-        
         let extraCapacity = min(16, edges.count / 2)
-        
         let capacity = edges.count + extraCapacity
+        
+        nodes = [SplitLinkedListNode]()
         nodes.reserveCapacity(capacity)
         
         var index: UInt32 = 0
