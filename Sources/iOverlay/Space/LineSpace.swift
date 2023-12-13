@@ -196,7 +196,7 @@ struct LineSpace<Id> {
     }
 }
 
-private extension Int {
+extension Int {
     
     var powerOfTwo: Int {
         1 << self
