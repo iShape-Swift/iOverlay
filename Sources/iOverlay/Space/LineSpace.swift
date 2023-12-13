@@ -116,15 +116,15 @@ struct LineSpace<Id> {
         }
         
         
-        var s = scale - 2
+        var s = scale - 1
         for n in 1...maxLevel {
             let level = maxLevel - n
             var xMax = (level + 2).powerOfTwo - 1
-            
-            s += 1
-            
+
             var xLeft = x0 >> s
             var xRight = x1 >> s
+
+            s += 1
 
             guard xRight > 0 && xLeft < xMax else {
                 break
@@ -196,7 +196,7 @@ struct LineSpace<Id> {
     }
 }
 
-extension Int {
+private extension Int {
     
     var powerOfTwo: Int {
         1 << self

@@ -135,7 +135,7 @@ extension Array where Element == OverlayLink {
             let botOnlyClip = fill & .bothBottom == .clipBottom
             let subjectInner = fill == .subjectBoth
             let clipInner = fill == .clipBoth
-            let bothInner = fill == .fillAll
+            let bothInner = fill == .all
             
             skip[i] = !(topOnlySubject || botOnlySubject || topOnlyClip || botOnlyClip) || subjectInner || clipInner || bothInner
         }

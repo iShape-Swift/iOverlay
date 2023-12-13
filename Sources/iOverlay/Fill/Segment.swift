@@ -22,7 +22,7 @@ public extension SegmentFill {
     static let bothTop: UInt8 = subjectTop | clipTop
     static let bothBottom: UInt8 = subjectBottom | clipBottom
     
-    static let fillAll = subjectBoth | clipBoth
+    static let all = subjectBoth | clipBoth
 
     var isFillSubject: Bool {
         self & SegmentFill.subjectBoth != 0
