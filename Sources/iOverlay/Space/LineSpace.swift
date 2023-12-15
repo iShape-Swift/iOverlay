@@ -58,7 +58,8 @@ struct LineSpace<Id> {
         let dif = (iMax - iMin) >> (scale - 1)
         let dLog = dif.logTwo
         
-        let level = max(0, maxLevel - dLog)
+        let level = dLog < maxLevel ? maxLevel - dLog : 0
+
         let s = scale + dLog
         
         iMin = iMin >> s
@@ -131,8 +132,13 @@ struct LineSpace<Id> {
             }
 
             xMax = (level + 1).powerOfTwo - 2
-            xLeft = max(0, xLeft - 1) >> 1
-            xRight = max(0, xRight - 1) >> 1
+            if xLeft > 0 {
+                xLeft = (xLeft - 1) >> 1
+            }
+
+            if xRight > 0 {
+                xRight = (xRight - 1) >> 1
+            }
 
             let indexOffset = Self.middleSpaceCount(level: level)
             

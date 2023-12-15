@@ -34,14 +34,14 @@ struct SplitRangeList {
     }
     
     private func first(index: UInt32) -> VersionedIndex {
-        var i = Int(index)
-        while i < lists.count {
+        let i0 = Int(index)
+        let i1 = lists.count
+        for i in i0..<i1 {
             let firstIndex = lists[i].firstIndex
             if firstIndex != .max {
                 let node = lists[i].nodes[Int(firstIndex)]
                 return VersionedIndex(version: node.version, index: .init(major: UInt32(i), minor: firstIndex))
             }
-            i += 1
         }
         
         return .empty

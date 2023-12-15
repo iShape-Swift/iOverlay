@@ -27,6 +27,6 @@ let package = Package(
             dependencies: ["iOverlay"],
             resources: [
                 .process("Overlay")
-            ]),
+            ])
     ]
 )

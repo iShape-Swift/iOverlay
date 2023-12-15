@@ -74,8 +74,4 @@ struct FillScanList {
             space.remove(index: index)
         }
     }
-
-    mutating func clear() {
-        space.clear()
-    }
 }

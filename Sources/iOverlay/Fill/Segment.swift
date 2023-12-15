@@ -24,30 +24,6 @@ public extension SegmentFill {
     
     static let all = subjectBoth | clipBoth
 
-    var isFillSubject: Bool {
-        self & SegmentFill.subjectBoth != 0
-    }
-
-    var isFillClip: Bool {
-        self & SegmentFill.clipBoth != 0
-    }
-
-    var isFillSubjectTop: Bool {
-        self & SegmentFill.subjectTop == SegmentFill.subjectTop
-    }
-
-    var isFillSubjectBottom: Bool {
-        self & SegmentFill.subjectBottom == SegmentFill.subjectBottom
-    }
-
-    var isFillClipTop: Bool {
-        self & SegmentFill.clipTop == SegmentFill.clipTop
-    }
-
-    var isFillClipBottom: Bool {
-        self & SegmentFill.clipBottom == SegmentFill.clipBottom
-    }
-
 }
 
 public struct Segment {

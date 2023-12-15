@@ -128,16 +128,16 @@ extension Array where Element == OverlayLink {
             
             // One side must belong only to one polygon
             // No inner sides
-            
-            let topOnlySubject = fill & .bothTop == .subjectTop
-            let botOnlySubject = fill & .bothBottom == .subjectBottom
-            let topOnlyClip = fill & .bothTop == .clipTop
-            let botOnlyClip = fill & .bothBottom == .clipBottom
+
             let subjectInner = fill == .subjectBoth
             let clipInner = fill == .clipBoth
             let bothInner = fill == .all
+            let onlyTop = fill == .bothTop
+            let onlyBottom = fill == .bothBottom
+            let diagonal_0 = fill == .clipTop | .subjectBottom
+            let diagonal_1 = fill == .clipBottom | .subjectTop
             
-            skip[i] = !(topOnlySubject || botOnlySubject || topOnlyClip || botOnlyClip) || subjectInner || clipInner || bothInner
+            skip[i] = subjectInner || clipInner || bothInner || onlyTop || onlyBottom || diagonal_0 || diagonal_1
         }
         
         return skip

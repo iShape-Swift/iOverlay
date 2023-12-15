@@ -9,8 +9,8 @@ import iShape
 import iFixFloat
 
 public enum ShapeType {
-    case clip
     case subject
+    case clip
 }
 
 public struct Overlay {
@@ -52,13 +52,11 @@ public struct Overlay {
         var buffer = [ShapeEdge]()
         buffer.reserveCapacity(sortedList.count)
         
-        var prev = sortedList[0]
+        var prev = ShapeEdge(a: .zero, b: .zero, count: .init(subj: 0, clip: 0))
         
-        for i in 1..<sortedList.count {
-            let next = sortedList[i]
-            
+        for next in sortedList {
             if prev.isEqual(next) {
-                prev = ShapeEdge(parent: prev, count: prev.count.add(next.count))
+                prev.count = prev.count.add(next.count)
             } else {
                 if !prev.count.isEmpty {
                     buffer.append(prev)
@@ -78,7 +76,7 @@ public struct Overlay {
         return segments
     }
 
-    public mutating func buildGraph(fillRule: FillRule = .nonZero) -> OverlayGraph {
+    public func buildGraph(fillRule: FillRule = .nonZero) -> OverlayGraph {
         OverlayGraph(segments: self.buildSegments(fillRule: fillRule))
     }
 
