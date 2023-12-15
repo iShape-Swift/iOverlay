@@ -42,8 +42,10 @@ extension Array where Element == Segment {
                 i += 1
             }
             
-            // sort all by a.y
-            xBuf.sort(by: { $0.y < $1.y })
+            if xBuf.count > 1 {
+                // sort all by a.y
+                xBuf.sort(by: { $0.y < $1.y })
+            }
             
             // find nearest segment from scan list for all new segments
             

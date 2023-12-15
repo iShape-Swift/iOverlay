@@ -37,41 +37,61 @@ public extension OverlayGraph {
             return shapes
         }
         
-        // find for each hole its shape
-        var holeCounter = [Int: Int]()
-        var holeShape = [Int](repeating: 0, count: holes.count)
-        holeCounter.reserveCapacity(holes.count)
-        for (index, hole) in holes.enumerated() {
-            var minDist = Int64.max
-            var bestShapeIndex = -1
+        if shapes.count > 1 {
+            var shapeCandidates = [Int]()
+            
+            // find for each hole its shape
+            var holeCounter = [Int: Int]()
+            var holeShape = [Int](repeating: 0, count: holes.count)
+            holeCounter.reserveCapacity(holes.count)
+            for (index, hole) in holes.enumerated() {
+                
+                shapeCandidates.removeAll(keepingCapacity: true)
+                
+                for shapeIndex in 0..<shapes.count {
 
-            for shapeIndex in 0..<shapes.count {
+                    let shapeBnd = shapeBnds[shapeIndex]
 
-                let shape = shapes[shapeIndex]
-                let shapeBnd = shapeBnds[shapeIndex]
-
-                if shapeBnd.isInside(hole.boundary) {
-
-                    let dist = shape.contour.getBottomVerticalDistance(p: hole.start)
-
-                    if minDist > dist {
-                        minDist = dist
-                        bestShapeIndex = shapeIndex
+                    if shapeBnd.isInside(hole.boundary) {
+                        shapeCandidates.append(shapeIndex)
                     }
                 }
+                
+                assert(!shapeCandidates.isEmpty)
+
+                var bestShapeIndex = -1
+                
+                if shapeCandidates.count <= 1 {
+                    bestShapeIndex = shapeCandidates[0]
+                } else {
+                    var minDist = Int64.max
+                    
+                    for shapeIndex in shapeCandidates {
+                        let dist = shapes[shapeIndex].contour.getBottomVerticalDistance(p: hole.start)
+                        if minDist > dist {
+                            minDist = dist
+                            bestShapeIndex = shapeIndex
+                        }
+                    }
+                }
+                
+                holeShape[index] = bestShapeIndex
+                holeCounter[bestShapeIndex, default: 0] += 1
             }
             
-            holeShape[index] = bestShapeIndex
-            holeCounter[bestShapeIndex, default: 0] += 1
-        }
-        
-        for (shapeIndex, holeCount) in holeCounter {
-            shapes[shapeIndex].paths.reserveCapacity(holeCount + 1)
-        }
-        
-        for (index, hole) in holes.enumerated() {
-            let shapeIndex = holeShape[index]
-            shapes[shapeIndex].addHole(hole.path)
+            for (shapeIndex, holeCount) in holeCounter {
+                shapes[shapeIndex].paths.reserveCapacity(holeCount + 1)
+            }
+            
+            for (index, hole) in holes.enumerated() {
+                let shapeIndex = holeShape[index]
+                shapes[shapeIndex].addHole(hole.path)
+            }
+        } else {
+            shapes[0].paths.reserveCapacity(holes.count + 1)
+            for hole in holes {
+                shapes[0].addHole(hole.path)
+            }
         }
         
         return shapes
