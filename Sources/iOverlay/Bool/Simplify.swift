@@ -26,3 +26,16 @@ public extension FixShape {
     }
     
 }
+
+public extension Array where Element == FixShape {
+    
+    func simplify(fillRule: FillRule = .nonZero, minArea: Int64 = 0) -> [FixShape] {
+        var overlay = Overlay(capacity: self.count)
+        for shape in self {
+            overlay.add(shape: shape, type: .subject)
+        }
+
+        return overlay.buildGraph(fillRule: fillRule).extractShapes(overlayRule: .subject, minArea: minArea)
+    }
+    
+}
