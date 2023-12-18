@@ -4,7 +4,7 @@
 <img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/balloons.svg" width="250"/>
 </p>
 
-The iOverlay is a poly-bool library that supports main operations such as union, intersection, difference, xor, and self-intersection by the even-odd rule. This algorithm is based on Vatti clipping ideas but is an original implementation.
+The iOverlay is a poly-bool library that supports main operations such as union, intersection, difference, xor, and self-intersection by the even-odd or non-zero rule. This algorithm is based on Vatti clipping ideas but is an original implementation.
 
 
 ## [Demo](https://ishape-rust.github.io/iShape-js/overlay/stars_demo.html)
