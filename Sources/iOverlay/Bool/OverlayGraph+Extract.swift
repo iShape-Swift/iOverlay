@@ -145,7 +145,7 @@ public extension OverlayGraph {
 
         let isCavity = overlayRule.isFillBottom(fill: leftLink.fill)
         
-        path.validate(minArea: minArea)
+        path.validate(minArea: minArea, isCavity: isCavity)
         
         for index in newVisited {
             visited[index] = true
@@ -215,7 +215,7 @@ private extension OverlayRule {
 private extension FixPath {
     
     // remove a short path and make cw if needed
-    mutating func validate(minArea: FixFloat) {
+    mutating func validate(minArea: FixFloat, isCavity: Bool) {
         self.removeDegenerates()
         
         guard count > 2 else {
@@ -223,11 +223,13 @@ private extension FixPath {
             return
         }
 
-        let area = self.area
+        let uArea = self.unsafeArea
+        let absArea = abs(uArea) >> (FixFloat.fractionBits + 1)
 
-        if abs(area) < minArea {
+        if absArea < minArea {
             self.removeAll()
-        } else if area < 0 {
+        } else if isCavity && uArea > 0 || !isCavity && uArea < 0 {
+            // for holes must be negative and for contour must be positive
             self.reverse()
         }
     }

@@ -9,9 +9,6 @@ extension FixShape: Equatable {
     }
 }
 
-
-
-
 final class iOverlayTests: XCTestCase {
     
     private func execute(index: Int) {
@@ -30,6 +27,8 @@ final class iOverlayTests: XCTestCase {
         let union = graph.extractShapes(overlayRule: .union)
         let xor = graph.extractShapes(overlayRule: .xor)
 
+        
+//        print(PrintJson.json(clip: clip, subject: subject, difference: difference, intersect: intersect, union: union, xor: xor, subjPaths: test.subjPaths, clipPaths: test.clipPaths))
         
         XCTAssertEqual(test.clip, clip)
         XCTAssertEqual(test.subject, subject)
