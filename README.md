@@ -4,7 +4,7 @@
 <img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/balloons.svg" width="250"/>
 </p>
 
-The iOverlay is a poly-bool library that supports main operations such as union, intersection, difference, xor, and self-intersection by the even-odd or non-zero rule. This algorithm is based on Vatti clipping ideas but is an original implementation.
+The iOverlay is a fast poly-bool library that supports main operations such as union, intersection, difference, xor by the even-odd or non-zero rule. This algorithm is based on Vatti clipping ideas but is an original implementation.
 
 
 ## [Demo](https://ishape-rust.github.io/iShape-js/overlay/stars_demo.html)
@@ -17,11 +17,10 @@ Try out iOverlay with an interactive demo. The demo covers operations like union
 
 ## Features
 
-- Supports all basic set operations such as union, intersection, difference, exclusion and self-intersection.
-- Capable of handling various types of polygons, including self-intersecting polygons, multiple paths and polygons with holes.
-- Optimizes by removing unnecessary vertices and merging parallel edges.
-- Effectively handles an arbitrary number of overlaps, resolving them using the even-odd rule.
-- Employs integer arithmetic for computations.
+- **Operations**: union, intersection, difference, and exclusion.
+- **Polygons**: with holes, self-intersections, and multiple paths.
+- **Simplification**: removes degenerate vertices and merges collinear edges.
+- **Fill Rules**: even-odd and non-zero.
 
 
 
