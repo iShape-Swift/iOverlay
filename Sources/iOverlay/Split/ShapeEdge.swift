@@ -31,13 +31,12 @@ public struct ShapeEdge {
         self.count = count
     }
 
-    @inline(__always)
-    init(parent: ShapeEdge, count: ShapeCount) {
-        self.a = parent.a
-        self.b = parent.b
+    init(min: FixVec, max: FixVec, count: ShapeCount) {
+        self.a = min
+        self.b = max
         self.count = count
     }
-
+    
     @inline(__always)
     func isLess(_ other: ShapeEdge) -> Bool {
         let a0 = self.a.bitPack

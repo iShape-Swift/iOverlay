@@ -69,13 +69,13 @@ extension Array where Element == ShapeEdge {
 
                         // divide both segments
                         
-                        let thisLt = ShapeEdge(a: thisEdge.a, b: x, count: thisEdge.count)
-                        let thisRt = ShapeEdge(a: x, b: thisEdge.b, count: thisEdge.count)
+                        let thisLt = ShapeEdge.createAndValide(a: thisEdge.a, b: x, count: thisEdge.count)
+                        let thisRt = ShapeEdge.createAndValide(a: x, b: thisEdge.b, count: thisEdge.count)
                         
                         assert(thisLt.isLess(thisRt))
                         
-                        let scanLt = ShapeEdge(a: scanEdge.a, b: x, count: scanEdge.count)
-                        let scanRt = ShapeEdge(a: x, b: scanEdge.b, count: scanEdge.count)
+                        let scanLt = ShapeEdge.createAndValide(a: scanEdge.a, b: x, count: scanEdge.count)
+                        let scanRt = ShapeEdge.createAndValide(a: x, b: scanEdge.b, count: scanEdge.count)
                         
                         assert(scanLt.isLess(scanRt))
                         
@@ -104,8 +104,8 @@ extension Array where Element == ShapeEdge {
                         
                         // divide this edge
                         
-                        let thisLt = ShapeEdge(a: thisEdge.a, b: x, count: thisEdge.count)
-                        let thisRt = ShapeEdge(a: x, b: thisEdge.b, count: thisEdge.count)
+                        let thisLt = ShapeEdge.createAndValide(a: thisEdge.a, b: x, count: thisEdge.count)
+                        let thisRt = ShapeEdge.createAndValide(a: x, b: thisEdge.b, count: thisEdge.count)
                         
                         assert(thisLt.isLess(thisRt))
                         
@@ -151,8 +151,8 @@ extension Array where Element == ShapeEdge {
 
                         // divide scan edge
                         
-                        let scanLt = ShapeEdge(a: scanEdge.a, b: x, count: scanEdge.count)
-                        let scanRt = ShapeEdge(a: x, b: scanEdge.b, count: scanEdge.count)
+                        let scanLt = ShapeEdge.createAndValide(a: scanEdge.a, b: x, count: scanEdge.count)
+                        let scanRt = ShapeEdge.createAndValide(a: x, b: scanEdge.b, count: scanEdge.count)
                         
                         assert(scanLt.isLess(scanRt))
                         
@@ -253,11 +253,12 @@ extension Array where Element == ShapeEdge {
         
         return list.segments()
     }
+    
 }
 
 
 private extension ShapeEdge {
-
+    
     @inline(__always)
     func isNotSameLine(_ point: FixVec) -> Bool {
         Triangle.isNotLine(p0: a, p1: b, p2: point)
@@ -270,4 +271,13 @@ private extension ShapeEdge {
             return LineRange(min: Int32(a.y), max: Int32(b.y))
         }
     }
+    
+    static func createAndValide(a: FixVec, b: FixVec, count: ShapeCount) -> ShapeEdge {
+        if a.bitPack <= b.bitPack {
+            ShapeEdge(min: a, max: b, count: count)
+        } else {
+            ShapeEdge(min: b, max: a, count: count.invert())
+        }
+    }
+
 }

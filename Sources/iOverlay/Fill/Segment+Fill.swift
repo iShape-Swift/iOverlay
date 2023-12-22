@@ -101,6 +101,10 @@ extension Array where Element == Segment {
                                     if bestY == cy {
                                         if self[bestIndex].under(self[segIndex], cross: FixVec(x, cy)) {
                                             bestIndex = segIndex
+                                        }
+                                    } else if cy == y {
+                                        if self[segIndex].under(point: FixVec(x, cy)) {
+                                            bestIndex = segIndex
                                             bestY = cy
                                         }
                                     } else if bestY < cy {
@@ -176,13 +180,21 @@ private extension Segment {
         }
     }
     
+    func under(point p: FixVec) -> Bool {
+        !Triangle.isClockwise(p0: a, p1: b, p2: p)
+    }
+    
     mutating func addAndFill(sumCount: ShapeCount, fillRule: FillRule) -> ShapeCount {
+        let newCount = sumCount.add(count)
+        self.fill(sumCount: sumCount, newCount: newCount, fillRule: fillRule)
+        return newCount
+    }
+    
+    mutating func fill(sumCount: ShapeCount, newCount: ShapeCount, fillRule: FillRule) {
         let subjTop: UInt8
         let subjBottom: UInt8
         let clipTop: UInt8
         let clipBottom: UInt8
-        
-        let newCount = sumCount.add(count)
         
         switch fillRule {
         case .evenOdd:
@@ -214,8 +226,6 @@ private extension Segment {
         }
         
         fill = subjTop | subjBottom | clipTop | clipBottom
-        
-        return newCount
     }
     
 }

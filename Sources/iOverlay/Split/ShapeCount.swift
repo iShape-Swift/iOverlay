@@ -22,4 +22,8 @@ public struct ShapeCount {
     func add(_ count: ShapeCount) -> ShapeCount {
         ShapeCount(subj: subj + count.subj, clip: clip + count.clip)
     }
+    
+    func invert() -> ShapeCount {
+        ShapeCount(subj: -subj, clip: -clip)
+    }
 }
