@@ -69,10 +69,11 @@ extension Array where Element == Segment {
                 
                 // find nearest scan segment for y
                 var iterator = scanList.iteratorToBottom(start: y)
-                var bestY = Int64.max
+                var bestY = Int64.min
                 var bestIndex: Int = .max
+                var rangeBottom = iterator.min
 
-                while bestIndex == .max && iterator.min != .min {
+                while bestY < rangeBottom && iterator.min != .min {
 
                     let candidates = scanList.allInRange(range: iterator)
                     rBuf.removeAll(keepingCapacity: true)
@@ -115,9 +116,8 @@ extension Array where Element == Segment {
                         scanList.remove(indices: &rBuf)
                     }
                     
-                    if bestIndex == .max {
-                        iterator = scanList.next(range: iterator)
-                    }
+                    rangeBottom = iterator.min
+                    iterator = scanList.next(range: iterator)
                 }
 
                 var sumCount: ShapeCount
