@@ -10,7 +10,7 @@ import iFixFloat
 
 struct FillScanList {
     
-    private var space: LineSpace<UInt32>
+    var space: LineSpace<UInt32>
     private let bottom: Int32
     private let delta: Int32
     
@@ -31,7 +31,7 @@ struct FillScanList {
         
         bottom = Int32(yMin)
         space = LineSpace(level: maxLevel, range: LineRange(min: Int32(yMin), max: Int32(yMax)))
-        delta = Int32(1 << space.scale)
+        delta = Int32(1 << space.indexer.scale)
     }
     
     func iteratorToBottom(start: Int32) -> LineRange {
@@ -46,32 +46,5 @@ struct FillScanList {
         let radius = (range.max - range.min) << 1
         let minY = max(range.min - radius, bottom)
         return LineRange(min: minY, max: range.min)
-    }
-    
-    mutating func allInRange(range: LineRange) -> [LineContainer<UInt32>] {
-        space.allInRange(range: range)
-    }
-    
-    mutating func insert(segment: LineSegment<UInt32>) {
-        space.insert(segment: segment)
-    }
-
-    mutating func remove(indices: inout [DualIndex]) {
-        guard indices.count > 1 else {
-            space.remove(index: indices[0])
-            return
-        }
-        
-        indices.sort(by: {
-            if $0.major == $1.major {
-                return $0.minor > $1.minor
-            } else {
-                return $0.major < $1.major
-            }
-        })
-
-        for index in indices {
-            space.remove(index: index)
-        }
     }
 }

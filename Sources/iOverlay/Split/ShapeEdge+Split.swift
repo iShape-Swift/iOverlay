@@ -15,11 +15,13 @@ extension Array where Element == ShapeEdge {
         
         var list = SplitRangeList(edges: self)
         
-        var scanList = SplitScanList(edges: self)
+        var scanList = LineSpace(edges: self)
         
         var needToFix = true
         
         var idsToRemove = [DualIndex]()
+        
+        var candidates = [LineContainer<VersionedIndex>]()
         
         while needToFix {
             scanList.clear()
@@ -36,7 +38,8 @@ extension Array where Element == ShapeEdge {
                     continue
                 }
                 
-                let candidates = scanList.allInRange(range: thisEdge.verticalRange)
+                candidates.removeAll(keepingCapacity: true)
+                scanList.allInRange(range: thisEdge.verticalRange, containers: &candidates)
                 
                 idsToRemove.removeAll(keepingCapacity: true)
 

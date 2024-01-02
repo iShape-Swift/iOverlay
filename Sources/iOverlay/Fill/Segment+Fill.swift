@@ -27,6 +27,7 @@ extension Array where Element == Segment {
         var xBuf = [Handler]()
         var eBuf = [SegEnd]()
         var rBuf = [DualIndex]()
+        var candidates = [LineContainer<UInt32>]()
        
         let n = self.count
         var i = 0
@@ -75,7 +76,8 @@ extension Array where Element == Segment {
 
                 while bestY < rangeBottom && iterator.min != .min {
 
-                    let candidates = scanList.allInRange(range: iterator)
+                    candidates.removeAll(keepingCapacity: true)
+                    scanList.space.allInRange(range: iterator, containers: &candidates)
                     rBuf.removeAll(keepingCapacity: true)
                     
                     for candidate in candidates {
@@ -117,7 +119,7 @@ extension Array where Element == Segment {
                     }
                     
                     if !rBuf.isEmpty {
-                        scanList.remove(indices: &rBuf)
+                        scanList.space.remove(indices: &rBuf)
                     }
                     
                     rangeBottom = iterator.min
@@ -139,7 +141,7 @@ extension Array where Element == Segment {
                     } else {
                         sumCount = self[index].addAndFill(sumCount: sumCount, fillRule: fillRule)
                         counts[index] = sumCount
-                        scanList.insert(segment: LineSegment(id: se.i, range: self[index].verticalRange))
+                        scanList.space.insert(segment: LineSegment(id: se.i, range: self[index].verticalRange))
                     }
                 }
             }

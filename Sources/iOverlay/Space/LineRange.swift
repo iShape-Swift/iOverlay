@@ -5,12 +5,12 @@
 //  Created by Nail Sharipov on 06.12.2023.
 //
 
-struct LineRange {
+public struct LineRange {
     let min: Int32
     let max: Int32
 }
 
-extension LineRange {
+public extension LineRange {
  
     func isOverlap(_ other: LineRange) -> Bool {
         min <= other.max && max >= other.min
