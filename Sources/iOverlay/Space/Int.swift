@@ -15,6 +15,7 @@ extension Int {
         guard self > 0 else {
             return 0
         }
+        
         let n = abs(self).leadingZeroBitCount
         return Int.bitWidth - n
     }

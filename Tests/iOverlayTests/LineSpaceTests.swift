@@ -14,31 +14,31 @@ final class LineSpaceTests: XCTestCase {
     
     func test_00() throws {
         let indexer = LineIndexer(level: 2, range: LineRange(min: 0, max: 31))
-        XCTAssertEqual(indexer.index(range: LineRange(min: 0, max: 31)), 0)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 1, max: 31)), 0)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 1, max: 30)), 0)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 0, max: 15)), 0)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 16, max: 31)), 0)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 10, max: 20)), 0)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 0, max: 7)), 1)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 8, max: 15)), 1)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 16, max: 23)), 2)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 24, max: 31)), 2)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 4, max: 11)), 1)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 12, max: 19)), 3)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 20, max: 27)), 2)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 10, max: 11)), 5)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 0, max: 31)), 0)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 1, max: 31)), 0)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 1, max: 30)), 0)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 0, max: 15)), 0)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 16, max: 31)), 0)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 10, max: 20)), 0)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 0, max: 7)), 1)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 8, max: 15)), 1)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 16, max: 23)), 2)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 24, max: 31)), 2)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 4, max: 11)), 1)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 12, max: 19)), 3)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 20, max: 27)), 2)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 10, max: 11)), 5)
     }
 
     func test_000() throws {
         let indexer = LineIndexer(level: 2, range: LineRange(min: 0, max: 31))
-        XCTAssertEqual(indexer.index(range: LineRange(min: 0, max: 31)), 0)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 0, max: 31)), 0)
     }
     
     func test_001() throws {
         let indexer = LineIndexer(level: 2, range: LineRange(min: 0, max: 31))
-        XCTAssertEqual(indexer.index(range: LineRange(min: 0, max: 1)), 4)
-        XCTAssertEqual(indexer.index(range: LineRange(min: 0, max: 0)), 4)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 0, max: 1)), 4)
+        XCTAssertEqual(indexer.unsafe_index(range: LineRange(min: 0, max: 0)), 4)
     }
 
     func test_01() throws {
@@ -333,7 +333,7 @@ private extension LineSpace {
 
     mutating func allIdsInRange(range: LineRange) -> [Id] {
         var result = [Id]()
-        self.fillIdsInRange(range: range, ids: &result)
+        self.idsInRange(range: range, ids: &result)
         
         return result
     }

@@ -18,7 +18,7 @@ public struct LineSpace<Id> {
     }
     
     public mutating func insert(segment: LineSegment<Id>) {
-        let index = indexer.index(range: segment.range)
+        let index = indexer.unsafe_index(range: segment.range)
         heaps[index].append(segment)
     }
     
@@ -39,13 +39,14 @@ public struct LineSpace<Id> {
         }
     }
     
-    public mutating func fillIdsInRange(range: LineRange, ids: inout [Id]) {
+    public mutating func idsInRange(range: LineRange, ids: inout [Id]) {
         indexer.fill(range: range, buffer: &buffer)
             
         for heapIndex in buffer {
             let segments = heaps[heapIndex]
-            for segm in segments where segm.range.isOverlap(range) {
-                ids.append(segm.id)
+            // TODO probably overlay is not a good idea
+            for seg in segments where seg.range.isOverlap(range) {
+                ids.append(seg.id)
             }
         }
         
@@ -60,6 +61,7 @@ public struct LineSpace<Id> {
             let segments = heaps[heapIndex]
 
             for segmentIndex in 0..<segments.count {
+                // TODO probably overlay is not a good idea
                 if range.isOverlap(segments[segmentIndex].range) {
                     containers.append(.init(id: segments[segmentIndex].id, index: .init(major: UInt32(heapIndex), minor: UInt32(segmentIndex))))
                 }

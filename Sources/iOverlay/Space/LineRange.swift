@@ -6,8 +6,13 @@
 //
 
 public struct LineRange {
-    let min: Int32
-    let max: Int32
+    public let min: Int32
+    public let max: Int32
+    
+    public init(min: Int32, max: Int32) {
+        self.min = min
+        self.max = max
+    }
 }
 
 public extension LineRange {

@@ -11,6 +11,7 @@ public struct LineIndexer {
     public let size: Int
     private let maxLevel: Int
     private let offset: Int
+    private let range: LineRange
 
     public init(level n: Int, range: LineRange) {
         let xMin = Int(range.min)
@@ -18,15 +19,23 @@ public struct LineIndexer {
         let dif = xMax - xMin
 
         let dLog = dif.logTwo
-        maxLevel = min(10, min(n, dLog - 1))
+        if dif <= 2 {
+            maxLevel = 2
+        } else {
+            maxLevel = min(10, min(n, dLog - 1))
+        }
         offset = -xMin
         scale = dLog - maxLevel
+        self.range = range
         assert(scale > 0)
 
         size = Self.spaceCount(level: maxLevel)
     }
 
-    public func index(range: LineRange) -> Int {
+    public func unsafe_index(range: LineRange) -> Int {
+        assert(range.min >= self.range.min)
+        assert(range.max <= self.range.max)
+        
         // scale to indexer coordinate system
         var iMin = Int(range.min) + offset
         var iMax = Int(range.max) + offset
@@ -45,6 +54,15 @@ public struct LineIndexer {
         let index = Self.customSpaceCount(mainLevel: level + iDif, secondLevel: level) + iMin
         
         return index
+    }
+    
+    public func index(range: LineRange) -> Int {
+        let clampRange = LineRange(
+            min: max(self.range.min, range.min),
+            max: min(self.range.max, range.max)
+        )
+        
+        return self.unsafe_index(range: clampRange)
     }
 
     public func fill(range: LineRange, buffer: inout [Int]) {
