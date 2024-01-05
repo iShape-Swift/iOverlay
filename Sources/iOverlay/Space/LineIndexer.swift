@@ -9,9 +9,9 @@ public struct LineIndexer {
 
     public let scale: Int
     public let size: Int
-    private let maxLevel: Int
+    public let range: LineRange
+    public let maxLevel: Int
     private let offset: Int
-    private let range: LineRange
 
     public init(level n: Int, range: LineRange) {
         let xMin = Int(range.min)

@@ -21,4 +21,10 @@ public extension LineRange {
         min <= other.max && max >= other.min
     }
     
+    func clamp(range: LineRange) -> LineRange {
+        let min = Swift.max(range.min, self.min)
+        let max = Swift.min(range.max, self.max)
+        
+        return LineRange(min: min, max: max)
+    }
 }
