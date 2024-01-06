@@ -20,19 +20,23 @@ public struct LineIndexer {
 
         let dLog = dif.logTwo
         if dif <= 2 {
-            maxLevel = 2
+            maxLevel = 0
         } else {
             maxLevel = min(10, min(n, dLog - 1))
         }
         offset = -xMin
         scale = dLog - maxLevel
         self.range = range
-        assert(scale > 0)
+        assert(scale >= 0)
 
         size = Self.spaceCount(level: maxLevel)
     }
 
     public func unsafe_index(range: LineRange) -> Int {
+        guard maxLevel > 0 else {
+            return 0
+        }
+        
         assert(range.min >= self.range.min)
         assert(range.max <= self.range.max)
         
@@ -71,6 +75,11 @@ public struct LineIndexer {
     }
     
     public func fillUnsafe(range: LineRange, buffer: inout [Int]) {
+        guard maxLevel > 0 else {
+            buffer.append(0)
+            return
+        }
+        
         let x0 = Int(range.min) + offset
         let x1 = Int(range.max) + offset
         
