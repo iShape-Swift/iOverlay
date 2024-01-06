@@ -40,7 +40,7 @@ public struct LineSpace<Id> {
     }
     
     public mutating func idsInRange(range: LineRange, ids: inout [Id]) {
-        indexer.fill(range: range, buffer: &buffer)
+        indexer.fillUnsafe(range: range, buffer: &buffer)
             
         for heapIndex in buffer {
             let segments = heaps[heapIndex]
@@ -54,7 +54,7 @@ public struct LineSpace<Id> {
     }
     
     public mutating func allInRange(range: LineRange, containers: inout [LineContainer<Id>]) {
-        indexer.fill(range: range, buffer: &buffer)
+        indexer.fillUnsafe(range: range, buffer: &buffer)
 
         containers.removeAll(keepingCapacity: true)
         for heapIndex in buffer {

@@ -66,6 +66,11 @@ public struct LineIndexer {
     }
 
     public func fill(range: LineRange, buffer: inout [Int]) {
+        let clamp = range.clamp(range: self.range)
+        self.fillUnsafe(range: clamp, buffer: &buffer)
+    }
+    
+    public func fillUnsafe(range: LineRange, buffer: inout [Int]) {
         let x0 = Int(range.min) + offset
         let x1 = Int(range.max) + offset
         
@@ -79,6 +84,7 @@ public struct LineIndexer {
             
             for x in xLeft...xRight {
                 let index = indexOffset + x
+                assert(index > 0)
                 buffer.append(index)
             }
 
@@ -117,6 +123,7 @@ public struct LineIndexer {
             
             for x in xLeft...xRight {
                 let index = indexOffset + x
+                assert(index > 0)
                 buffer.append(index)
             }
         }

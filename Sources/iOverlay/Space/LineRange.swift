@@ -6,6 +6,7 @@
 //
 
 public struct LineRange {
+    
     public let min: Int32
     public let max: Int32
     
@@ -22,9 +23,17 @@ public extension LineRange {
     }
     
     func clamp(range: LineRange) -> LineRange {
-        let min = Swift.max(range.min, self.min)
-        let max = Swift.min(range.max, self.max)
+        let min = self.min.clamp(minValue: range.min, maxValue: range.max)
+        let max = self.max.clamp(minValue: range.min, maxValue: range.max)
         
         return LineRange(min: min, max: max)
     }
+}
+
+extension Int32 {
+    
+    func clamp(minValue: Int32, maxValue: Int32) -> Int32 {
+        Swift.min(Swift.max(self, minValue), maxValue)
+    }
+    
 }
