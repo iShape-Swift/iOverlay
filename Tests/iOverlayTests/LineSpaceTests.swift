@@ -324,7 +324,7 @@ private extension LineIndexer {
     // Test purpose only, must be same logic as in iterateAllInRange
     func heapIndices(range: LineRange) -> [Int] {
         var result = [Int]()
-        self.fill(range: range, buffer: &result)
+        self.fillUnsafe(range: range, buffer: &result)
         return result
     }
 }
