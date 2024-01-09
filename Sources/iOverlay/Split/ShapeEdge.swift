@@ -12,8 +12,6 @@ public struct ShapeEdge {
 
     static let zero = ShapeEdge(a: .zero, b: .zero, count: ShapeCount(subj: 0, clip: 0))
 
-    var edge: FixEdge { FixEdge(e0: a, e1: b) }
-
     // start < end
     public let a: FixVec        // start
     public let b: FixVec        // end

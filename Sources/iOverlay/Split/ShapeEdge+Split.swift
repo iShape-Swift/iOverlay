@@ -56,7 +56,7 @@ extension Array where Element == ShapeEdge {
                         continue
                     }
 
-                    guard let cross = thisEdge.edge.cross(scanEdge.edge) else {
+                    guard let cross = thisEdge.cross(scanEdge) else {
                         continue
                     }
                     

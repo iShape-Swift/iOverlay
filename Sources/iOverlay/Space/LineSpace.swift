@@ -61,7 +61,6 @@ public struct LineSpace<Id> {
             let segments = heaps[heapIndex]
 
             for segmentIndex in 0..<segments.count {
-                // TODO probably overlay is not a good idea
                 if range.isOverlap(segments[segmentIndex].range) {
                     containers.append(.init(id: segments[segmentIndex].id, index: .init(major: UInt32(heapIndex), minor: UInt32(segmentIndex))))
                 }
