@@ -262,38 +262,12 @@ extension ShapeEdge {
         
         if isA {
             // b inside a
-            
-            let isBe0 = edgeB.a == edgeA.a || edgeB.a == edgeA.b
-            let isBe1 = edgeB.b == edgeA.a || edgeB.b == edgeA.b
-
-            if isBe0 {
-                // first point is common
-                return EdgeCross(type: .end_b, point: edgeB.b)
-            } else if isBe1 {
-                // second point is common
-                return EdgeCross(type: .end_b, point: edgeB.a)
-            } else {
-                // no common points
-                return EdgeCross(type: .overlay_b, point: .zero)
-            }
+            return edgeA.solveInside(other: edgeB, end: .end_b, overlay: .overlay_b)
         }
         
         if isB {
             // a inside b
-
-            let isAe0 = edgeA.a == edgeB.a || edgeA.a == edgeB.b
-            let isAe1 = edgeA.b == edgeB.a || edgeA.b == edgeB.b
-            
-            if isAe0 {
-                // first point is common
-                return EdgeCross(type: .end_a, point: edgeA.b)
-            } else if isAe1 {
-                // second point is common
-                return EdgeCross(type: .end_a, point: edgeA.a)
-            } else {
-                // no common points
-                return EdgeCross(type: .overlay_a, point: .zero)
-            }
+            return edgeB.solveInside(other: edgeA, end: .end_a, overlay: .overlay_a)
         }
         
         let hasSameEnd = edgeA.a == edgeB.a || edgeA.a == edgeB.b || edgeA.b == edgeB.a || edgeA.b == edgeB.b
@@ -310,6 +284,21 @@ extension ShapeEdge {
         return EdgeCross(type: .penetrate, point: ap, second: bp)
     }
     
+    private func solveInside(other: ShapeEdge, end: EdgeCrossType, overlay: EdgeCrossType) -> EdgeCross {
+        let isBe0 = other.a == self.a || other.a == self.b
+        let isBe1 = other.b == self.a || other.b == self.b
+        
+        if isBe0 {
+            // first point is common
+            return EdgeCross(type: end, point: other.b)
+        } else if isBe1 {
+            // second point is common
+            return EdgeCross(type: end, point: other.a)
+        } else {
+            // no common points
+            return EdgeCross(type: overlay, point: .zero)
+        }
+    }
 }
 private extension Int64 {
     
