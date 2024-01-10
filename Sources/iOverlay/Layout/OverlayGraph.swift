@@ -168,8 +168,8 @@ private extension FixVec {
     
     // v, a, b vectors are multidirectional
     func isCloserInRotation(to a: FixVec, comparedTo b: FixVec) -> Bool {
-        let crossA = self.unsafeCrossProduct(a)
-        let crossB = self.unsafeCrossProduct(b)
+        let crossA = self.crossProduct(a)
+        let crossB = self.crossProduct(b)
 
         guard crossA != 0 && crossB != 0 else {
             // vectors are collinear
@@ -188,7 +188,7 @@ private extension FixVec {
             return crossA < 0
         }
 
-        let crossAB = a.unsafeCrossProduct(b)
+        let crossAB = a.crossProduct(b)
         
         return crossAB < 0
     }

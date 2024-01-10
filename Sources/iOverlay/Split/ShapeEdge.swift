@@ -18,7 +18,7 @@ public struct ShapeEdge {
 
     var count: ShapeCount
     
-    init(a: FixVec, b: FixVec, count: ShapeCount) {
+    public init(a: FixVec, b: FixVec, count: ShapeCount) {
         if a.bitPack <= b.bitPack {
             self.a = a
             self.b = b

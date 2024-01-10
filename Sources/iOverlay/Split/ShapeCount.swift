@@ -14,7 +14,7 @@ public struct ShapeCount {
         subj == 0 && clip == 0
     }
     
-    init(subj: Int32, clip: Int32) {
+    public init(subj: Int32, clip: Int32) {
         self.subj = subj
         self.clip = clip
     }

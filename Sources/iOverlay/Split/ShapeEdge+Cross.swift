@@ -8,11 +8,11 @@
 import iShape
 import iFixFloat
 
-struct EdgeCross {
+public struct EdgeCross {
     
-    let type: EdgeCrossType
-    let point: FixVec
-    let second: FixVec
+    public let type: EdgeCrossType
+    public let point: FixVec
+    public let second: FixVec
 
     @usableFromInline
     init(type: EdgeCrossType, point: FixVec, second: FixVec = .zero) {
@@ -22,7 +22,7 @@ struct EdgeCross {
     }
 }
 
-enum EdgeCrossType {
+public enum EdgeCrossType {
 
     case pure               // simple intersection with no overlaps or common points
     case overlay_a          // a is inside b
@@ -32,7 +32,8 @@ enum EdgeCrossType {
     case end_b
 }
 
-extension ShapeEdge {
+public extension ShapeEdge {
+    
     func cross(_ other: ShapeEdge) -> EdgeCross? {
         let a0 = a
         let a1 = b
