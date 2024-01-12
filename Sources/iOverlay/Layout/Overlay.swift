@@ -15,6 +15,8 @@ public enum ShapeType {
 
 public struct Overlay {
 
+    private var yMin: Int32 = .max
+    private var yMax: Int32 = .min
     public internal (set) var edges: [ShapeEdge]
     
     public init(capacity: Int = 64) {
@@ -39,8 +41,12 @@ public struct Overlay {
     }
     
     public mutating func add(path: FixPath, type: ShapeType) {
-        let pathEdges = path.removedDegenerates().createEdges(type: type)
-        edges.append(contentsOf: pathEdges)
+        guard let result = path.removedDegenerates().createEdges(type: type) else {
+            return
+        }
+        yMin = Swift.min(yMin, result.yMin)
+        yMax = Swift.max(yMax, result.yMax)
+        edges.append(contentsOf: result.edges)
     }
 
     public func buildSegments(fillRule: FillRule) -> [Segment] {
@@ -69,9 +75,11 @@ public struct Overlay {
             buffer.append(prev)
         }
         
-        var segments = buffer.split()
+        let range = LineRange(min: yMin, max: yMax)
         
-        segments.fill(fillRule: fillRule)
+        var segments = buffer.split(range: range)
+        
+        segments.fill(fillRule: fillRule, range: range)
         
         return segments
     }
@@ -82,12 +90,18 @@ public struct Overlay {
 
 }
 
+private struct EdgeResult {
+    let edges: [ShapeEdge]
+    let yMin: Int32
+    let yMax: Int32
+}
+
 private extension FixPath {
     
-    func createEdges(type: ShapeType) -> [ShapeEdge] {
+    func createEdges(type: ShapeType) -> EdgeResult? {
         let n = count
         guard n > 2 else {
-            return []
+            return nil
         }
         
         var edges = [ShapeEdge](repeating: .zero, count: n)
@@ -95,9 +109,15 @@ private extension FixPath {
         let i0 = n - 1
         var p0 = self[i0]
         
+        var yMin = p0.y
+        var yMax = p0.y
+        
         for i in 0..<n {
             let p1 = self[i]
 
+            yMin = Swift.min(yMin, p1.y)
+            yMax = Swift.max(yMax, p1.y)
+            
             let value: Int32 = p0.bitPack <= p1.bitPack ? 1 : -1
             
             switch type {
@@ -110,6 +130,6 @@ private extension FixPath {
             p0 = p1
         }
         
-        return edges
+        return EdgeResult(edges: edges, yMin: Int32(yMin), yMax: Int32(yMax))
     }
 }

@@ -1,5 +1,5 @@
 //
-//  SplitRangeList.swift
+//  SplitRangeList.rift
 //
 //
 //  Created by Nail Sharipov on 22.11.2023.

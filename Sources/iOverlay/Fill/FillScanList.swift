@@ -10,27 +10,13 @@ import iFixFloat
 
 struct FillScanList {
     
-    var space: LineSpace<UInt32>
+    var space: ScanSpace<Int>
     private let bottom: Int32
     private let delta: Int32
     
-    init(segments: [Segment]) {
-        var yMin = Int64.max
-        var yMax = Int64.min
-        for segment in segments {
-            if segment.a.y > segment.b.y {
-                yMin = min(segment.b.y, yMin)
-                yMax = max(segment.a.y, yMax)
-            } else {
-                yMin = min(segment.a.y, yMin)
-                yMax = max(segment.b.y, yMax)
-            }
-        }
-        
-        let maxLevel = Int(Double(segments.count).squareRoot()).logTwo
-        
-        bottom = Int32(yMin)
-        space = LineSpace(level: maxLevel, range: LineRange(min: Int32(yMin), max: Int32(yMax)))
+    init(range: LineRange, count: Int) {
+        bottom = range.min
+        space = ScanSpace(range: range, count: count)
         delta = Int32(1 << space.indexer.scale)
     }
     

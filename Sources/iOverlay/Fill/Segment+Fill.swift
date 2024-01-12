@@ -9,25 +9,24 @@ import iFixFloat
 import iShape
 
 private struct Handler {
-    let i: UInt32
+    let i: Int
     let y: Int32
 }
 
 private struct SegEnd {
-    let i: UInt32
+    let i: Int
     let p: FixVec
 }
 
 extension Array where Element == Segment {
     
-    mutating func fill(fillRule: FillRule) {
-        var scanList = FillScanList(segments: self)
+    mutating func fill(fillRule: FillRule, range: LineRange) {
+        var scanList = FillScanList(range: range, count: self.count)
         
         var counts = [ShapeCount](repeating: ShapeCount(subj: 0, clip: 0), count: self.count)
         var xBuf = [Handler]()
         var eBuf = [SegEnd]()
-        var rBuf = [DualIndex]()
-        var candidates = [LineContainer<UInt32>]()
+        var candidates = [Int]()
        
         let n = self.count
         var i = 0
@@ -39,7 +38,7 @@ extension Array where Element == Segment {
             // find all new segments with same a.x
             
             while i < n && self[i].a.x == x {
-                xBuf.append(Handler(i: UInt32(i), y: Int32(self[i].a.y)))
+                xBuf.append(Handler(i: i, y: Int32(self[i].a.y)))
                 i += 1
             }
             
@@ -60,7 +59,7 @@ extension Array where Element == Segment {
                 // group new segments by same y (all segments in eBuf must have same a)
                 while j < xBuf.count && xBuf[j].y == y {
                     let handler = xBuf[j]
-                    eBuf.append(SegEnd(i: handler.i, p: self[Int(handler.i)].b))
+                    eBuf.append(SegEnd(i: handler.i, p: self[handler.i].b))
                     j += 1
                 }
                 
@@ -75,23 +74,17 @@ extension Array where Element == Segment {
                 var rangeBottom = iterator.min
 
                 while bestY < rangeBottom && iterator.min != .min {
+                    scanList.space.idsInRange(range: iterator, stop: x, ids: &candidates)
+                    if !candidates.isEmpty {
+                        for segIndex in candidates {
+                            let seg = self[segIndex]
 
-                    candidates.removeAll(keepingCapacity: true)
-                    scanList.space.allInRange(range: iterator, containers: &candidates)
-                    rBuf.removeAll(keepingCapacity: true)
-                    
-                    for candidate in candidates {
-                        let segIndex = Int(candidate.id)
-
-                        if self[segIndex].b.x <= x {
-                            rBuf.append(candidate.index)
-                        } else {
-                            let cy = self[segIndex].verticalIntersection(x: x)
-
+                            let cy = seg.verticalIntersection(x: x)
+                            
                             if cy <= y {
                                 if bestIndex == .max {
                                     if cy == y {
-                                        if Triangle.isClockwise(p0: FixVec(x, cy), p1: self[segIndex].b, p2: self[segIndex].a) {
+                                        if Triangle.isClockwise(p0: FixVec(x, cy), p1: seg.b, p2: seg.a) {
                                             bestIndex = segIndex
                                             bestY = cy
                                         }
@@ -101,11 +94,11 @@ extension Array where Element == Segment {
                                     }
                                 } else {
                                     if bestY == cy {
-                                        if self[bestIndex].under(self[segIndex], cross: FixVec(x, cy)) {
+                                        if self[bestIndex].under(seg, cross: FixVec(x, cy)) {
                                             bestIndex = segIndex
                                         }
                                     } else if cy == y {
-                                        if self[segIndex].under(point: FixVec(x, cy)) {
+                                        if seg.under(point: FixVec(x, cy)) {
                                             bestIndex = segIndex
                                             bestY = cy
                                         }
@@ -115,11 +108,9 @@ extension Array where Element == Segment {
                                     }
                                 }
                             }
+                            
                         }
-                    }
-                    
-                    if !rBuf.isEmpty {
-                        scanList.space.remove(indices: &rBuf)
+                        candidates.removeAll(keepingCapacity: true)
                     }
                     
                     rangeBottom = iterator.min
@@ -135,13 +126,17 @@ extension Array where Element == Segment {
                 }
 
                 for se in eBuf {
-                    let index = Int(se.i)
-                    if self[index].isVertical {
-                        _ = self[index].addAndFill(sumCount: sumCount, fillRule: fillRule)
+                    if self[se.i].isVertical {
+                        _ = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
                     } else {
-                        sumCount = self[index].addAndFill(sumCount: sumCount, fillRule: fillRule)
-                        counts[index] = sumCount
-                        scanList.space.insert(segment: LineSegment(id: se.i, range: self[index].verticalRange))
+                        sumCount = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
+                        counts[se.i] = sumCount
+                        let seg = self[se.i];
+                        scanList.space.insert(segment: ScanSegment(
+                            id: se.i,
+                            range: seg.verticalRange,
+                            stop: seg.b.x
+                        ))
                     }
                 }
             }
