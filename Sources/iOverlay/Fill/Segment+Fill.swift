@@ -131,7 +131,7 @@ extension Array where Element == Segment {
                     } else {
                         sumCount = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
                         counts[se.i] = sumCount
-                        let seg = self[se.i];
+                        let seg = self[se.i]
                         scanList.space.insert(segment: ScanSegment(
                             id: se.i,
                             range: seg.verticalRange,
