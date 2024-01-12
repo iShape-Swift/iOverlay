@@ -10,7 +10,7 @@ import iFixFloat
 
 struct FillScanList {
     
-    var space: ScanSpace<Int>
+    var space: ScanSpace<Int, Int64>
     private let bottom: Int32
     private let delta: Int32
     

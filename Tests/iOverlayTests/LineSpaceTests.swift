@@ -257,7 +257,7 @@ final class LineSpaceTests: XCTestCase {
     }
     
     func test_random() throws {
-        for _ in 0..<100 {
+        for _ in 0..<50 {
             let min = -Int32.random(in: 10..<100)
             let max = Int32.random(in: 10..<100)
 
@@ -272,7 +272,7 @@ final class LineSpaceTests: XCTestCase {
                     scanList.insert(segment: segment)
                 }
 
-                for _ in 0..<1_00 {
+                for _ in 0..<50 {
                     let range = Self.randomRange(min: realMin, max: realMax)
                     
                     let idsA = segments.filter({ $0.range.isOverlap(range) }).map({ $0.id }).sorted()

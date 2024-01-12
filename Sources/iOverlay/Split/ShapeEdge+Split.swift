@@ -15,7 +15,7 @@ extension Array where Element == ShapeEdge {
         
         var list = SplitRangeList(edges: self)
         
-        var scanList = ScanSpace<VersionedIndex>(range: range, count: self.count)
+        var scanList = ScanSpace<VersionedIndex, UInt64>(range: range, count: self.count)
         
         var needToFix = true
         
@@ -39,7 +39,7 @@ extension Array where Element == ShapeEdge {
 
                 scanList.itemsInRange(range: thisEdge.verticalRange, stop: thisEdge.a.bitPack, items: &candidates)
 
-                var newScanSegment: ScanSegment<VersionedIndex>? = nil
+                var newScanSegment: ScanSegment<VersionedIndex, UInt64>? = nil
                 var isCross = false
                 
                 if !candidates.isEmpty {

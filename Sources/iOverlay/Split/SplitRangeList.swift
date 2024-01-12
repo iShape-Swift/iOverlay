@@ -7,7 +7,7 @@
 
 struct SplitRangeList {
     
-    private var ranges: [Int64]
+    private var ranges: [UInt64]
     private var lists: [SplitLinkedList]
     private static let rangeLength: Int = 2
     
@@ -111,9 +111,9 @@ struct SplitRangeList {
         let n = (edges.count - 1) / Self.rangeLength + 1
         let length = edges.count / n
         
-        var ranges = [Int64]()
+        var ranges = [UInt64]()
         ranges.reserveCapacity(n + 1)
-        ranges.append(Int64.min)
+        ranges.append(UInt64.min)
         
         var lists = [SplitLinkedList]()
         lists.reserveCapacity(n)
@@ -135,7 +135,7 @@ struct SplitRangeList {
             if i + minLength >= edges.count {
                 let slice = edges[i0..<edges.count]
                 lists.append(SplitLinkedList(edges: slice))
-                ranges.append(Int64.max)
+                ranges.append(UInt64.max)
                 break
             } else {
                 let slice = edges[i0..<i]
@@ -169,9 +169,9 @@ struct SplitRangeList {
     
 }
 
-private extension Array where Element == Int64 {
+private extension Array where Element == UInt64 {
     
-    func findIndex(target: Int64) -> Int {
+    func findIndex(target: UInt64) -> Int {
         var left = 0
         var right = self.count
 

@@ -5,10 +5,10 @@
 //  Created by Nail Sharipov on 11.01.2024.
 //
 
-public struct ScanSegment<Id> {
+public struct ScanSegment<Id, Unit> {
     let id: Id
     public let range: LineRange
-    public let stop: Int64
+    public let stop: Unit
 }
 
 public struct ScanItem<Id> {
@@ -16,10 +16,10 @@ public struct ScanItem<Id> {
     public let index: DualIndex
 }
 
-public struct ScanSpace<Id> {
+public struct ScanSpace<Id, Unit: Comparable> {
     
     public let indexer: LineIndexer
-    private var heaps: [[ScanSegment<Id>]]
+    private var heaps: [[ScanSegment<Id, Unit>]]
     private var indexBuffer: [Int] = []
     
     public init(range: LineRange, count: Int) {
@@ -28,7 +28,7 @@ public struct ScanSpace<Id> {
         heaps = [[ScanSegment]](repeating: [], count: indexer.size)
     }
     
-    public mutating func insert(segment: ScanSegment<Id>) {
+    public mutating func insert(segment: ScanSegment<Id, Unit>) {
         let index = indexer.unsafe_index(range: segment.range)
         heaps[index].append(segment)
     }
@@ -39,7 +39,7 @@ public struct ScanSpace<Id> {
         }
     }
     
-    public mutating func idsInRange(range: LineRange, stop: Int64, ids: inout [Id]) {
+    public mutating func idsInRange(range: LineRange, stop: Unit, ids: inout [Id]) {
         indexer.fillUnsafe(range: range, buffer: &indexBuffer)
         
         heaps.withUnsafeMutableBufferPointer { heapsBuffer in
@@ -69,7 +69,7 @@ public struct ScanSpace<Id> {
         indexBuffer.removeAll(keepingCapacity: true)
     }
     
-    public mutating func itemsInRange(range: LineRange, stop: Int64, items: inout [ScanItem<Id>]) {
+    public mutating func itemsInRange(range: LineRange, stop: Unit, items: inout [ScanItem<Id>]) {
         indexer.fillUnsafe(range: range, buffer: &indexBuffer)
 
         heaps.withUnsafeMutableBufferPointer { heapsBuffer in

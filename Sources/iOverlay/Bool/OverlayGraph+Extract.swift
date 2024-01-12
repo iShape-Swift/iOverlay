@@ -116,7 +116,7 @@ public extension OverlayGraph {
             path.append(a.point)
             let node = nodes[b.index]
             
-            if node.count == 2 {
+            if node.indices.count == 2 {
                 next = node.other(index: next)
             } else {
                 let isFillTop = overlayRule.isFillTop(fill: link.fill)

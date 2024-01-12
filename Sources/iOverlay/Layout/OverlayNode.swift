@@ -7,15 +7,12 @@
 
 struct OverlayNode {
         
-    var data0: Int
-    var data1: Int
-    var count: Int
+    var indices: [Int]
 
     @inline(__always)
     func other(index: Int) -> Int {
-        assert(count == 2)
-        return data0 == index ? data1 : data0
+        assert(indices.count == 2)
+        return indices[0] == index ? indices[1] : indices[0]
     }
-    
 }
 
