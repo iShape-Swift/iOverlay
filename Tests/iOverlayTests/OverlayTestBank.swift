@@ -12,6 +12,7 @@ import simd
 @testable import iOverlay
 
 struct OverlayTest: Decodable {
+    let fillRule: FillRule
     let subjPaths: [[FixVec]]
     let clipPaths: [[FixVec]]
     let clip: [FixShape]
@@ -22,6 +23,7 @@ struct OverlayTest: Decodable {
     let xor: [FixShape]
 
     enum CodingKeys: String, CodingKey {
+        case fillRule
         case subjPaths
         case clipPaths
         case clip
@@ -30,6 +32,33 @@ struct OverlayTest: Decodable {
         case intersect
         case union
         case xor
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        // Custom decoding for fillRule
+        if let fillRuleValue = try? container.decode(Int.self, forKey: .fillRule) {
+            switch fillRuleValue {
+            case 0:
+                fillRule = FillRule.evenOdd
+            case 1:
+                fillRule = FillRule.nonZero
+            default:
+                fillRule = FillRule.evenOdd
+            }
+        } else {
+            fillRule = FillRule.evenOdd
+        }
+        
+        subjPaths = try container.decode([[FixVec]].self, forKey: .subjPaths)
+        clipPaths = try container.decode([[FixVec]].self, forKey: .clipPaths)
+        clip = try container.decode([FixShape].self, forKey: .clip)
+        subject = try container.decode([FixShape].self, forKey: .subject)
+        difference = try container.decode([FixShape].self, forKey: .difference)
+        intersect = try container.decode([FixShape].self, forKey: .intersect)
+        union = try container.decode([FixShape].self, forKey: .union)
+        xor = try container.decode([FixShape].self, forKey: .xor)
     }
 }
 

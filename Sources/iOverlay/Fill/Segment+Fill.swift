@@ -78,10 +78,8 @@ extension Array where Element == Segment {
                     if !candidates.isEmpty {
                         for segIndex in candidates {
                             let seg = self[segIndex]
-
-                            let cy = seg.verticalIntersection(x: x)
-                            
-                            if cy <= y {
+                            if Triangle.isClockwise(p0: seg.a, p1: FixVec(x, Int64(y)), p2: seg.b) {
+                                let cy = seg.verticalIntersection(x: x)
                                 if bestIndex == .max {
                                     if cy == y {
                                         if Triangle.isClockwise(p0: FixVec(x, cy), p1: seg.b, p2: seg.a) {
@@ -108,7 +106,6 @@ extension Array where Element == Segment {
                                     }
                                 }
                             }
-                            
                         }
                         candidates.removeAll(keepingCapacity: true)
                     }

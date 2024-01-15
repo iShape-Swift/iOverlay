@@ -6,13 +6,15 @@
 //
 
 import iShape
+import iOverlay
 
 struct PrintJson {
     
-    static func json(clip: [FixShape], subject: [FixShape], difference: [FixShape], intersect: [FixShape], union: [FixShape], xor: [FixShape], subjPaths: [FixPath], clipPaths: [FixPath]) -> String {
+    static func json(clip: [FixShape], subject: [FixShape], difference: [FixShape], intersect: [FixShape], union: [FixShape], xor: [FixShape], subjPaths: [FixPath], clipPaths: [FixPath], fillRule: FillRule) -> String {
         var result = String()
 
         result.append("{\n")
+        result.append("\"fillRule\": \(fillRule.json()),\n")
         result.append("\"subjPaths\": [\(subjPaths.json())],\n")
         result.append("\"clipPaths\": [\(clipPaths.json())],\n")
         result.append("\"subject\": \(subject.json()),\n")
@@ -105,5 +107,16 @@ private extension FixPath {
         }
 
         return result
+    }
+}
+
+private extension FillRule {
+    func json() -> Int {
+        switch self {
+        case .evenOdd:
+            return 0
+        case .nonZero:
+            return 1
+        }
     }
 }

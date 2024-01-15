@@ -18,7 +18,7 @@ final class iOverlayTests: XCTestCase {
         overlay.add(paths: test.subjPaths, type: .subject)
         overlay.add(paths: test.clipPaths, type: .clip)
         
-        let graph = overlay.buildGraph(fillRule: .evenOdd)
+        let graph = overlay.buildGraph(fillRule: test.fillRule)
         
         let clip = graph.extractShapes(overlayRule: .clip)
         let subject = graph.extractShapes(overlayRule: .subject)
@@ -28,7 +28,7 @@ final class iOverlayTests: XCTestCase {
         let xor = graph.extractShapes(overlayRule: .xor)
 
         
-//        print(PrintJson.json(clip: clip, subject: subject, difference: difference, intersect: intersect, union: union, xor: xor, subjPaths: test.subjPaths, clipPaths: test.clipPaths))
+//        print(PrintJson.json(clip: clip, subject: subject, difference: difference, intersect: intersect, union: union, xor: xor, subjPaths: test.subjPaths, clipPaths: test.clipPaths, fillRule: .nonZero))
         
         XCTAssertEqual(test.clip, clip)
         XCTAssertEqual(test.subject, subject)
@@ -420,5 +420,21 @@ final class iOverlayTests: XCTestCase {
     
     func test_95() throws {
         self.execute(index: 95)
+    }
+    
+    func test_96() throws {
+        self.execute(index: 96)
+    }
+    
+    func test_97() throws {
+        self.execute(index: 97)
+    }
+    
+    func test_98() throws {
+        self.execute(index: 98)
+    }
+    
+    func test_99() throws {
+        self.execute(index: 99)
     }
 }
