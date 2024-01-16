@@ -193,6 +193,7 @@ public extension ShapeEdge {
             y0 = 0
             x0 = -xyB / dyB
         } else {
+            // TODO switch to 128 bit math
             // multiply denominator and discriminant by same value to increase precision
             
             let xym = xyB.leadingZeroBitCountIgnoreSign

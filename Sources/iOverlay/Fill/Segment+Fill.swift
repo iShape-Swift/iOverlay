@@ -79,6 +79,7 @@ extension Array where Element == Segment {
                         for segIndex in candidates {
                             let seg = self[segIndex]
                             if Triangle.isClockwise(p0: seg.a, p1: FixVec(x, Int64(y)), p2: seg.b) {
+                                // TODO remove y calculating
                                 let cy = seg.verticalIntersection(x: x)
                                 if bestIndex == .max {
                                     if cy == y {
@@ -166,7 +167,7 @@ private extension Segment {
     func under(_ other: Segment) -> Bool {
         if self.a == other.a {
             return Triangle.isClockwise(p0: a, p1: other.b, p2: b)
-        } else if self.b == other.b {
+        } else if self.b == other.b { // TODO remove b part
             return Triangle.isClockwise(p0: b, p1: a, p2: other.a)
         } else if a.x < other.a.x {
             return Triangle.isClockwise(p0: a, p1: other.a, p2: b)
