@@ -108,7 +108,7 @@ public extension ShapeEdge {
         assert(other.isBoxContain(p))
         
         // still can be common ends cause rounding
-        // snap tp a nearest and with radius 1, (1^2 + 1^2 == 2)
+        // snap to a nearest end with radius 1, (1^2 + 1^2 == 2)
         
         let ra0 = a0.sqrDistance(p)
         let ra1 = a1.sqrDistance(p)
@@ -117,8 +117,8 @@ public extension ShapeEdge {
         let rb1 = b1.sqrDistance(p)
         
         if ra0 <= 2 || ra1 <= 2 || rb0 <= 2 || rb1 <= 2 {
-            let rb = min(rb0, rb1)
             let ra = min(ra0, ra1)
+            let rb = min(rb0, rb1)
 
             if ra <= rb {
                 return EdgeCross(type: .end_a, point: ra0 < ra1 ? a0 : a1)

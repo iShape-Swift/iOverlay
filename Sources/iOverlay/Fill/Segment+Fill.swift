@@ -92,7 +92,7 @@ extension Array where Element == Segment {
                                     }
                                 } else {
                                     if bestY == cy {
-                                        if self[bestIndex].under(seg, cross: FixVec(x, cy)) {
+                                        if self[bestIndex].under(seg) {
                                             bestIndex = segIndex
                                         }
                                     } else if cy == y {
@@ -163,14 +163,15 @@ private extension Segment {
         return (y01 * xx0) / x01 + a.y
     }
     
-    func under(_ other: Segment, cross: FixVec) -> Bool {
+    func under(_ other: Segment) -> Bool {
         if self.a == other.a {
             return Triangle.isClockwise(p0: a, p1: other.b, p2: b)
         } else if self.b == other.b {
             return Triangle.isClockwise(p0: b, p1: a, p2: other.a)
+        } else if a.x < other.a.x {
+            return Triangle.isClockwise(p0: a, p1: other.a, p2: b)
         } else {
-            // probably this case impossible
-            return Triangle.isClockwise(p0: cross, p1: other.b, p2: b)
+            return Triangle.isClockwise(p0: other.a, p1: other.b, p2: a)
         }
     }
     
