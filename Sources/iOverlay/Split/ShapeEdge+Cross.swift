@@ -108,18 +108,26 @@ public extension ShapeEdge {
         assert(other.isBoxContain(p))
         
         // still can be common ends cause rounding
-        let endA = a0 == p || a1 == p
-        let endB = b0 == p || b1 == p
-
-        if !endA && !endB {
-            return EdgeCross(type: .pure, point: p)
-        } else if endA {
-            return EdgeCross(type: .end_a, point: p)
-        } else if endB {
-            return EdgeCross(type: .end_b, point: p)
-        }
+        // snap tp a nearest and with radius 1, (1^2 + 1^2 == 2)
         
-        return nil
+        let ra0 = a0.sqrDistance(p)
+        let ra1 = a1.sqrDistance(p)
+
+        let rb0 = b0.sqrDistance(p)
+        let rb1 = b1.sqrDistance(p)
+        
+        if ra0 <= 2 || ra1 <= 2 || rb0 <= 2 || rb1 <= 2 {
+            let rb = min(rb0, rb1)
+            let ra = min(ra0, ra1)
+
+            if ra <= rb {
+                return EdgeCross(type: .end_a, point: ra0 < ra1 ? a0 : a1)
+            } else {
+                return EdgeCross(type: .end_b, point: rb0 < rb1 ? b0 : b1)
+            }
+        } else {
+            return EdgeCross(type: .pure, point: p)
+        }
     }
     
     private static func crossPoint(a0: FixVec, a1: FixVec, b0: FixVec, b1: FixVec) -> FixVec {
@@ -168,7 +176,7 @@ public extension ShapeEdge {
         let dyB = b0y - b1y
         let dxB = b0x - b1x
         
-     // let xyA = 0
+        // let xyA = 0
         let xyB = b0x * b1y - b0y * b1x
  
         let x0: Int64
