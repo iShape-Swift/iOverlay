@@ -134,7 +134,7 @@ private extension Segment {
         return newCount
     }
     
-    mutating func fill(sumCount: ShapeCount, newCount: ShapeCount, fillRule: FillRule) {
+    private mutating func fill(sumCount: ShapeCount, newCount: ShapeCount, fillRule: FillRule) {
         let isSubjTop: Bool
         let isSubjBottom: Bool
         let isClipTop: Bool
