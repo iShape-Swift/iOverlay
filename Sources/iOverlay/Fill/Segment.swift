@@ -6,7 +6,6 @@
 //
 
 import iFixFloat
-import iShape
 
 public typealias SegmentFill = UInt8
 

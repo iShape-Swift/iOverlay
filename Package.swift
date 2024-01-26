@@ -10,10 +10,10 @@ let package = Package(
             targets: ["iOverlay"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/iShape-Swift/iFixFloat", from: "1.3.0"),
-        .package(url: "https://github.com/iShape-Swift/iShape", from: "1.4.0")
-//        .package(path: "../iFixFloat"),
-//        .package(path: "../iShape"),
+//        .package(url: "https://github.com/iShape-Swift/iFixFloat", from: "1.3.0"),
+//        .package(url: "https://github.com/iShape-Swift/iShape", from: "1.4.0")
+        .package(path: "../iFixFloat"),
+        .package(path: "../iShape"),
     ],
     targets: [
         .target(

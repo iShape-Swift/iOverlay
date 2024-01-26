@@ -187,39 +187,30 @@ private extension Segment {
     }
     
     mutating func fill(sumCount: ShapeCount, newCount: ShapeCount, fillRule: FillRule) {
-        let subjTop: UInt8
-        let subjBottom: UInt8
-        let clipTop: UInt8
-        let clipBottom: UInt8
+        let isSubjTop: Bool
+        let isSubjBottom: Bool
+        let isClipTop: Bool
+        let isClipBottom: Bool
         
         switch fillRule {
         case .evenOdd:
-            let sTop = 1 & newCount.subj
-            let sBottom = 1 & sumCount.subj
+            isSubjTop = 1 & newCount.subj == 1
+            isSubjBottom = 1 & sumCount.subj == 1
 
-            let cTop = 1 & newCount.clip
-            let cBottom = 1 & sumCount.clip
-            
-            subjTop = sTop == 1 ? SegmentFill.subjectTop : 0
-            subjBottom = sBottom == 1 ? SegmentFill.subjectBottom : 0
-            clipTop = cTop == 1 ? SegmentFill.clipTop : 0
-            clipBottom = cBottom == 1 ? SegmentFill.clipBottom : 0
+            isClipTop = 1 & newCount.clip == 1
+            isClipBottom = 1 & sumCount.clip == 1
         case .nonZero:
-            if count.subj == 0 {
-                subjTop = sumCount.subj != 0 ? SegmentFill.subjectTop : 0
-                subjBottom = sumCount.subj != 0 ? SegmentFill.subjectBottom : 0
-            } else {
-                subjTop = newCount.subj != 0 ? SegmentFill.subjectTop : 0
-                subjBottom = sumCount.subj != 0 ? SegmentFill.subjectBottom : 0
-            }
-            if count.clip == 0 {
-                clipTop = sumCount.clip != 0 ? SegmentFill.clipTop : 0
-                clipBottom = sumCount.clip != 0 ? SegmentFill.clipBottom : 0
-            } else {
-                clipTop = newCount.clip != 0 ? SegmentFill.clipTop : 0
-                clipBottom = sumCount.clip != 0 ? SegmentFill.clipBottom : 0
-            }
+            isSubjTop = newCount.subj != 0
+            isSubjBottom = sumCount.subj != 0
+            
+            isClipTop = newCount.clip != 0
+            isClipBottom = sumCount.clip != 0
         }
+        
+        let subjTop = isSubjTop ? SegmentFill.subjectTop : 0
+        let subjBottom = isSubjBottom ? SegmentFill.subjectBottom : 0
+        let clipTop = isClipTop ? SegmentFill.clipTop : 0
+        let clipBottom = isClipBottom ? SegmentFill.clipBottom : 0
         
         fill = subjTop | subjBottom | clipTop | clipBottom
     }

@@ -8,91 +8,34 @@
 import iShape
 import iFixFloat
 
+private struct Contour {
+    let isHole: Bool
+    let path: FixPath
+}
 
 public extension OverlayGraph {
 
     func extractShapes(overlayRule: OverlayRule, minArea: FixFloat = 0) -> [FixShape] {
         var visited = self.links.filter(overlayRule: overlayRule)
 
-        var holes = [Contour]()
+        var holes = [FixPath]()
         var shapes = [FixShape]()
-        var shapeBnds = [FixBnd]()
         
         for i in 0..<links.count {
             if !visited[i] {
                 let contour = self.getContour(overlayRule: overlayRule, minArea: minArea, index: i, visited: &visited)
                 
                 if !contour.path.isEmpty {
-                    if contour.isCavity {
-                        holes.append(contour)
+                    if contour.isHole {
+                        holes.append(contour.path)
                     } else {
-                        shapes.append(FixShape(contour: contour.path, holes: []))
-                        shapeBnds.append(contour.boundary)
+                        shapes.append(FixShape(paths: [contour.path]))
                     }
                 }
             }
         }
 
-        guard !holes.isEmpty else {
-            return shapes
-        }
-        
-        if shapes.count > 1 {
-            var shapeCandidates = [Int]()
-            
-            // find for each hole its shape
-            var holeCounter = [Int: Int]()
-            var holeShape = [Int](repeating: 0, count: holes.count)
-            holeCounter.reserveCapacity(holes.count)
-            for (index, hole) in holes.enumerated() {
-                
-                shapeCandidates.removeAll(keepingCapacity: true)
-                
-                for shapeIndex in 0..<shapes.count {
-
-                    let shapeBnd = shapeBnds[shapeIndex]
-
-                    if shapeBnd.isInside(hole.boundary) {
-                        shapeCandidates.append(shapeIndex)
-                    }
-                }
-                
-                assert(!shapeCandidates.isEmpty)
-
-                var bestShapeIndex = -1
-                
-                if shapeCandidates.count <= 1 {
-                    bestShapeIndex = shapeCandidates[0]
-                } else {
-                    var minDist = Int64.max
-                    
-                    for shapeIndex in shapeCandidates {
-                        let dist = shapes[shapeIndex].contour.getBottomVerticalDistance(p: hole.start)
-                        if minDist > dist {
-                            minDist = dist
-                            bestShapeIndex = shapeIndex
-                        }
-                    }
-                }
-                
-                holeShape[index] = bestShapeIndex
-                holeCounter[bestShapeIndex, default: 0] += 1
-            }
-            
-            for (shapeIndex, holeCount) in holeCounter {
-                shapes[shapeIndex].paths.reserveCapacity(holeCount + 1)
-            }
-            
-            for (index, hole) in holes.enumerated() {
-                let shapeIndex = holeShape[index]
-                shapes[shapeIndex].addHole(hole.path)
-            }
-        } else {
-            shapes[0].paths.reserveCapacity(holes.count + 1)
-            for hole in holes {
-                shapes[0].addHole(hole.path)
-            }
-        }
+        shapes.join(holes: holes)
         
         return shapes
     }
@@ -143,17 +86,15 @@ public extension OverlayGraph {
             
         } while next != index
 
-        let isCavity = overlayRule.isFillBottom(fill: leftLink.fill)
+        let isHole = overlayRule.isFillBottom(fill: leftLink.fill)
         
-        path.validate(minArea: minArea, isCavity: isCavity)
+        path.validate(minArea: minArea, isHole: isHole)
         
         for index in newVisited {
             visited[index] = true
         }
 
-        let boundary = !path.isEmpty ? FixBnd(points: path) : FixBnd.zero
-
-        return Contour(path: path, boundary: boundary, start: leftLink.a.point, isCavity: isCavity)
+        return Contour(isHole: isHole, path: path)
     }
 
     private static func isClockwise(a: FixVec, b: FixVec, isTopInside: Bool) -> Bool {
@@ -165,57 +106,13 @@ public extension OverlayGraph {
     private static func xnor(_ a: Bool, _ b: Bool) -> Bool {
         a && b || !(a || b)
     }
-
-}
-
-private extension OverlayRule {
-    
-    func isFillTop(fill: SegmentFill) -> Bool {
-        switch self {
-        case .subject:
-            return fill & SegmentFill.subjectTop == SegmentFill.subjectTop
-        case .clip:
-            return fill & SegmentFill.clipTop == SegmentFill.clipTop
-        case .intersect:
-            return fill & SegmentFill.bothTop == SegmentFill.bothTop
-        case .union:
-            return fill & SegmentFill.bothBottom == 0
-        case .difference:
-            return fill & SegmentFill.bothTop == SegmentFill.subjectTop
-        case .xor:
-            let isSubject = fill & SegmentFill.bothTop == SegmentFill.subjectTop
-            let isClip = fill & SegmentFill.bothTop == SegmentFill.clipTop
-            
-            return isSubject || isClip
-        }
-    }
-
-    func isFillBottom(fill: SegmentFill) -> Bool {
-        switch self {
-        case .subject:
-            return fill & SegmentFill.subjectBottom == SegmentFill.subjectBottom
-        case .clip:
-            return fill & SegmentFill.clipBottom == SegmentFill.clipBottom
-        case .intersect:
-            return fill & SegmentFill.bothBottom == SegmentFill.bothBottom
-        case .union:
-            return fill & SegmentFill.bothTop == 0
-        case .difference:
-            return fill & SegmentFill.bothBottom == SegmentFill.subjectBottom
-        case .xor:
-            let isSubject = fill & SegmentFill.bothBottom == SegmentFill.subjectBottom
-            let isClip = fill & SegmentFill.bothBottom == SegmentFill.clipBottom
-            
-            return isSubject || isClip
-        }
-    }
     
 }
 
 private extension FixPath {
     
     // remove a short path and make cw if needed
-    mutating func validate(minArea: FixFloat, isCavity: Bool) {
+    mutating func validate(minArea: FixFloat, isHole: Bool) {
         self.removeDegenerates()
         
         guard count > 2 else {
@@ -228,60 +125,128 @@ private extension FixPath {
 
         if absArea < minArea {
             self.removeAll()
-        } else if isCavity && uArea > 0 || !isCavity && uArea < 0 {
+        } else if isHole && uArea > 0 || !isHole && uArea < 0 {
             // for holes must be negative and for contour must be positive
             self.reverse()
         }
     }
-    
-    // points of holes can not have any common points with hull
-    func getBottomVerticalDistance(p: FixVec) -> Int64 {
-        var p0 = self[count - 1]
-        var nearestY = Int64.min
-        
-        for pi in self {
-            // any bottom and non vertical
-            
-            if p0.x != pi.x {
-                let a: FixVec
-                let b: FixVec
-                
-                if p0.x < pi.x {
-                    a = p0
-                    b = pi
-                } else {
-                    a = pi
-                    b = p0
-                }
-                
-                if a.x <= p.x && p.x <= b.x {
-                    let y = FixPath.getVerticalIntersection(p0: a, p1: b, x: p.x)
-                    
-                    if p.y > y && y > nearestY {
-                        nearestY = y
-                    }
-                }
-            }
-
-            p0 = pi
-        }
-        assert(nearestY != Int64.min)
-
-        return p.y - nearestY
-    }
-    
-    private static func getVerticalIntersection(p0: FixVec, p1: FixVec, x: FixFloat) -> Int64 {
-        let y01 = p0.y - p1.y
-        let x01 = p0.x - p1.x
-        let xx0 = x - p0.x
-
-        return (y01 * xx0) / x01 + p0.y
-    }
 }
 
-private struct Contour {
-    let path: FixPath       // Array of points in clockwise order
-    let boundary: FixBnd    // Smallest bounding box of the path
-    let start: FixVec       // Leftmost point in the path
-    let isCavity: Bool      // True if path is an internal cavity (hole), false if external (hull)
+private extension Array where Element == FixShape {
+    
+    mutating func join(holes: [FixPath]) {
+        guard !self.isEmpty && !holes.isEmpty else {
+            return
+        }
+        
+        if self.count == 1 {
+            self[0].paths.reserveCapacity(holes.count + 1)
+            self[0].addAsIs(holes)
+        } else {
+            self.scanJoin(holes: holes)
+        }
+    }
+    
+    private mutating func scanJoin(holes: [FixPath]) {
+        var iPoints = [IdPoint]()
+        iPoints.reserveCapacity(holes.count)
+        for i in 0..<holes.count {
+            iPoints.append(IdPoint(id: i, point: holes[i][0]))
+        }
+        
+        iPoints.sort(by: { $0.point.x < $1.point.x })
+
+        let xMin = iPoints[0].point.x
+        let xMax = iPoints[iPoints.count - 1].point.x
+        var yMin: Int32 = .max
+        var yMax: Int32 = .min
+        
+        var floors = [Floor]()
+        for i in 0..<self.count {
+            floors.append(contentsOf: self[i].contour.floors(id: i, xMin: xMin, xMax: xMax, yMin: &yMin, yMax: &yMax))
+        }
+        
+        floors.sort(by: { $0.seg.a.x < $1.seg.a.x })
+        
+        var scanList = JoinScanList(range: LineRange(min: yMin, max: yMax), count: floors.count)
+
+        var holeShape = [Int](repeating: 0, count: holes.count)
+        var holeCounter = [Int](repeating: 0, count: self.count)
+        
+        var candidates = [Int]()
+       
+        var i = 0
+        var j = 0
+
+        while i < iPoints.count {
+            let x = iPoints[i].point.x
+            
+            while j < floors.count && floors[j].seg.a.x < x {
+                let floor = floors[j]
+                if floor.seg.b.x > x {
+                    scanList.space.insert(segment: ScanSegment(
+                        id: j,
+                        range: floor.seg.yRange,
+                        stop: floor.seg.b.x
+                    ))
+                }
+                j += 1
+            }
+        
+            while i < iPoints.count && iPoints[i].point.x == x {
+                
+                let p = iPoints[i].point
+                
+                // find nearest scan segment for y
+                var iterator = scanList.iteratorToBottom(start: p.y)
+                var bestFloor: Floor?
+
+                while iterator.min != .min {
+                    scanList.space.idsInRange(range: iterator, stop: x, ids: &candidates)
+                    if !candidates.isEmpty {
+                        for floorIndex in candidates {
+                            let floor = floors[floorIndex]
+                            if floor.seg.isUnder(point: p) {
+                                if let bestSeg = bestFloor?.seg {
+                                    if bestSeg.isUnder(segment: floor.seg) {
+                                        bestFloor = floor
+                                    }
+                                } else {
+                                    bestFloor = floor
+                                }
+                            }
+                        }
+                        candidates.removeAll(keepingCapacity: true)
+                    }
+                    
+                    if let bestSeg = bestFloor?.seg, bestSeg.isAbove(point: Point(x: x, y: iterator.min)) {
+                        break
+                    }
+
+                    iterator = scanList.next(range: iterator)
+                }
+                
+                assert(bestFloor != nil)
+                let shapeIndex = bestFloor?.id ?? 0
+                let holeIndex = iPoints[i].id
+                
+                holeShape[holeIndex] = shapeIndex
+                holeCounter[shapeIndex] += 1
+                
+                i += 1
+            }
+        }
+        
+        for shapeIndex in 0..<holeCounter.count {
+            let capacity = holeCounter[shapeIndex]
+            self[shapeIndex].paths.reserveCapacity(capacity + 1)
+        }
+
+        for holeIndex in 0..<holes.count {
+            let hole = holes[holeIndex]
+            let shapeIndex = holeShape[holeIndex]
+            self[shapeIndex].addAsIs(hole)
+        }
+    }
+
 }
