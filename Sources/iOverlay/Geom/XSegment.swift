@@ -8,16 +8,21 @@
 import iFixFloat
 import iShape
 
-struct XSegment {
-    let a: Point        // start
-    let b: Point        // end
+public struct XSegment {
     
+    public let a: Point        // start
+    public let b: Point        // end
+
     var yRange: LineRange {
         if a.y < b.y {
             LineRange(min: a.y, max: b.y)
         } else {
             LineRange(min: b.y, max: a.y)
         }
+    }
+    
+    var isVertical: Bool {
+        a.x == b.x
     }
     
     init(a: FixVec, b: FixVec) {
@@ -47,13 +52,12 @@ extension XSegment {
     }
 
     /// Determines if a point `p` is above a segment
-    /// - Note: This function assumes `a.x <= p.x < b.x`, and `p != a` and `p != b`.
+    /// - Note: This function assumes `a.x <= p.x < b.x`.
     /// - Parameters:
     ///   - p: The point to check.
     /// - Returns: `true` if point `p` is above the segment, `false` otherwise.
     func isAbove(point p: Point) -> Bool {
         assert(a.x <= p.x && p.x <= b.x)
-        assert(p != a && p != b)
         return Triangle.isClockwisePoints(p0: a, p1: b, p2: p)
     }
     

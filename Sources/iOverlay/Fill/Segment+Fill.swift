@@ -15,13 +15,13 @@ private struct Handler {
 
 private struct SegEnd {
     let i: Int
-    let p: FixVec
+    let p: Point
 }
 
 extension Array where Element == Segment {
     
     mutating func fill(fillRule: FillRule, range: LineRange) {
-        var scanList = FillScanList(range: range, count: self.count)
+        var scanList = XScanList(range: range, count: self.count)
         
         var counts = [ShapeCount](repeating: ShapeCount(subj: 0, clip: 0), count: self.count)
         var xBuf = [Handler]()
@@ -32,13 +32,13 @@ extension Array where Element == Segment {
         var i = 0
 
         while i < n {
-            let x = self[i].a.x
+            let x = self[i].seg.a.x
             xBuf.removeAll(keepingCapacity: true)
             
             // find all new segments with same a.x
             
-            while i < n && self[i].a.x == x {
-                xBuf.append(Handler(i: i, y: Int32(self[i].a.y)))
+            while i < n && self[i].seg.a.x == x {
+                xBuf.append(Handler(i: i, y: self[i].seg.a.y))
                 i += 1
             }
             
@@ -59,59 +59,43 @@ extension Array where Element == Segment {
                 // group new segments by same y (all segments in eBuf must have same a)
                 while j < xBuf.count && xBuf[j].y == y {
                     let handler = xBuf[j]
-                    eBuf.append(SegEnd(i: handler.i, p: self[handler.i].b))
+                    eBuf.append(SegEnd(i: handler.i, p: self[handler.i].seg.b))
                     j += 1
                 }
                 
                 if eBuf.count > 1 {
-                    eBuf.sortByAngle(center: FixVec(x, Int64(y)))
+                    eBuf.sortByAngle(center: Point(x, y))
                 }
-                
+
                 // find nearest scan segment for y
                 var iterator = scanList.iteratorToBottom(start: y)
-                var bestY = Int64.min
+                var bestSegment: Segment?
                 var bestIndex: Int = .max
-                var rangeBottom = iterator.min
 
-                while bestY < rangeBottom && iterator.min != .min {
+                while iterator.min != .min {
                     scanList.space.idsInRange(range: iterator, stop: x, ids: &candidates)
                     if !candidates.isEmpty {
                         for segIndex in candidates {
-                            let seg = self[segIndex]
-                            if Triangle.isClockwise(p0: seg.a, p1: FixVec(x, Int64(y)), p2: seg.b) {
-                                // TODO remove y calculating
-                                let cy = seg.verticalIntersection(x: x)
-                                if bestIndex == .max {
-                                    if cy == y {
-                                        if Triangle.isClockwise(p0: FixVec(x, cy), p1: seg.b, p2: seg.a) {
-                                            bestIndex = segIndex
-                                            bestY = cy
-                                        }
-                                    } else {
+                            let segment = self[segIndex]
+                            if segment.seg.isUnder(point: Point(x: x, y: y)) {
+                                if let bestSeg = bestSegment?.seg {
+                                    if bestSeg.isUnder(segment: segment.seg) {
+                                        bestSegment = segment
                                         bestIndex = segIndex
-                                        bestY = cy
                                     }
                                 } else {
-                                    if bestY == cy {
-                                        if self[bestIndex].under(seg) {
-                                            bestIndex = segIndex
-                                        }
-                                    } else if cy == y {
-                                        if seg.under(point: FixVec(x, cy)) {
-                                            bestIndex = segIndex
-                                            bestY = cy
-                                        }
-                                    } else if bestY < cy {
-                                        bestIndex = segIndex
-                                        bestY = cy
-                                    }
+                                    bestSegment = segment
+                                    bestIndex = segIndex
                                 }
                             }
                         }
                         candidates.removeAll(keepingCapacity: true)
                     }
                     
-                    rangeBottom = iterator.min
+                    if let bestSeg = bestSegment?.seg, bestSeg.isAbove(point: Point(x: x, y: iterator.min)) {
+                        break
+                    }
+
                     iterator = scanList.next(range: iterator)
                 }
 
@@ -124,15 +108,15 @@ extension Array where Element == Segment {
                 }
 
                 for se in eBuf {
-                    if self[se.i].isVertical {
+                    if self[se.i].seg.isVertical {
                         _ = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
                     } else {
                         sumCount = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
                         counts[se.i] = sumCount
-                        let seg = self[se.i]
+                        let seg = self[se.i].seg
                         scanList.space.insert(segment: ScanSegment(
                             id: se.i,
-                            range: seg.verticalRange,
+                            range: seg.yRange,
                             stop: seg.b.x
                         ))
                     }
@@ -143,43 +127,7 @@ extension Array where Element == Segment {
 }
 
 private extension Segment {
-    
-    var isVertical: Bool {
-        a.x == b.x
-    }
-    
-    var verticalRange: LineRange {
-        if a.y > b.y {
-            return LineRange(min: Int32(b.y), max: Int32(a.y))
-        } else {
-            return LineRange(min: Int32(a.y), max: Int32(b.y))
-        }
-    }
-    
-    func verticalIntersection(x: Int64) -> Int64 {
-        let y01 = a.y - b.y
-        let x01 = a.x - b.x
-        let xx0 = x - a.x
 
-        return (y01 * xx0) / x01 + a.y
-    }
-    
-    func under(_ other: Segment) -> Bool {
-        if self.a == other.a {
-            return Triangle.isClockwise(p0: a, p1: other.b, p2: b)
-        } else if self.b == other.b { // TODO remove b part
-            return Triangle.isClockwise(p0: b, p1: a, p2: other.a)
-        } else if a.x < other.a.x {
-            return Triangle.isClockwise(p0: a, p1: other.a, p2: b)
-        } else {
-            return Triangle.isClockwise(p0: other.a, p1: other.b, p2: a)
-        }
-    }
-    
-    func under(point p: FixVec) -> Bool {
-        !Triangle.isClockwise(p0: a, p1: b, p2: p)
-    }
-    
     mutating func addAndFill(sumCount: ShapeCount, fillRule: FillRule) -> ShapeCount {
         let newCount = sumCount.add(count)
         self.fill(sumCount: sumCount, newCount: newCount, fillRule: fillRule)
@@ -219,9 +167,10 @@ private extension Segment {
 
 private extension Array where Element == SegEnd {
     
-    mutating func sortByAngle(center: FixVec) {
+    mutating func sortByAngle(center: Point) {
+        let c = FixVec(center)
         self.sort(by: {
-            Triangle.isClockwise(p0: center, p1: $1.p, p2: $0.p)
+            Triangle.isClockwise(p0: c, p1: FixVec($1.p), p2: FixVec($0.p))
         })
     }
     

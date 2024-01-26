@@ -27,15 +27,12 @@ public extension SegmentFill {
 
 public struct Segment {
 
-    // start < end
-    public let a: FixVec        // start
-    public let b: FixVec        // end
+    public let seg: XSegment
     public let count: ShapeCount
     public var fill: SegmentFill
 
     init(edge: ShapeEdge) {
-        self.a = edge.a
-        self.b = edge.b
+        self.seg = XSegment(a: edge.a, b: edge.b)
         self.fill = 0
         self.count = edge.count
     }

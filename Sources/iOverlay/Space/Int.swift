@@ -7,6 +7,7 @@
 
 extension Int {
     
+    @inline(__always)
     var powerOfTwo: Int {
         1 << self
     }

@@ -168,7 +168,7 @@ private extension Array where Element == FixShape {
         
         floors.sort(by: { $0.seg.a.x < $1.seg.a.x })
         
-        var scanList = JoinScanList(range: LineRange(min: yMin, max: yMax), count: floors.count)
+        var scanList = XScanList(range: LineRange(min: yMin, max: yMax), count: floors.count)
 
         var holeShape = [Int](repeating: 0, count: holes.count)
         var holeCounter = [Int](repeating: 0, count: self.count)

@@ -30,7 +30,7 @@ public struct OverlayGraph {
         var endBs = [End]()
         endBs.reserveCapacity(n)
         for segIndex in 0..<n {
-            endBs.append(End(segIndex: segIndex, bitPack: segments[segIndex].b.bitPack))
+            endBs.append(End(segIndex: segIndex, bitPack: segments[segIndex].seg.b.bitPack))
         }
         
         endBs.sort(by: { $0.bitPack < $1.bitPack })
@@ -42,15 +42,27 @@ public struct OverlayGraph {
         
         var ai = 0
         var bi = 0
-        var a = segments[0].a.bitPack
+        var a = segments[0].seg.a.bitPack
         var b = endBs[0].bitPack
         
         while ai < n || bi < n {
+            var cnt = 0
+            if a == b {
+                cnt += segments.size(a: a, ai: ai)
+                cnt += endBs.size(b: b, bi: bi)
+            } else if ai < n && a < b {
+                cnt += segments.size(a: a, ai: ai)
+            } else {
+                cnt += endBs.size(b: b, bi: bi)
+            }
+            
             var indices = [Int]()
+            indices.reserveCapacity(cnt)
+            
             if a == b {
                 let ip = IndexPoint(index: nodes.count, point: a.fixVec)
                 while ai < n {
-                    let aa = segments[ai].a.bitPack
+                    let aa = segments[ai].seg.a.bitPack
                     guard aa == a else {
                         a = aa
                         break
@@ -75,7 +87,7 @@ public struct OverlayGraph {
             } else if ai < n && a < b {
                 let ip = IndexPoint(index: nodes.count, point: a.fixVec)
                 while ai < n {
-                    let aa = segments[ai].a.bitPack
+                    let aa = segments[ai].seg.a.bitPack
                     guard aa == a else {
                         a = aa
                         break
@@ -140,7 +152,7 @@ public struct OverlayGraph {
 
         return minIndex
     }
-    
+
 }
 
 private extension FixVec {
@@ -172,4 +184,40 @@ private extension FixVec {
         return crossAB < 0
     }
 
+}
+
+private extension Array where Element == Segment {
+    
+    func size(a: BitPack, ai: Int) -> Int {
+        var cnt = 0
+        var i = ai
+        while i < self.count {
+            let aa = self[i].seg.a.bitPack
+            guard aa == a else {
+                break
+            }
+            cnt += 1
+            i += 1
+        }
+        
+        return cnt
+    }
+}
+
+private extension Array where Element == End {
+    
+    func size(b: BitPack, bi: Int) -> Int {
+        var cnt = 0
+        var i = bi
+        while i < self.count {
+            let e = self[i]
+            guard e.bitPack == b else {
+                break
+            }
+            cnt += 1
+            i += 1
+        }
+        
+        return cnt
+    }
 }

@@ -1,6 +1,6 @@
 //
-//  JoinScanList.swift
-//
+//  XScanList.swift
+//  
 //
 //  Created by Nail Sharipov on 26.01.2024.
 //
@@ -8,18 +8,10 @@
 import iShape
 import iFixFloat
 
-struct JoinScanList {
+struct XScanList {
     
     var space: ScanSpace<Int, Int32>
-    
-    var yMin: Int32 {
-        if bottom > .min {
-            bottom - 1
-        } else {
-            .min
-        }
-    }
-    
+
     private let bottom: Int32
     private let delta: Int32
     
