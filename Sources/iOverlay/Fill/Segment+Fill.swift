@@ -71,7 +71,7 @@ extension Array where Element == Segment {
 
                 // find nearest scan segment for y
                 var iterator = scanList.iteratorToBottom(start: y)
-                var bestSegment: Segment?
+                var bestSegment: XSegment?
                 var bestIndex: Int = .max
                 
                 while iterator.min != .min {
@@ -79,10 +79,10 @@ extension Array where Element == Segment {
                     if !candidates.isEmpty {
                         
                         for segIndex in candidates {
-                            let segment = self[segIndex]
-                            if segment.seg.isUnder(point: p) {
-                                if let bestSeg = bestSegment?.seg {
-                                    if bestSeg.isUnder(segment: segment.seg) {
+                            let segment = self[segIndex].seg
+                            if segment.isUnder(point: p) {
+                                if let bestSeg = bestSegment {
+                                    if bestSeg.isUnder(segment: segment) {
                                         bestSegment = segment
                                         bestIndex = segIndex
                                     }
@@ -95,7 +95,7 @@ extension Array where Element == Segment {
                         candidates.removeAll(keepingCapacity: true)
                     }
                     
-                    if let bestSeg = bestSegment?.seg, bestSeg.isAbove(point: Point(x: x, y: iterator.min)) {
+                    if let bestSeg = bestSegment, bestSeg.isAbove(point: Point(x: x, y: iterator.min)) {
                         break
                     }
 
