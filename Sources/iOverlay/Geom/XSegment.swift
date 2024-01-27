@@ -75,14 +75,6 @@ extension XSegment {
             return Triangle.isClockwisePoints(p0: other.a, p1: other.b, p2: a)
         }
     }
-    
-    func verticalIntersection(x: Int32) -> Int32 {
-        let y01 = Int64(a.y - b.y)
-        let x01 = Int64(a.x - b.x)
-        let xx0 = Int64(x - a.x)
-
-        return Int32((y01 * xx0) / x01) + a.y
-    }
 }
 
 private extension Triangle {

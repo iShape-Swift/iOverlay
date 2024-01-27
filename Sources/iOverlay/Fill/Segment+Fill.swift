@@ -63,21 +63,24 @@ extension Array where Element == Segment {
                     j += 1
                 }
                 
+                let p = Point(x, y)
+                
                 if eBuf.count > 1 {
-                    eBuf.sortByAngle(center: Point(x, y))
+                    eBuf.sortByAngle(center: p)
                 }
 
                 // find nearest scan segment for y
                 var iterator = scanList.iteratorToBottom(start: y)
                 var bestSegment: Segment?
                 var bestIndex: Int = .max
-
+                
                 while iterator.min != .min {
                     scanList.space.idsInRange(range: iterator, stop: x, ids: &candidates)
                     if !candidates.isEmpty {
+                        
                         for segIndex in candidates {
                             let segment = self[segIndex]
-                            if segment.seg.isUnder(point: Point(x: x, y: y)) {
+                            if segment.seg.isUnder(point: p) {
                                 if let bestSeg = bestSegment?.seg {
                                     if bestSeg.isUnder(segment: segment.seg) {
                                         bestSegment = segment
