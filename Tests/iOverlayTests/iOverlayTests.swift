@@ -461,4 +461,8 @@ final class iOverlayTests: XCTestCase {
     func test_105() throws {
         self.execute(index: 105)
     }
+    
+    func test_106() throws {
+        self.execute(index: 106)
+    }
 }
