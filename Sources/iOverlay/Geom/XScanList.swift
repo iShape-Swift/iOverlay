@@ -12,21 +12,22 @@ struct XScanList {
     
     var space: ScanSpace<Int, Int32>
 
-    private let bottom: Int32
     private let delta: Int32
     
     init(range: LineRange, count: Int) {
-        bottom = range.min
         space = ScanSpace(range: range, count: count)
         delta = Int32(1 << space.indexer.scale)
     }
     
     func iteratorToBottom(start: Int32) -> LineRange {
-        let minY = max(start - delta, bottom)
-        return LineRange(min: minY, max: start)
+        let range = self.space.indexer.range
+        let top = min(range.max, start)
+        let minY = max(range.min, top - self.delta)
+        return LineRange(min: minY, max: top)
     }
     
     func next(range: LineRange) -> LineRange {
+        let bottom = self.space.indexer.range.min
         guard range.min > bottom else {
             return LineRange(min: .min, max: .min)
         }

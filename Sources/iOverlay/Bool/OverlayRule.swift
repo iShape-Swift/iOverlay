@@ -21,7 +21,7 @@ extension OverlayRule {
     func isFillTop(fill: SegmentFill) -> Bool {
         switch self {
         case .subject:
-            return fill & SegmentFill.subjectTop == SegmentFill.subjectTop
+            return fill & SegmentFill.subjTop == SegmentFill.subjTop
         case .clip:
             return fill & SegmentFill.clipTop == SegmentFill.clipTop
         case .intersect:
@@ -29,33 +29,12 @@ extension OverlayRule {
         case .union:
             return fill & SegmentFill.bothBottom == 0
         case .difference:
-            return fill & SegmentFill.bothTop == SegmentFill.subjectTop
+            return fill & SegmentFill.bothTop == SegmentFill.subjTop
         case .xor:
-            let isSubject = fill & SegmentFill.bothTop == SegmentFill.subjectTop
+            let isSubject = fill & SegmentFill.bothTop == SegmentFill.subjTop
             let isClip = fill & SegmentFill.bothTop == SegmentFill.clipTop
             
             return isSubject || isClip
         }
     }
-
-    func isFillBottom(fill: SegmentFill) -> Bool {
-        switch self {
-        case .subject:
-            return fill & SegmentFill.subjectBottom == SegmentFill.subjectBottom
-        case .clip:
-            return fill & SegmentFill.clipBottom == SegmentFill.clipBottom
-        case .intersect:
-            return fill & SegmentFill.bothBottom == SegmentFill.bothBottom
-        case .union:
-            return fill & SegmentFill.bothTop == 0
-        case .difference:
-            return fill & SegmentFill.bothBottom == SegmentFill.subjectBottom
-        case .xor:
-            let isSubject = fill & SegmentFill.bothBottom == SegmentFill.subjectBottom
-            let isClip = fill & SegmentFill.bothBottom == SegmentFill.clipBottom
-            
-            return isSubject || isClip
-        }
-    }
-    
 }

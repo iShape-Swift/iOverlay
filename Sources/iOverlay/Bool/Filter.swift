@@ -35,11 +35,9 @@ extension Array where Element == OverlayLink {
             let fill = self[i].fill
             
             // Skip edge if it it inside or not belong to subject
-            
-            let isTop = fill & .subjectTop == .subjectTop
-            let isBot = fill & .subjectBottom == .subjectBottom
 
-            skip[i] = isTop == isBot
+            let subj = fill & .subjBoth
+            skip[i] = subj == 0 || subj == .subjBoth
         }
         
         return skip
@@ -54,10 +52,8 @@ extension Array where Element == OverlayLink {
             
             // Skip edge if it it inside or not belong clip
             
-            let isTop = fill & .clipTop == .clipTop
-            let isBot = fill & .clipBottom == .clipBottom
-
-            skip[i] = isTop == isBot
+            let clip = fill & .clipBoth
+            skip[i] = clip == 0 || clip == .clipBoth
         }
         
         return skip
@@ -109,9 +105,9 @@ extension Array where Element == OverlayLink {
             // One side must belong only subject
             // Can not be subject inner edge
             
-            let subjectInner = fill == .subjectBoth
-            let topOnlySubject = fill & .bothTop == .subjectTop
-            let botOnlySubject = fill & .bothBottom == .subjectBottom
+            let subjectInner = fill == .subjBoth
+            let topOnlySubject = fill & .bothTop == .subjTop
+            let botOnlySubject = fill & .bothBottom == .subjBottom
             
             skip[i] = !(topOnlySubject || botOnlySubject) || subjectInner
         }
@@ -129,13 +125,13 @@ extension Array where Element == OverlayLink {
             // One side must belong only to one polygon
             // No inner sides
 
-            let subjectInner = fill == .subjectBoth
+            let subjectInner = fill == .subjBoth
             let clipInner = fill == .clipBoth
             let bothInner = fill == .all
             let onlyTop = fill == .bothTop
             let onlyBottom = fill == .bothBottom
-            let diagonal_0 = fill == .clipTop | .subjectBottom
-            let diagonal_1 = fill == .clipBottom | .subjectTop
+            let diagonal_0 = fill == .clipTop | .subjBottom
+            let diagonal_1 = fill == .clipBottom | .subjTop
             
             skip[i] = subjectInner || clipInner || bothInner || onlyTop || onlyBottom || diagonal_0 || diagonal_1
         }

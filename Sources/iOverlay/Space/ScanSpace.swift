@@ -44,6 +44,7 @@ public struct ScanSpace<Id, Unit: Comparable> {
         
         heaps.withUnsafeMutableBufferPointer { heapsBuffer in
             for major in indexBuffer {
+                assert(major < heapsBuffer.count)
                 if let segments = heapsBuffer.baseAddress?.advanced(by: major) {
                     var minor = 0
                     while minor < segments.pointee.count {

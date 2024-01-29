@@ -75,6 +75,16 @@ extension XSegment {
             return Triangle.isClockwisePoints(p0: other.a, p1: other.b, p2: a)
         }
     }
+    
+    func isLess(_ other: XSegment) -> Bool {
+        let a0 = self.a.bitPack
+        let a1 = other.a.bitPack
+        if a0 != a1 {
+            return a0 < a1
+        } else {
+            return self.b.bitPack < other.b.bitPack
+        }
+    }
 }
 
 private extension Triangle {

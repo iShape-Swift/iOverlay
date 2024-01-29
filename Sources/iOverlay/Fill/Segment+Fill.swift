@@ -158,8 +158,8 @@ private extension Segment {
             isClipBottom = sumCount.clip != 0
         }
         
-        let subjTop = isSubjTop ? SegmentFill.subjectTop : 0
-        let subjBottom = isSubjBottom ? SegmentFill.subjectBottom : 0
+        let subjTop = isSubjTop ? SegmentFill.subjTop : 0
+        let subjBottom = isSubjBottom ? SegmentFill.subjBottom : 0
         let clipTop = isClipTop ? SegmentFill.clipTop : 0
         let clipBottom = isClipBottom ? SegmentFill.clipBottom : 0
         

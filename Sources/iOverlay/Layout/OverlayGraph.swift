@@ -48,12 +48,12 @@ public struct OverlayGraph {
         while ai < n || bi < n {
             var cnt = 0
             if a == b {
-                cnt += segments.size(a: a, ai: ai)
-                cnt += endBs.size(b: b, bi: bi)
+                cnt += segments.size(point: a, index: ai)
+                cnt += endBs.size(point: b, index: bi)
             } else if ai < n && a < b {
-                cnt += segments.size(a: a, ai: ai)
+                cnt += segments.size(point: a, index: ai)
             } else {
-                cnt += endBs.size(b: b, bi: bi)
+                cnt += endBs.size(point: b, index: bi)
             }
             
             var indices = [Int]()
@@ -188,36 +188,23 @@ private extension FixVec {
 
 private extension Array where Element == Segment {
     
-    func size(a: BitPack, ai: Int) -> Int {
-        var cnt = 0
-        var i = ai
-        while i < self.count {
-            let aa = self[i].seg.a.bitPack
-            guard aa == a else {
-                break
-            }
-            cnt += 1
+    func size(point: BitPack, index: Int) -> Int {
+        var i = index
+        while i < self.count && self[i].seg.a.bitPack == point {
             i += 1
         }
-        
-        return cnt
+        return i - index
     }
 }
 
 private extension Array where Element == End {
     
-    func size(b: BitPack, bi: Int) -> Int {
-        var cnt = 0
-        var i = bi
-        while i < self.count {
-            let e = self[i]
-            guard e.bitPack == b else {
-                break
-            }
-            cnt += 1
+    func size(point: BitPack, index: Int) -> Int {
+        var i = index
+        while i < self.count && self[i].bitPack == point {
             i += 1
         }
-        
-        return cnt
+
+        return i - index
     }
 }

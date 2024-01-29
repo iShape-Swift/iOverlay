@@ -11,18 +11,21 @@ public typealias SegmentFill = UInt8
 
 public extension SegmentFill {
     
-    static let subjectTop: UInt8       = 0b0001
-    static let subjectBottom: UInt8    = 0b0010
+    static let subjTop: UInt8          = 0b0001
+    static let subjBottom: UInt8       = 0b0010
     static let clipTop: UInt8          = 0b0100
     static let clipBottom: UInt8       = 0b1000
     
-    static let subjectBoth: UInt8 = subjectTop | subjectBottom
+    static let subjBoth: UInt8 = subjTop | subjBottom
     static let clipBoth: UInt8 = clipTop | clipBottom
-    static let bothTop: UInt8 = subjectTop | clipTop
-    static let bothBottom: UInt8 = subjectBottom | clipBottom
+    static let bothTop: UInt8 = subjTop | clipTop
+    static let bothBottom: UInt8 = subjBottom | clipBottom
     
-    static let all = subjectBoth | clipBoth
-
+    static let all = subjBoth | clipBoth
+    
+    var isInnerSingle: Bool {
+        self == .subjBoth || self == .clipBoth
+    }
 }
 
 public struct Segment {

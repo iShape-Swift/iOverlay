@@ -8,11 +8,6 @@
 import iShape
 import iFixFloat
 
-private struct Contour {
-    let isHole: Bool
-    let path: FixPath
-}
-
 public extension OverlayGraph {
 
     func extractShapes(overlayRule: OverlayRule, minArea: FixFloat = 0) -> [FixShape] {
@@ -21,16 +16,21 @@ public extension OverlayGraph {
         var holes = [FixPath]()
         var shapes = [FixShape]()
         
-        for i in 0..<links.count {
-            if !visited[i] {
-                let contour = self.getContour(overlayRule: overlayRule, minArea: minArea, index: i, visited: &visited)
-                
-                if !contour.path.isEmpty {
-                    if contour.isHole {
-                        holes.append(contour.path)
-                    } else {
-                        shapes.append(FixShape(paths: [contour.path]))
-                    }
+        var j = 0
+        while j < self.nodes.count {
+            let i = self.findFirstLink(nodeIndex: j, visited: visited)
+            guard i != .max else {
+                j += 1
+                continue
+            }
+
+            let isHole = overlayRule.isFillTop(fill: self.links[i].fill);
+            var path = self.getPath(overlayRule: overlayRule, index: i, visited: &visited)
+            if path.validate(minArea: minArea, isHole: isHole) {
+                if isHole {
+                    holes.append(path)
+                } else {
+                    shapes.append(FixShape(paths: [path]))
                 }
             }
         }
@@ -40,7 +40,7 @@ public extension OverlayGraph {
         return shapes
     }
     
-    private func getContour(overlayRule: OverlayRule, minArea: FixFloat, index: Int, visited: inout [Bool]) -> Contour {
+    private func getPath(overlayRule: OverlayRule, index: Int, visited: inout [Bool]) -> FixPath {
         var path = FixPath()
         var next = index
 
@@ -48,14 +48,9 @@ public extension OverlayGraph {
         
         var a = link.a
         var b = link.b
-        
-        var leftLink = link
-
-        var newVisited = [Int]()
 
         // find a closed tour
         repeat {
-            newVisited.append(next)
             path.append(a.point)
             let node = nodes[b.index]
             
@@ -65,36 +60,16 @@ public extension OverlayGraph {
                 let isFillTop = overlayRule.isFillTop(fill: link.fill)
                 let isCW = OverlayGraph.isClockwise(a: a.point, b: b.point, isTopInside: isFillTop)
                 next = self.findNearestLinkTo(target: a, center: b, ignore: next, inClockWise: isCW, visited: visited)
-                guard next >= 0 else {
-                    break
-                }
             }
-            
             link = links[next]
             a = b
             b = link.other(b)
-
-            // find leftmost and bottom link
-            if leftLink.a.point.bitPack >= link.a.point.bitPack {
-                let isSamePoint = leftLink.a.index == link.a.index
-                let isSamePointAndTurnClockWise = isSamePoint && Triangle.isClockwise(p0: link.b.point, p1: link.a.point, p2: leftLink.b.point)
-                
-                if !isSamePoint || isSamePointAndTurnClockWise {
-                    leftLink = link
-                }
-            }
-            
+            visited[next] = true
         } while next != index
-
-        let isHole = overlayRule.isFillBottom(fill: leftLink.fill)
         
-        path.validate(minArea: minArea, isHole: isHole)
-        
-        for index in newVisited {
-            visited[index] = true
-        }
+        visited[index] = true
 
-        return Contour(isHole: isHole, path: path)
+        return path
     }
 
     private static func isClockwise(a: FixVec, b: FixVec, isTopInside: Bool) -> Bool {
@@ -107,28 +82,52 @@ public extension OverlayGraph {
         a && b || !(a || b)
     }
     
+    func findFirstLink(nodeIndex: Int, visited: [Bool]) -> Int {
+        let node = self.nodes[nodeIndex]
+        var j = Int.max
+        for i in node.indices {
+            if !visited[i] {
+                if j == .max {
+                    j = i
+                } else {
+                    let a = self.links[j].a.point
+                    let bj = self.links[j].b.point
+                    let bi = self.links[i].b.point
+
+                    if Triangle.isClockwise(p0: a, p1: bi, p2: bj) {
+                        j = i
+                    }
+                }
+            }
+        }
+
+        return j
+    }
+
+    
 }
 
 private extension FixPath {
     
     // remove a short path and make cw if needed
-    mutating func validate(minArea: FixFloat, isHole: Bool) {
+    mutating func validate(minArea: FixFloat, isHole: Bool) -> Bool {
         self.removeDegenerates()
         
         guard count > 2 else {
-            self.removeAll()
-            return
+            return false
         }
 
         let uArea = self.unsafeArea
         let absArea = abs(uArea) >> (FixFloat.fractionBits + 1)
 
         if absArea < minArea {
-            self.removeAll()
+            return false
         } else if isHole && uArea > 0 || !isHole && uArea < 0 {
             // for holes must be negative and for contour must be positive
             self.reverse()
         }
+        
+        return true
     }
 }
 

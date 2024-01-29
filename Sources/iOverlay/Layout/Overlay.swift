@@ -81,6 +81,8 @@ public struct Overlay {
         
         segments.fill(fillRule: fillRule, range: range)
         
+        segments.removeEmpty()
+        
         return segments
     }
 
@@ -131,5 +133,34 @@ private extension FixPath {
         }
         
         return EdgeResult(edges: edges, yMin: Int32(yMin), yMax: Int32(yMax))
+    }
+}
+
+private extension Array where Element == Segment {
+    
+    mutating func removeEmpty() {
+        var hasEmpty = false
+        var i = 0
+        while i < self.count {
+            let fill = self[i].fill
+            if fill == 0 || fill.isInnerSingle {
+                hasEmpty = true
+                self.swapRemove(i)
+            } else {
+                i += 1
+            }
+        }
+        
+        if hasEmpty {
+            self.sort(by: { $0.seg.isLess($1.seg) })
+        }
+    }
+    
+    mutating func swapRemove(_ index: Int) {
+        if index < self.count - 1 {
+            self[index] = self.removeLast()
+        } else {
+            self.removeLast()
+        }
     }
 }
