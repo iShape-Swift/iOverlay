@@ -22,10 +22,6 @@ public extension SegmentFill {
     static let bothBottom: UInt8 = subjBottom | clipBottom
     
     static let all = subjBoth | clipBoth
-    
-    var isInnerSingle: Bool {
-        self == .subjBoth || self == .clipBoth
-    }
 }
 
 public struct Segment {

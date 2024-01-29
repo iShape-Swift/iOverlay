@@ -81,7 +81,7 @@ public struct Overlay {
         
         segments.fill(fillRule: fillRule, range: range)
         
-        segments.removeEmpty()
+        segments.filter()
         
         return segments
     }
@@ -138,12 +138,12 @@ private extension FixPath {
 
 private extension Array where Element == Segment {
     
-    mutating func removeEmpty() {
+    mutating func filter() {
         var hasEmpty = false
         var i = 0
         while i < self.count {
             let fill = self[i].fill
-            if fill == 0 || fill.isInnerSingle {
+            if fill == 0 || fill == .subjBoth || fill == .clipBoth {
                 hasEmpty = true
                 self.swapRemove(i)
             } else {
