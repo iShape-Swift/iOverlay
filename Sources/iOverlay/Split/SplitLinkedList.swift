@@ -24,9 +24,7 @@ struct SplitLinkedListNode {
     fileprivate mutating func clear() {
         next = emptyIndex
         prev = emptyIndex
-        #if DEBUG
-        edge = .zero
-        #endif
+        edge.count = ShapeCount(subj: 0, clip: 0)
         version += 1
     }
 
