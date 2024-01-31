@@ -7,9 +7,9 @@
 
 import iFixFloat
 
-public typealias VectorFill = UInt8
+public typealias SideFill = UInt8
 
-public extension VectorFill {
+public extension SideFill {
     
     static let subjLeft: UInt8      = 0b0001
     static let subjRight: UInt8     = 0b0010
@@ -19,7 +19,7 @@ public extension VectorFill {
     static let subjLeftAndRight: UInt8 = subjLeft | subjRight
     static let clipLeftAndRight: UInt8 = clipLeft | clipRight
     
-    func reverse() -> VectorFill {
+    func reverse() -> SideFill {
         let subjLeft = self & .subjLeft
         let subjRight = self & .subjRight
         let clipLeft = self & .clipLeft
@@ -30,13 +30,13 @@ public extension VectorFill {
     
 }
 
-public struct FillVector {
+public struct VectorEdge {
 
-    public private (set) var fill: VectorFill
+    public private (set) var fill: SideFill
     public private (set) var a: FixVec
     public private (set) var b: FixVec
 
-    init(fill: VectorFill, a: FixVec, b: FixVec) {
+    init(fill: SideFill, a: FixVec, b: FixVec) {
         self.fill = fill
         self.a = a
         self.b = b
@@ -58,6 +58,6 @@ public struct FillVector {
     
 }
 
-public typealias VectorPath = [FillVector]
+public typealias VectorPath = [VectorEdge]
 
 public typealias VectorShape = [VectorPath]

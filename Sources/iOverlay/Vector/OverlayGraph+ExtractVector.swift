@@ -1,5 +1,5 @@
 //
-//  OverlayGraph+FillVector.swift
+//  OverlayGraph+ExtractVector.swift
 //
 //
 //  Created by Nail Sharipov on 30.01.2024.
@@ -51,7 +51,7 @@ public extension OverlayGraph {
 
         // find a closed tour
         repeat {
-            path.append(FillVector(fill: link.fill, a: a.point, b: b.point))
+            path.append(VectorEdge(fill: link.fill, a: a.point, b: b.point))
             let node = nodes[b.index]
             
             if node.indices.count == 2 {
@@ -108,83 +108,18 @@ private extension Array where Element == VectorShape {
         
         floors.sort(by: { $0.seg.a.x < $1.seg.a.x })
         
-        var scanList = XScanList(range: LineRange(min: yMin, max: yMax), count: floors.count)
+        let yRange = LineRange(min: yMin, max: yMax)
+        let solution = HolesSolver.solve(shapeCount: self.count, yRange: yRange, iPoints: iPoints, floors: floors)
 
-        var holeShape = [Int](repeating: 0, count: holes.count)
-        var holeCounter = [Int](repeating: 0, count: self.count)
         
-        var candidates = [Int]()
-       
-        var i = 0
-        var j = 0
-
-        while i < iPoints.count {
-            let x = iPoints[i].point.x
-            
-            while j < floors.count && floors[j].seg.a.x < x {
-                let floor = floors[j]
-                if floor.seg.b.x > x {
-                    scanList.space.insert(segment: ScanSegment(
-                        id: j,
-                        range: floor.seg.yRange,
-                        stop: floor.seg.b.x
-                    ))
-                }
-                j += 1
-            }
-        
-            while i < iPoints.count && iPoints[i].point.x == x {
-                
-                let p = iPoints[i].point
-                
-                // find nearest scan segment for y
-                var iterator = scanList.iteratorToBottom(start: p.y)
-                var bestFloor: Floor?
-
-                while iterator.min != .min {
-                    scanList.space.idsInRange(range: iterator, stop: x, ids: &candidates)
-                    if !candidates.isEmpty {
-                        for floorIndex in candidates {
-                            let floor = floors[floorIndex]
-                            if floor.seg.isUnder(point: p) {
-                                if let bestSeg = bestFloor?.seg {
-                                    if bestSeg.isUnder(segment: floor.seg) {
-                                        bestFloor = floor
-                                    }
-                                } else {
-                                    bestFloor = floor
-                                }
-                            }
-                        }
-                        candidates.removeAll(keepingCapacity: true)
-                    }
-                    
-                    if let bestSeg = bestFloor?.seg, bestSeg.isAbove(point: Point(x: x, y: iterator.min)) {
-                        break
-                    }
-
-                    iterator = scanList.next(range: iterator)
-                }
-                
-                assert(bestFloor != nil)
-                let shapeIndex = bestFloor?.id ?? 0
-                let holeIndex = iPoints[i].id
-                
-                holeShape[holeIndex] = shapeIndex
-                holeCounter[shapeIndex] += 1
-                
-                i += 1
-            }
-        }
-        
-        for shapeIndex in 0..<holeCounter.count {
-            let capacity = holeCounter[shapeIndex]
+        for shapeIndex in 0..<solution.holeCounter.count {
+            let capacity = solution.holeCounter[shapeIndex]
             self[shapeIndex].reserveCapacity(capacity + 1)
         }
 
         for holeIndex in 0..<holes.count {
             let hole = holes[holeIndex]
-            let shapeIndex = holeShape[holeIndex]
+            let shapeIndex = solution.holeShape[holeIndex]
             self[shapeIndex].append(hole)
         }
     }
@@ -197,8 +132,7 @@ private extension VectorPath {
     mutating func validate(isHole: Bool) {
         let isPositive = self.isPositive
 
-        if isHole && isPositive || !isHole && isPositive {
-            // for holes must be negative and for contour must be positive
+        if isHole && !isPositive || !isHole && isPositive {
             for i in 0..<self.count {
                 self[i].reverse()
             }

@@ -71,40 +71,6 @@ public extension OverlayGraph {
 
         return path
     }
-
-    static func isClockwise(a: FixVec, b: FixVec, isTopInside: Bool) -> Bool {
-        let isDirect = a.bitPack < b.bitPack
-
-        return xnor(isDirect, isTopInside)
-    }
-    
-    private static func xnor(_ a: Bool, _ b: Bool) -> Bool {
-        a && b || !(a || b)
-    }
-    
-    func findFirstLink(nodeIndex: Int, visited: [Bool]) -> Int {
-        let node = self.nodes[nodeIndex]
-        var j = Int.max
-        for i in node.indices {
-            if !visited[i] {
-                if j == .max {
-                    j = i
-                } else {
-                    let a = self.links[j].a.point
-                    let bj = self.links[j].b.point
-                    let bi = self.links[i].b.point
-
-                    if Triangle.isClockwise(p0: a, p1: bi, p2: bj) {
-                        j = i
-                    }
-                }
-            }
-        }
-
-        return j
-    }
-
-    
 }
 
 private extension FixPath {
@@ -166,84 +132,18 @@ private extension Array where Element == FixShape {
         }
         
         floors.sort(by: { $0.seg.a.x < $1.seg.a.x })
-        
-        var scanList = XScanList(range: LineRange(min: yMin, max: yMax), count: floors.count)
 
-        var holeShape = [Int](repeating: 0, count: holes.count)
-        var holeCounter = [Int](repeating: 0, count: self.count)
+        let yRange = LineRange(min: yMin, max: yMax)
+        let solution = HolesSolver.solve(shapeCount: self.count, yRange: yRange, iPoints: iPoints, floors: floors)
         
-        var candidates = [Int]()
-       
-        var i = 0
-        var j = 0
-
-        while i < iPoints.count {
-            let x = iPoints[i].point.x
-            
-            while j < floors.count && floors[j].seg.a.x < x {
-                let floor = floors[j]
-                if floor.seg.b.x > x {
-                    scanList.space.insert(segment: ScanSegment(
-                        id: j,
-                        range: floor.seg.yRange,
-                        stop: floor.seg.b.x
-                    ))
-                }
-                j += 1
-            }
-        
-            while i < iPoints.count && iPoints[i].point.x == x {
-                
-                let p = iPoints[i].point
-                
-                // find nearest scan segment for y
-                var iterator = scanList.iteratorToBottom(start: p.y)
-                var bestFloor: Floor?
-
-                while iterator.min != .min {
-                    scanList.space.idsInRange(range: iterator, stop: x, ids: &candidates)
-                    if !candidates.isEmpty {
-                        for floorIndex in candidates {
-                            let floor = floors[floorIndex]
-                            if floor.seg.isUnder(point: p) {
-                                if let bestSeg = bestFloor?.seg {
-                                    if bestSeg.isUnder(segment: floor.seg) {
-                                        bestFloor = floor
-                                    }
-                                } else {
-                                    bestFloor = floor
-                                }
-                            }
-                        }
-                        candidates.removeAll(keepingCapacity: true)
-                    }
-                    
-                    if let bestSeg = bestFloor?.seg, bestSeg.isAbove(point: Point(x: x, y: iterator.min)) {
-                        break
-                    }
-
-                    iterator = scanList.next(range: iterator)
-                }
-                
-                assert(bestFloor != nil)
-                let shapeIndex = bestFloor?.id ?? 0
-                let holeIndex = iPoints[i].id
-                
-                holeShape[holeIndex] = shapeIndex
-                holeCounter[shapeIndex] += 1
-                
-                i += 1
-            }
-        }
-        
-        for shapeIndex in 0..<holeCounter.count {
-            let capacity = holeCounter[shapeIndex]
+        for shapeIndex in 0..<solution.holeCounter.count {
+            let capacity = solution.holeCounter[shapeIndex]
             self[shapeIndex].paths.reserveCapacity(capacity + 1)
         }
 
         for holeIndex in 0..<holes.count {
             let hole = holes[holeIndex]
-            let shapeIndex = holeShape[holeIndex]
+            let shapeIndex = solution.holeShape[holeIndex]
             self[shapeIndex].addAsIs(hole)
         }
     }

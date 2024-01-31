@@ -152,7 +152,39 @@ public struct OverlayGraph {
 
         return minIndex
     }
+    
+    func findFirstLink(nodeIndex: Int, visited: [Bool]) -> Int {
+        let node = self.nodes[nodeIndex]
+        var j = Int.max
+        for i in node.indices {
+            if !visited[i] {
+                if j == .max {
+                    j = i
+                } else {
+                    let a = self.links[j].a.point
+                    let bj = self.links[j].b.point
+                    let bi = self.links[i].b.point
 
+                    if Triangle.isClockwise(p0: a, p1: bi, p2: bj) {
+                        j = i
+                    }
+                }
+            }
+        }
+
+        return j
+    }
+
+    static func isClockwise(a: FixVec, b: FixVec, isTopInside: Bool) -> Bool {
+        let isDirect = a.bitPack < b.bitPack
+
+        return xnor(isDirect, isTopInside)
+    }
+    
+    private static func xnor(_ a: Bool, _ b: Bool) -> Bool {
+        a && b || !(a || b)
+    }
+    
 }
 
 private extension FixVec {
