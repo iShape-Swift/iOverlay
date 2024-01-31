@@ -54,6 +54,25 @@ public struct Overlay {
             return []
         }
         
+        var segments = self.prepareSegments(fillRule: fillRule)
+        
+        segments.filter()
+        
+        return segments
+    }
+    
+    public func buildVectors(fillRule: FillRule, overlayRule: OverlayRule) -> [VectorShape] {
+        guard !edges.isEmpty else {
+            return []
+        }
+
+        let graph = OverlayGraph(segments: self.prepareSegments(fillRule: fillRule))
+        let vectors = graph.extractVectors(overlayRule: overlayRule)
+        
+        return vectors
+    }
+    
+    private func prepareSegments(fillRule: FillRule) -> [Segment] {
         let sortedList = edges.sorted(by: { $0.isLess($1) })
         var buffer = [ShapeEdge]()
         buffer.reserveCapacity(sortedList.count)
@@ -80,11 +99,10 @@ public struct Overlay {
         var segments = buffer.split(range: range)
         
         segments.fill(fillRule: fillRule, range: range)
-        
-        segments.filter()
-        
+
         return segments
     }
+    
 
     public func buildGraph(fillRule: FillRule = .nonZero) -> OverlayGraph {
         OverlayGraph(segments: self.buildSegments(fillRule: fillRule))

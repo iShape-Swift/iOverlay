@@ -1,20 +1,20 @@
 //
-//  OverlayGraph+Extract.swift
-//  
+//  OverlayGraph+FillVector.swift
 //
-//  Created by Nail Sharipov on 08.08.2023.
+//
+//  Created by Nail Sharipov on 30.01.2024.
 //
 
-import iShape
 import iFixFloat
 
+// similar as for extract shapes but for vectors
 public extension OverlayGraph {
-
-    func extractShapes(overlayRule: OverlayRule, minArea: FixFloat = 0) -> [FixShape] {
+    
+    func extractVectors(overlayRule: OverlayRule) -> [VectorShape] {
         var visited = self.links.filter(overlayRule: overlayRule)
-
-        var holes = [FixPath]()
-        var shapes = [FixShape]()
+        
+        var holes = [VectorPath]()
+        var shapes = [VectorShape]()
         
         var j = 0
         while j < self.nodes.count {
@@ -23,25 +23,25 @@ public extension OverlayGraph {
                 j += 1
                 continue
             }
-
+            
             let isHole = overlayRule.isFillTop(fill: self.links[i].fill)
             var path = self.getPath(overlayRule: overlayRule, index: i, visited: &visited)
-            if path.validate(minArea: minArea, isHole: isHole) {
-                if isHole {
-                    holes.append(path)
-                } else {
-                    shapes.append(FixShape(paths: [path]))
-                }
+            path.validate(isHole: isHole)
+            
+            if isHole {
+                holes.append(path)
+            } else {
+                shapes.append([path])
             }
         }
-
+        
         shapes.join(holes: holes)
         
         return shapes
     }
     
-    private func getPath(overlayRule: OverlayRule, index: Int, visited: inout [Bool]) -> FixPath {
-        var path = FixPath()
+    private func getPath(overlayRule: OverlayRule, index: Int, visited: inout [Bool]) -> VectorPath {
+        var path = VectorPath()
         var next = index
 
         var link = links[index]
@@ -51,7 +51,7 @@ public extension OverlayGraph {
 
         // find a closed tour
         repeat {
-            path.append(a.point)
+            path.append(FillVector(fill: link.fill, a: a.point, b: b.point))
             let node = nodes[b.index]
             
             if node.indices.count == 2 {
@@ -71,86 +71,27 @@ public extension OverlayGraph {
 
         return path
     }
-
-    static func isClockwise(a: FixVec, b: FixVec, isTopInside: Bool) -> Bool {
-        let isDirect = a.bitPack < b.bitPack
-
-        return xnor(isDirect, isTopInside)
-    }
-    
-    private static func xnor(_ a: Bool, _ b: Bool) -> Bool {
-        a && b || !(a || b)
-    }
-    
-    func findFirstLink(nodeIndex: Int, visited: [Bool]) -> Int {
-        let node = self.nodes[nodeIndex]
-        var j = Int.max
-        for i in node.indices {
-            if !visited[i] {
-                if j == .max {
-                    j = i
-                } else {
-                    let a = self.links[j].a.point
-                    let bj = self.links[j].b.point
-                    let bi = self.links[i].b.point
-
-                    if Triangle.isClockwise(p0: a, p1: bi, p2: bj) {
-                        j = i
-                    }
-                }
-            }
-        }
-
-        return j
-    }
-
-    
 }
 
-private extension FixPath {
+private extension Array where Element == VectorShape {
     
-    // remove a short path and make cw if needed
-    mutating func validate(minArea: FixFloat, isHole: Bool) -> Bool {
-        self.removeDegenerates()
-        
-        guard count > 2 else {
-            return false
-        }
-
-        let uArea = self.unsafeArea
-        let absArea = abs(uArea) >> (FixFloat.fractionBits + 1)
-
-        if absArea < minArea {
-            return false
-        } else if isHole && uArea > 0 || !isHole && uArea < 0 {
-            // for holes must be negative and for contour must be positive
-            self.reverse()
-        }
-        
-        return true
-    }
-}
-
-private extension Array where Element == FixShape {
-    
-    mutating func join(holes: [FixPath]) {
+    mutating func join(holes: [VectorPath]) {
         guard !self.isEmpty && !holes.isEmpty else {
             return
         }
         
         if self.count == 1 {
-            self[0].paths.reserveCapacity(holes.count + 1)
-            self[0].addAsIs(holes)
+            self[0].append(contentsOf: holes)
         } else {
             self.scanJoin(holes: holes)
         }
     }
     
-    private mutating func scanJoin(holes: [FixPath]) {
+    private mutating func scanJoin(holes: [VectorPath]) {
         var iPoints = [IdPoint]()
         iPoints.reserveCapacity(holes.count)
         for i in 0..<holes.count {
-            iPoints.append(IdPoint(id: i, point: holes[i][0]))
+            iPoints.append(IdPoint(id: i, point: holes[i][0].a))
         }
         
         iPoints.sort(by: { $0.point.x < $1.point.x })
@@ -162,7 +103,7 @@ private extension Array where Element == FixShape {
         
         var floors = [Floor]()
         for i in 0..<self.count {
-            floors.append(contentsOf: self[i].contour.floors(id: i, xMin: xMin, xMax: xMax, yMin: &yMin, yMax: &yMax))
+            floors.append(contentsOf: self[i][0].floors(id: i, xMin: xMin, xMax: xMax, yMin: &yMin, yMax: &yMax))
         }
         
         floors.sort(by: { $0.seg.a.x < $1.seg.a.x })
@@ -238,14 +179,37 @@ private extension Array where Element == FixShape {
         
         for shapeIndex in 0..<holeCounter.count {
             let capacity = holeCounter[shapeIndex]
-            self[shapeIndex].paths.reserveCapacity(capacity + 1)
+            self[shapeIndex].reserveCapacity(capacity + 1)
         }
 
         for holeIndex in 0..<holes.count {
             let hole = holes[holeIndex]
             let shapeIndex = holeShape[holeIndex]
-            self[shapeIndex].addAsIs(hole)
+            self[shapeIndex].append(hole)
         }
     }
 
+}
+
+private extension VectorPath {
+    
+    // remove a short path and make cw if needed
+    mutating func validate(isHole: Bool) {
+        let isPositive = self.isPositive
+
+        if isHole && isPositive || !isHole && isPositive {
+            // for holes must be negative and for contour must be positive
+            for i in 0..<self.count {
+                self[i].reverse()
+            }
+        }
+    }
+    
+    var isPositive: Bool {
+        var area: Int64 = 0
+        for v in self {
+            area += v.a.crossProduct(v.b)
+        }
+        return area >= 0
+    }
 }

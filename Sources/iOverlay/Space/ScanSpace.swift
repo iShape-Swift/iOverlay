@@ -23,7 +23,7 @@ public struct ScanSpace<Id, Unit: Comparable> {
     private var indexBuffer: [Int] = []
     
     public init(range: LineRange, count: Int) {
-        let maxLevel = max(2, Int(Double(count).squareRoot()).logTwo);
+        let maxLevel = max(2, Int(Double(count).squareRoot()).logTwo)
         indexer = LineIndexer(level: maxLevel, range: range)
         heaps = [[ScanSegment]](repeating: [], count: indexer.size)
     }
