@@ -51,7 +51,8 @@ public extension OverlayGraph {
 
         // find a closed tour
         repeat {
-            path.append(VectorEdge(fill: link.fill, a: a.point, b: b.point))
+            let fill = SideFill(fill: link.fill, a: a.point, b: b.point)
+            path.append(VectorEdge(fill: fill, a: a.point, b: b.point))
             let node = nodes[b.index]
             
             if node.indices.count == 2 {

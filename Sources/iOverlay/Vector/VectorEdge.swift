@@ -28,25 +28,21 @@ public extension SideFill {
         return (subjLeft << 1) | (subjRight >> 1) | (clipLeft << 1) | (clipRight >> 1)
     }
     
+    init(fill: SideFill, a: FixVec, b: FixVec) {
+        if a.bitPack < b.bitPack {
+            self = fill
+        } else {
+            self = fill.reverse()
+        }
+    }
+    
 }
 
-public struct VectorEdge {
+public struct VectorEdge: Equatable {
 
     public private (set) var fill: SideFill
     public private (set) var a: FixVec
     public private (set) var b: FixVec
-
-    init(fill: SideFill, a: FixVec, b: FixVec) {
-        self.fill = fill
-        self.a = a
-        self.b = b
-        
-        if a.bitPack < b.bitPack {
-            self.fill = fill
-        } else {
-            self.fill = fill.reverse()
-        }
-    }
     
     mutating func reverse() {
         let c = self.a
