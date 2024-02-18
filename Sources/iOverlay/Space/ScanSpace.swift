@@ -9,6 +9,12 @@ public struct ScanSegment<Id, Unit> {
     let id: Id
     public let range: LineRange
     public let stop: Unit
+    
+    public init(id: Id, range: LineRange, stop: Unit) {
+        self.id = id
+        self.range = range
+        self.stop = stop
+    }
 }
 
 public struct ScanItem<Id> {

@@ -18,7 +18,7 @@ public struct OverlayGraph {
     let nodes: [OverlayNode]
     let links: [OverlayLink]
     
-    init(segments: [Segment]) {
+    public init(segments: [Segment]) {
         let n = segments.count
         
         guard n > 0 else {

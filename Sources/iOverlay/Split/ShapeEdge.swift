@@ -35,8 +35,8 @@ public struct ShapeEdge {
         self.count = count
     }
     
-    @inline(__always)
-    func isLess(_ other: ShapeEdge) -> Bool {
+    
+    public func isLess(_ other: ShapeEdge) -> Bool {
         let a0 = self.a.bitPack
         let a1 = other.a.bitPack
         if a0 != a1 {

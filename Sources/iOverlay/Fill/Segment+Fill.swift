@@ -18,7 +18,7 @@ private struct SegEnd {
     let p: Point
 }
 
-extension Array where Element == Segment {
+public extension Array where Element == Segment {
     
     mutating func fill(fillRule: FillRule, range: LineRange) {
         var scanList = XScanList(range: range, count: self.count)

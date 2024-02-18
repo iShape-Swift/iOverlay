@@ -27,7 +27,7 @@ extension FixPath {
         
         var b = self[n - 1]
         for a in self {
-            if a.x < b.x && xMin < b.x && a.x < xMax {
+            if a.x < b.x && xMin < b.x && a.x <= xMax {
                 list.append(Floor(id: id, a: a, b: b))
                 if a.y < b.y {
                     yMin = Swift.min(Int32(a.y), yMin)
@@ -51,7 +51,7 @@ extension VectorPath {
         list.reserveCapacity(3 * n / 4)
         
         for vec in self {
-            if vec.a.x < vec.b.x && xMin < vec.b.x && vec.a.x < xMax {
+            if vec.a.x < vec.b.x && xMin < vec.b.x && vec.a.x <= xMax {
                 list.append(Floor(id: id, a: vec.a, b: vec.b))
                 if vec.a.y < vec.b.y {
                     yMin = Swift.min(Int32(vec.a.y), yMin)

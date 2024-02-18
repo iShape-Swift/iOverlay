@@ -26,8 +26,33 @@ public struct Overlay {
 
     public init(subjectPaths: [FixPath], clipPaths: [FixPath]) {
         edges = [ShapeEdge]()
+        edges.reserveCapacity(subjectPaths.count)
         self.add(paths: subjectPaths, type: .subject)
         self.add(paths: clipPaths, type: .clip)
+    }
+    
+    public init(subjShapes: FixShapes, clipShapes: FixShapes) {
+        edges = [ShapeEdge]()
+        edges.reserveCapacity(subjShapes.pointsCount + clipShapes.pointsCount)
+        for shape in subjShapes {
+            self.add(shape: shape, type: .subject)
+        }
+        for shape in clipShapes {
+            self.add(shape: shape, type: .clip)
+        }
+    }
+    
+    public init(subjShape: FixShape, clipShape: FixShape) {
+        edges = [ShapeEdge]()
+        edges.reserveCapacity(subjShape.pointsCount + clipShape.pointsCount)
+        self.add(shape: subjShape, type: .subject)
+        self.add(shape: clipShape, type: .clip)
+    }
+
+    public mutating func add(shapes: FixShapes, type: ShapeType) {
+        for shape in shapes {
+            self.add(shape: shape, type: type)
+        }
     }
     
     public mutating func add(shape: FixShape, type: ShapeType) {

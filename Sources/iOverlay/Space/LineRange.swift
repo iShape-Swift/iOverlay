@@ -28,6 +28,10 @@ public extension LineRange {
         
         return LineRange(min: min, max: max)
     }
+    
+    func trunc(value: Int32) -> Int32 {
+        value.clamp(minValue: self.min, maxValue: self.max)
+    }
 }
 
 extension Int32 {

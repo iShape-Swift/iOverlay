@@ -11,7 +11,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/iShape-Swift/iFixFloat", .upToNextMajor(from: "1.4.0")),
-        .package(url: "https://github.com/iShape-Swift/iShape", .upToNextMajor(from: "1.5.0"))
+        .package(url: "https://github.com/iShape-Swift/iShape", .upToNextMajor(from: "1.6.0"))
 //        .package(path: "../iFixFloat"),
 //        .package(path: "../iShape"),
     ],

@@ -8,7 +8,7 @@
 import iFixFloat
 import iShape
 
-extension Array where Element == ShapeEdge {
+public extension Array where Element == ShapeEdge {
     
     func split(range: LineRange) -> [Segment] {
         // at this moment array is sorted

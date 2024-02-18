@@ -121,9 +121,11 @@ public extension ShapeEdge {
             let rb = min(rb0, rb1)
 
             if ra <= rb {
-                return EdgeCross(type: .end_a, point: ra0 < ra1 ? a0 : a1)
+                let a = ra0 < ra1 ? a0 : a1
+                return EdgeCross(type: .end_a, point: a)
             } else {
-                return EdgeCross(type: .end_b, point: rb0 < rb1 ? b0 : b1)
+                let b = rb0 < rb1 ? b0 : b1
+                return EdgeCross(type: .end_b, point: b)
             }
         } else {
             return EdgeCross(type: .pure, point: p)
