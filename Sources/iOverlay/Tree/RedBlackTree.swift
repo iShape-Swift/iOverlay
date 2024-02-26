@@ -262,8 +262,11 @@ struct RedBlackTree<T: Comparable> {
             return
         }
 
-        // At this point, "node" is the node to be deleted
-
+        self.delete(index: index)
+    }
+    
+    mutating func delete(index: UInt32) {
+        
         // In this variable, we'll store the node at which we're going to start to fix the R-B
         // properties after deleting a node.
         let movedUpNode: UInt32
@@ -275,6 +278,7 @@ struct RedBlackTree<T: Comparable> {
         if node.left == .empty || node.right == .empty {
             deletedNodeColor = node.color
             movedUpNode = deleteNodeWithZeroOrOneChild(node.index)
+            self.store.putBack(index: index)
         } else {
             // Node has two children
             // Find minimum node of right subtree ("inorder successor" of current node)
@@ -286,6 +290,7 @@ struct RedBlackTree<T: Comparable> {
 
             // Delete inorder successor just as we would delete a node with 0 or 1 child
             movedUpNode = deleteNodeWithZeroOrOneChild(inOrderSuccessor.index)
+            self.store.putBack(index: inOrderSuccessor.index)
         }
 
         // TODO case where movedUpNode == nil
@@ -303,6 +308,7 @@ struct RedBlackTree<T: Comparable> {
             }
         }
     }
+    
     
     mutating private func deleteNodeWithZeroOrOneChild(_ nIndex: UInt32) -> UInt32 {
         let node = self[nIndex]
@@ -329,12 +335,8 @@ struct RedBlackTree<T: Comparable> {
                     return .empty
                 }
             } else {
-                if node.color == .black {
-                    return emptyIndex
-                } else {
-
-                    return .empty
-                }
+                root = .empty
+                return .empty
             }
         }
     }
@@ -474,5 +476,4 @@ struct RedBlackTree<T: Comparable> {
         
         return nil
     }
-    
 }

@@ -39,8 +39,8 @@ struct NodeStore<T> {
         return node
     }
     
-    mutating func putBack(index: Int) {
-        self.unused.append(UInt32(index))
+    mutating func putBack(index: UInt32) {
+        self.unused.append(index)
     }
     
     mutating private func reserve(length: Int) {

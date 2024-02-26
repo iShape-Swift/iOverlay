@@ -1,6 +1,6 @@
 //
 //  Segment+Fill.swift
-//  
+//
 //
 //  Created by Nail Sharipov on 04.08.2023.
 //
@@ -8,12 +8,12 @@
 import iFixFloat
 import iShape
 
-private struct Handler {
+private struct XGroup {
     let i: Int
-    let y: Int32
+    let x: Int32
 }
 
-private struct SegEnd {
+private struct PGroup {
     let i: Int
     let p: Point
 }
@@ -21,30 +21,33 @@ private struct SegEnd {
 public extension Array where Element == Segment {
     
     mutating func fill(fillRule: FillRule, range: LineRange) {
-        var scanList = XScanList(range: range, count: self.count)
+        var xBuf = [XGroup]()
+        var pBuf = [PGroup]()
         
-        var counts = [ShapeCount](repeating: ShapeCount(subj: 0, clip: 0), count: self.count)
-        var xBuf = [Handler]()
-        var eBuf = [SegEnd]()
-        var candidates = [Int]()
-       
+        let capacity = Int(3 * Double(self.count).squareRoot())
+        #if DEBUG
+        var scanTree = RedBlackTree(empty: TreeFillSegment(index: .max, count: .init(subj: 0, clip: 0), xSegment: XSegment(a: .zero, b: .zero)), capacity: capacity)
+        #else
+        var scanTree = RedBlackTree(empty: TreeFillSegment(count: .init(subj: 0, clip: 0), xSegment: XSegment(a: .zero, b: .zero)), capacity: capacity)
+        #endif
+        
         let n = self.count
         var i = 0
-
+        
         while i < n {
             let x = self[i].seg.a.x
+
             xBuf.removeAll(keepingCapacity: true)
             
             // find all new segments with same a.x
-            
             while i < n && self[i].seg.a.x == x {
-                xBuf.append(Handler(i: i, y: self[i].seg.a.y))
+                xBuf.append(XGroup(i: i, x: self[i].seg.a.y))
                 i += 1
             }
             
             if xBuf.count > 1 {
                 // sort all by a.y
-                xBuf.sort(by: { $0.y < $1.y })
+                xBuf.sort(by: { $0.x < $1.x })
             }
             
             // find nearest segment from scan list for all new segments
@@ -52,78 +55,40 @@ public extension Array where Element == Segment {
             var j = 0
             while j < xBuf.count {
                 
-                let y = xBuf[j].y
-
-                eBuf.removeAll(keepingCapacity: true)
+                let y = xBuf[j].x
+                
+                pBuf.removeAll(keepingCapacity: true)
                 
                 // group new segments by same y (all segments in eBuf must have same a)
-                while j < xBuf.count && xBuf[j].y == y {
+                while j < xBuf.count && xBuf[j].x == y {
                     let handler = xBuf[j]
-                    eBuf.append(SegEnd(i: handler.i, p: self[handler.i].seg.b))
+                    pBuf.append(PGroup(i: handler.i, p: self[handler.i].seg.b))
                     j += 1
                 }
                 
                 let p = Point(x, y)
                 
-                if eBuf.count > 1 {
-                    eBuf.sortByAngle(center: p)
+                if pBuf.count > 1 {
+                    pBuf.sortByAngle(center: p)
                 }
-
-                // find nearest scan segment for y
-                var iterator = scanList.iteratorToBottom(start: y)
-                var bestSegment: XSegment?
-                var bestIndex: Int = .max
                 
-                while iterator.min != .min {
-                    scanList.space.idsInRange(range: iterator, stop: x, ids: &candidates)
-                    if !candidates.isEmpty {
-                        
-                        for segIndex in candidates {
-                            let segment = self[segIndex].seg
-                            if segment.isUnder(point: p) {
-                                if let bestSeg = bestSegment {
-                                    if bestSeg.isUnder(segment: segment) {
-                                        bestSegment = segment
-                                        bestIndex = segIndex
-                                    }
-                                } else {
-                                    bestSegment = segment
-                                    bestIndex = segIndex
-                                }
-                            }
-                        }
-                        candidates.removeAll(keepingCapacity: true)
-                    }
-                    
-                    if let bestSeg = bestSegment, bestSeg.isAbove(point: Point(x: x, y: iterator.min)) {
-                        break
-                    }
+                var sumCount = scanTree.underAndNearest(point: p, stop: x)
 
-                    iterator = scanList.next(range: iterator)
-                }
-
-                var sumCount: ShapeCount
-                if bestIndex != .max {
-                    sumCount = counts[bestIndex]
-                } else {
-                    // this is the most bottom segment group
-                    sumCount = ShapeCount(subj: 0, clip: 0)
-                }
-
-                for se in eBuf {
+                // add new to scan
+                
+                for se in pBuf {
                     if self[se.i].seg.isVertical {
                         _ = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
                     } else {
                         sumCount = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
-                        counts[se.i] = sumCount
-                        let seg = self[se.i].seg
-                        scanList.space.insert(segment: ScanSegment(
-                            id: se.i,
-                            range: seg.yRange,
-                            stop: seg.b.x
-                        ))
+                        #if DEBUG
+                        scanTree.insert(value: TreeFillSegment(index: se.i, count: sumCount, xSegment: self[se.i].seg))
+                        #else
+                        scanTree.insert(value: TreeFillSegment(count: sumCount, xSegment: self[se.i].seg))
+                        #endif
                     }
                 }
+                
             }
         }
     }
@@ -168,7 +133,7 @@ private extension Segment {
     
 }
 
-private extension Array where Element == SegEnd {
+private extension Array where Element == PGroup {
     
     mutating func sortByAngle(center: Point) {
         let c = FixVec(center)
