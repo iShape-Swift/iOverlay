@@ -123,18 +123,15 @@ private extension Array where Element == FixShape {
 
         let xMin = iPoints[0].point.x
         let xMax = iPoints[iPoints.count - 1].point.x
-        var yMin: Int32 = .max
-        var yMax: Int32 = .min
         
         var floors = [Floor]()
         for i in 0..<self.count {
-            floors.append(contentsOf: self[i].contour.floors(id: i, xMin: xMin, xMax: xMax, yMin: &yMin, yMax: &yMax))
+            floors.append(contentsOf: self[i].contour.floors(id: i, xMin: xMin, xMax: xMax))
         }
         
         floors.sort(by: { $0.seg.a.x < $1.seg.a.x })
 
-        let yRange = LineRange(min: yMin, max: yMax)
-        let solution = HolesSolver.solve(shapeCount: self.count, yRange: yRange, iPoints: iPoints, floors: floors)
+        let solution = HolesSolver.solve(shapeCount: self.count, iPoints: iPoints, floors: floors)
         
         for shapeIndex in 0..<solution.holeCounter.count {
             let capacity = solution.holeCounter[shapeIndex]

@@ -6,6 +6,7 @@
 //
 
 import iFixFloat
+import iTree
 
 struct HolesSolution {
     let holeShape: [Int]
@@ -14,15 +15,15 @@ struct HolesSolution {
 
 struct HolesSolver {
 
-    static func solve(shapeCount: Int, yRange: LineRange, iPoints: [IdPoint], floors: [Floor]) -> HolesSolution {
+    static func solve(shapeCount: Int, iPoints: [IdPoint], floors: [Floor]) -> HolesSolution {
         let holeCount = iPoints.count
         
-        var scanList = XScanList(range: yRange, count: floors.count)
+        let capacity = Int(4 * Double(shapeCount).squareRoot())
+        
+        var scanTree = RBTree(empty: Floor(id: .max, a: .zero, b: .zero), capacity: capacity)
 
         var holeShape = [Int](repeating: 0, count: holeCount)
         var holeCounter = [Int](repeating: 0, count: shapeCount)
-        
-        var candidates = [Int]()
        
         var i = 0
         var j = 0
@@ -33,11 +34,7 @@ struct HolesSolver {
             while j < floors.count && floors[j].seg.a.x < x {
                 let floor = floors[j]
                 if floor.seg.b.x > x {
-                    scanList.space.insert(segment: ScanSegment(
-                        id: j,
-                        range: floor.seg.yRange,
-                        stop: floor.seg.b.x
-                    ))
+                    scanTree.insert(value: floor)
                 }
                 j += 1
             }
@@ -47,36 +44,7 @@ struct HolesSolver {
                 let p = iPoints[i].point
                 
                 // find nearest scan segment for y
-                var iterator = scanList.iteratorToBottom(start: p.y)
-                var bestFloor: Floor?
-
-                while iterator.min != .min {
-                    scanList.space.idsInRange(range: iterator, stop: x, ids: &candidates)
-                    if !candidates.isEmpty {
-                        for floorIndex in candidates {
-                            let floor = floors[floorIndex]
-                            if floor.seg.isUnder(point: p) {
-                                if let bestSeg = bestFloor?.seg {
-                                    if bestSeg.isUnder(segment: floor.seg) {
-                                        bestFloor = floor
-                                    }
-                                } else {
-                                    bestFloor = floor
-                                }
-                            }
-                        }
-                        candidates.removeAll(keepingCapacity: true)
-                    }
-                    
-                    if let bestSeg = bestFloor?.seg, bestSeg.isAbove(point: Point(x: x, y: iterator.min)) {
-                        break
-                    }
-
-                    iterator = scanList.next(range: iterator)
-                }
-                
-                assert(bestFloor != nil)
-                let shapeIndex = bestFloor?.id ?? 0
+                let shapeIndex = scanTree.underAndNearest(point: p, stop: x)
                 let holeIndex = iPoints[i].id
                 
                 holeShape[holeIndex] = shapeIndex

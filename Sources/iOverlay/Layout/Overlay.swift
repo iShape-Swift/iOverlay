@@ -123,7 +123,7 @@ public struct Overlay {
         
         var segments = buffer.split(range: range)
         
-        segments.fill(fillRule: fillRule, range: range)
+        segments.fill(fillRule: fillRule)
 
         return segments
     }

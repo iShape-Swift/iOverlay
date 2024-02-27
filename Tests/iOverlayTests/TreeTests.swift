@@ -7,12 +7,13 @@
 
 import XCTest
 import iFixFloat
+import iTree
 @testable import iOverlay
 
 final class TreeTests: XCTestCase {
     
     func test_00() throws {
-        var tree = RedBlackTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
+        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
         
         tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: FixVec(0, 0), b: FixVec(1000, 1000))))
         tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: FixVec(500, -250), b: FixVec(1500, -1250))))
@@ -26,7 +27,7 @@ final class TreeTests: XCTestCase {
     }
 
     func test_01() throws {
-        var tree = RedBlackTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
+        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
         
         tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: FixVec(0,     0), b: FixVec(1000,     0))))
         tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: FixVec(0,  1000), b: FixVec(1000,  1000))))
@@ -40,7 +41,7 @@ final class TreeTests: XCTestCase {
     }
     
     func test_03() throws {
-        var tree = RedBlackTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
+        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
         
         tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: FixVec(0, 0), b: FixVec(1000, -1000))))
         tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: FixVec(0, 0), b: FixVec(1000,     0))))
@@ -55,7 +56,7 @@ final class TreeTests: XCTestCase {
     
     
     func test_10() throws {
-        var tree = RedBlackTree(empty: 0)
+        var tree = RBTree(empty: 0)
         for value in [-10, -7, 0, 5, 7, 10, 20] {
             tree.insert(value: value)
         }
@@ -78,7 +79,7 @@ final class TreeTests: XCTestCase {
     
 
     func test_11() throws {
-        var tree = RedBlackTree(empty: 0)
+        var tree = RBTree(empty: 0)
         for value in 0...100 {
             tree.insert(value: value)
         }
@@ -91,7 +92,7 @@ final class TreeTests: XCTestCase {
     }
     
     func test_12() throws {
-        var tree = RedBlackTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
+        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
         
         tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: FixVec(0, 0), b: FixVec(200,  200))))
         tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: FixVec(0, 0), b: FixVec(200,    0))))
@@ -106,7 +107,7 @@ final class TreeTests: XCTestCase {
     }
     
     func test_13() throws {
-        var tree = RedBlackTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
+        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
         
         tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: FixVec(0,  400), b: FixVec(200,  400))))
         tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: FixVec(0,  400), b: FixVec(200,  200))))
@@ -140,7 +141,24 @@ final class TreeTests: XCTestCase {
     }
 }
 
-extension RedBlackTree where T == Int {
+struct TreeSegment {
+    let index: Int
+    let xSegment: XSegment
+}
+
+extension TreeSegment: Comparable {
+    static func < (lhs: TreeSegment, rhs: TreeSegment) -> Bool {
+        lhs.xSegment < rhs.xSegment
+    }
+}
+
+extension TreeSegment: Equatable {
+    public static func == (lhs: TreeSegment, rhs: TreeSegment) -> Bool {
+        lhs.xSegment == rhs.xSegment
+    }
+}
+
+extension RBTree where T == Int {
  
     func lessAndNearest(value: Int) -> Int? {
         var index = root
@@ -163,7 +181,7 @@ extension RedBlackTree where T == Int {
     }
 }
 
-extension RedBlackTree where T == TreeSegment {
+extension RBTree where T == TreeSegment {
  
     func underAndNearest(point: Point) -> Int? {
         var index = root
@@ -184,7 +202,4 @@ extension RedBlackTree where T == TreeSegment {
             return self[result].value.index
         }
     }
-    
-    
-    
 }

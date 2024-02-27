@@ -1,28 +1,12 @@
 //
-//  XSegment+Comparable.swift
+//  Tree+Fill.swift
+//  
 //
-//
-//  Created by Nail Sharipov on 25.02.2024.
+//  Created by Nail Sharipov on 26.02.2024.
 //
 
 import iFixFloat
-
-struct TreeSegment {
-    let index: Int
-    let xSegment: XSegment
-}
-
-extension TreeSegment: Comparable {
-    static func < (lhs: TreeSegment, rhs: TreeSegment) -> Bool {
-        lhs.xSegment < rhs.xSegment
-    }
-}
-
-extension TreeSegment: Equatable {
-    public static func == (lhs: TreeSegment, rhs: TreeSegment) -> Bool {
-        lhs.xSegment == rhs.xSegment
-    }
-}
+import iTree
 
 struct TreeFillSegment {
     #if DEBUG
@@ -54,29 +38,7 @@ extension XSegment: Comparable {
     }
 }
 
-extension RedBlackTree where T == TreeFillSegment {
-    
-    mutating func delete(xSegment: XSegment) {
-        var index = root
-        // Find the node to be deleted
-        while index != .empty {
-            let node = self[index]
-            if xSegment == node.value.xSegment {
-                break
-            } else if xSegment < node.value.xSegment {
-                index = node.left
-            } else {
-                index = node.right
-            }
-        }
-        
-        guard index != .empty else {
-            assertionFailure("value is not found")
-            return
-        }
-
-        self.delete(index: index)
-    }
+extension RBTree where T == TreeFillSegment {
     
     mutating func underAndNearest(point: Point, stop: Int32) -> ShapeCount {
         var index = root
