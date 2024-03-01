@@ -22,15 +22,12 @@ private struct PGroup {
 public extension Array where Element == Segment {
     
     mutating func fill(fillRule: FillRule) {
+        /*
         var xBuf = [XGroup]()
         var pBuf = [PGroup]()
         
         let capacity = Int(3 * Double(self.count).squareRoot())
-        #if DEBUG
-        var scanTree = RBTree(empty: TreeFillSegment(index: .max, count: .init(subj: 0, clip: 0), xSegment: XSegment(a: .zero, b: .zero)), capacity: capacity)
-        #else
         var scanTree = RBTree(empty: TreeFillSegment(count: .init(subj: 0, clip: 0), xSegment: XSegment(a: .zero, b: .zero)), capacity: capacity)
-        #endif
         
         let n = self.count
         var i = 0
@@ -92,6 +89,7 @@ public extension Array where Element == Segment {
                 
             }
         }
+         */
     }
 }
 

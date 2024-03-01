@@ -13,6 +13,7 @@ public struct XSegment {
     public let a: Point        // start
     public let b: Point        // end
 
+    @inline(__always)
     var yRange: LineRange {
         if a.y < b.y {
             LineRange(min: a.y, max: b.y)
@@ -21,16 +22,19 @@ public struct XSegment {
         }
     }
     
+    @inline(__always)
     var isVertical: Bool {
         a.x == b.x
     }
     
+    @inline(__always)
     init(a: FixVec, b: FixVec) {
         assert(a.x <= b.x)
         self.a = Point(a)
         self.b = Point(b)
     }
     
+    @inline(__always)
     init(a: Point, b: Point) {
         assert(a.x <= b.x)
         self.a = a
@@ -45,7 +49,7 @@ extension XSegment {
     /// - Parameters:
     ///   - p: The point to check.
     /// - Returns: `true` if point `p` is under the segment, `false` otherwise.
-    func isUnder(point p: Point) -> Bool {
+    @inline(__always) func isUnder(point p: Point) -> Bool {
         assert(a.x <= p.x && p.x <= b.x)
         assert(p != a && p != b)
         return Triangle.isClockwisePoints(p0: a, p1: p, p2: b)
@@ -56,7 +60,7 @@ extension XSegment {
     /// - Parameters:
     ///   - p: The point to check.
     /// - Returns: `true` if point `p` is above the segment, `false` otherwise.
-    func isAbove(point p: Point) -> Bool {
+    @inline(__always) func isAbove(point p: Point) -> Bool {
         assert(a.x <= p.x && p.x <= b.x)
         return Triangle.isClockwisePoints(p0: a, p1: b, p2: p)
     }
@@ -66,7 +70,7 @@ extension XSegment {
     /// - Parameters:
     ///   - other: second segment
     /// - Returns: `true` if point first segment is under the second segment, `false` otherwise.
-    func isUnder(segment other: XSegment) -> Bool {
+    @inline(__always) func isUnder(segment other: XSegment) -> Bool {
         if a == other.a {
             return Triangle.isClockwisePoints(p0: a, p1: other.b, p2: b)
         } else if a.x < other.a.x {
@@ -76,7 +80,7 @@ extension XSegment {
         }
     }
     
-    func isLess(_ other: XSegment) -> Bool {
+    @inline(__always) func isLess(_ other: XSegment) -> Bool {
         let a0 = self.a.bitPack
         let a1 = other.a.bitPack
         if a0 != a1 {
@@ -89,8 +93,22 @@ extension XSegment {
 
 private extension Triangle {
     
+    @inline(__always)
     static func isClockwisePoints(p0: Point, p1: Point, p2: Point) -> Bool {
         Triangle.isClockwise(p0: FixVec(p0), p1: FixVec(p1), p2: FixVec(p2))
     }
     
+}
+
+
+extension XSegment: Comparable {
+    
+    @inline(__always)
+    public static func < (lhs: XSegment, rhs: XSegment) -> Bool {
+        lhs.isUnder(segment: rhs)
+    }
+    @inline(__always)
+    public static func == (lhs: XSegment, rhs: XSegment) -> Bool {
+        lhs.a == rhs.a && lhs.b == rhs.b
+    }
 }
