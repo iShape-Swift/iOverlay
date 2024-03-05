@@ -145,13 +145,3 @@ public struct ScanSpace<Id, Unit: Comparable> {
         }
     }
 }
-
-private extension Array {
-    mutating func swapRemove(_ index: Int) {
-        if index < self.count - 1 {
-            self[index] = self.removeLast()
-        } else {
-            self.removeLast()
-        }
-    }
-}
