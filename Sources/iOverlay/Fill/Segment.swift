@@ -31,7 +31,7 @@ public struct Segment {
     public var fill: SegmentFill
 
     init(edge: ShapeEdge) {
-        self.seg = XSegment(a: edge.a, b: edge.b)
+        self.seg = XSegment(a: edge.xSegment.a, b: edge.xSegment.b)
         self.fill = 0
         self.count = edge.count
     }

@@ -98,14 +98,14 @@ public struct Overlay {
     }
     
     private func prepareSegments(fillRule: FillRule) -> [Segment] {
-        let sortedList = edges.sorted(by: { $0.isLess($1) })
+        let sortedList = edges.sorted(by: { $0.xSegment.isLess($1.xSegment) })
         var buffer = [ShapeEdge]()
         buffer.reserveCapacity(sortedList.count)
         
         var prev = ShapeEdge(a: .zero, b: .zero, count: .init(subj: 0, clip: 0))
         
         for next in sortedList {
-            if prev.isEqual(next) {
+            if prev.xSegment == next.xSegment {
                 prev.count = prev.count.add(next.count)
             } else {
                 if !prev.count.isEmpty {
@@ -152,18 +152,18 @@ private extension FixPath {
         var edges = [ShapeEdge](repeating: .zero, count: n)
         
         let i0 = n - 1
-        var p0 = self[i0]
+        var p0 = Point(self[i0])
         
         var yMin = p0.y
         var yMax = p0.y
         
         for i in 0..<n {
-            let p1 = self[i]
+            let p1 = Point(self[i])
 
             yMin = Swift.min(yMin, p1.y)
             yMax = Swift.max(yMax, p1.y)
             
-            let value: Int32 = p0.bitPack <= p1.bitPack ? 1 : -1
+            let value: Int32 = Point.xLineCompare(a: p0, b: p1) ? 1 : -1
             
             switch type {
             case .subject:

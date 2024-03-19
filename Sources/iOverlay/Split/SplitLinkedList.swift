@@ -114,9 +114,9 @@ struct SplitLinkedList {
     mutating func findFromStart(edge: ShapeEdge) -> UInt32 {
         if firstIndex != emptyIndex {
             let firstEdge = self.nodes[Int(firstIndex)].edge
-            if firstEdge.isEqual(edge) {
+            if firstEdge.xSegment == edge.xSegment {
                 return firstIndex
-            } else if edge.isLess(firstEdge) {
+            } else if edge.xSegment.isLess(firstEdge.xSegment) {
                 let oldFirst = firstIndex
                 firstIndex = self.anyFree()
                 self.nodes[Int(oldFirst)].prev = firstIndex
@@ -137,7 +137,7 @@ struct SplitLinkedList {
 
         while nodePrev != emptyIndex {
             let prevEdge = nodes[Int(nodePrev)].edge
-            if prevEdge.isLess(edge) {
+            if prevEdge.xSegment.isLess(edge.xSegment) {
                 // insert new
                 let newIndex = self.anyFree()
                 
@@ -147,7 +147,7 @@ struct SplitLinkedList {
                 nodes[Int(nextIndex)].prev = newIndex
                 
                 return newIndex
-            } else if prevEdge.isEqual(edge) {
+            } else if prevEdge.xSegment == edge.xSegment {
                 return nodePrev
             }
             
@@ -171,7 +171,7 @@ struct SplitLinkedList {
         while prevNext != emptyIndex {
             let nextIndex = prevNext
             let nextEdge = nodes[Int(nextIndex)].edge
-            if edge.isLess(nextEdge) {
+            if edge.xSegment.isLess(nextEdge.xSegment) {
                 // insert new
                 let newIndex = self.anyFree()
                 
@@ -181,7 +181,7 @@ struct SplitLinkedList {
                 nodes[Int(nextIndex)].prev = newIndex
                 
                 return newIndex
-            } else if nextEdge.isEqual(edge) {
+            } else if nextEdge.xSegment == edge.xSegment {
                 return nextIndex
             }
             
@@ -204,9 +204,9 @@ struct SplitLinkedList {
             return self.findFromStart(edge: edge)
         }
 
-        if edge.isEqual(anchor.edge) {
+        if edge.xSegment == anchor.edge.xSegment {
             return anchorIndex
-        } else if edge.isLess(anchor.edge) {
+        } else if edge.xSegment.isLess(anchor.edge.xSegment) {
             return findBack(fromIndex: anchorIndex, edge: edge)
         } else {
             return findForward(fromIndex: anchorIndex, edge: edge)

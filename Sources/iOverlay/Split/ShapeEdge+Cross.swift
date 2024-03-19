@@ -11,11 +11,11 @@ import iFixFloat
 public struct EdgeCross {
     
     public let type: EdgeCrossType
-    public let point: FixVec
-    public let second: FixVec
+    public let point: Point
+    public let second: Point
 
     @usableFromInline
-    init(type: EdgeCrossType, point: FixVec, second: FixVec = .zero) {
+    init(type: EdgeCrossType, point: Point, second: Point = .zero) {
         self.type = type
         self.point = point
         self.second = second
@@ -32,14 +32,14 @@ public enum EdgeCrossType {
     case end_b
 }
 
-public extension ShapeEdge {
+public extension XSegment {
     
-    func cross(_ other: ShapeEdge) -> EdgeCross? {
-        let a0 = a
-        let a1 = b
+    func cross(_ other: XSegment) -> EdgeCross? {
+        let a0 = FixVec(self.a)
+        let a1 = FixVec(self.b)
 
-        let b0 = other.a
-        let b1 = other.b
+        let b0 = FixVec(other.a)
+        let b1 = FixVec(other.b)
 
         let a0Area = Triangle.unsafeAreaTwo(p0: b0, p1: a0, p2: b1)
         let a1Area = Triangle.unsafeAreaTwo(p0: b0, p1: a1, p2: b1)
@@ -59,16 +59,16 @@ public extension ShapeEdge {
         }
 
         guard a0Area != 0 else {
-            if other.isBoxContain(a0) {
-                return EdgeCross(type: .end_a, point: a0)
+            if other.isBoxContain(self.a) {
+                return EdgeCross(type: .end_a, point: self.a)
             } else {
                 return nil
             }
         }
 
         guard a1Area != 0 else {
-            if other.isBoxContain(a1) {
-                return EdgeCross(type: .end_a, point: a1)
+            if other.isBoxContain(self.b) {
+                return EdgeCross(type: .end_a, point: self.b)
             } else {
                 return nil
             }
@@ -77,8 +77,8 @@ public extension ShapeEdge {
         let b0Area = Triangle.unsafeAreaTwo(p0: a0, p1: b0, p2: a1)
 
         guard b0Area != 0 else {
-            if self.isBoxContain(b0) {
-                return EdgeCross(type: .end_b, point: b0)
+            if self.isBoxContain(other.a) {
+                return EdgeCross(type: .end_b, point: other.a)
             } else {
                 return nil
             }
@@ -87,8 +87,8 @@ public extension ShapeEdge {
         let b1Area = Triangle.unsafeAreaTwo(p0: a0, p1: b1, p2: a1)
 
         guard b1Area != 0 else {
-            if self.isBoxContain(b1) {
-                return EdgeCross(type: .end_b, point: b1)
+            if self.isBoxContain(other.b) {
+                return EdgeCross(type: .end_b, point: other.b)
             } else {
                 return nil
             }
@@ -102,7 +102,8 @@ public extension ShapeEdge {
             return nil
         }
 
-        let p = Self.crossPoint(a0: a0, a1: a1, b0: b0, b1: b1)
+        let f = Self.crossPoint(a0: a0, a1: a1, b0: b0, b1: b1)
+        let p = Point(f)
         
         assert(self.isBoxContain(p))
         assert(other.isBoxContain(p))
@@ -110,11 +111,11 @@ public extension ShapeEdge {
         // still can be common ends cause rounding
         // snap to a nearest end with radius 1, (1^2 + 1^2 == 2)
         
-        let ra0 = a0.sqrDistance(p)
-        let ra1 = a1.sqrDistance(p)
+        let ra0 = a0.sqrDistance(f)
+        let ra1 = a1.sqrDistance(f)
 
-        let rb0 = b0.sqrDistance(p)
-        let rb1 = b1.sqrDistance(p)
+        let rb0 = b0.sqrDistance(f)
+        let rb1 = b1.sqrDistance(f)
         
         if ra0 <= 2 || ra1 <= 2 || rb0 <= 2 || rb1 <= 2 {
             let ra = min(ra0, ra1)
@@ -122,10 +123,10 @@ public extension ShapeEdge {
 
             if ra <= rb {
                 let a = ra0 < ra1 ? a0 : a1
-                return EdgeCross(type: .end_a, point: a)
+                return EdgeCross(type: .end_a, point: Point(a))
             } else {
                 let b = rb0 < rb1 ? b0 : b1
-                return EdgeCross(type: .end_b, point: b)
+                return EdgeCross(type: .end_b, point: Point(b))
             }
         } else {
             return EdgeCross(type: .pure, point: p)
@@ -227,20 +228,20 @@ public extension ShapeEdge {
         return FixVec(x, y)
     }
 
-    private func isBoxContain(_ p: FixVec) -> Bool {
-        let xContain = a.x <= p.x && p.x <= b.x
+    private func isBoxContain(_ p: Point) -> Bool {
+        let xContain = a.x <= p.x && p.x <= b.x // a.x <= b.x by definition of xSegment
         let yContain = a.y <= p.y && p.y <= b.y || b.y <= p.y && p.y <= a.y
         return xContain && yContain
     }
     
-    private func isBoxContain(_ edge: ShapeEdge) -> Bool {
+    private func isBoxContain(_ edge: XSegment) -> Bool {
         let xContain = a.x <= edge.a.x && edge.b.x <= b.x
         guard xContain else {
             return false
         }
         
-        let syMin: Int64
-        let syMax: Int64
+        let syMin: Int32
+        let syMax: Int32
         if a.y <= b.y {
             syMin = a.y
             syMax = b.y
@@ -249,8 +250,8 @@ public extension ShapeEdge {
             syMax = a.y
         }
         
-        let eyMin: Int64
-        let eyMax: Int64
+        let eyMin: Int32
+        let eyMax: Int32
         if edge.a.y <= edge.b.y {
             eyMin = edge.a.y
             eyMax = edge.b.y
@@ -263,7 +264,7 @@ public extension ShapeEdge {
     }
     
     
-    private static func sameLineOverlay(_ edgeA: ShapeEdge, _ edgeB: ShapeEdge) -> EdgeCross? {
+    private static func sameLineOverlay(_ edgeA: XSegment, _ edgeB: XSegment) -> EdgeCross? {
         let isA = edgeA.isBoxContain(edgeB) // b inside a
         let isB = edgeB.isBoxContain(edgeA) // a inside b
         
@@ -296,7 +297,7 @@ public extension ShapeEdge {
         return EdgeCross(type: .penetrate, point: ap, second: bp)
     }
     
-    private func solveInside(other: ShapeEdge, end: EdgeCrossType, overlay: EdgeCrossType) -> EdgeCross {
+    private func solveInside(other: XSegment, end: EdgeCrossType, overlay: EdgeCrossType) -> EdgeCross {
         let isBe0 = other.a == self.a || other.a == self.b
         let isBe1 = other.b == self.a || other.b == self.b
         

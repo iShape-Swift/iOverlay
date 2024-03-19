@@ -81,7 +81,7 @@ struct SplitRangeList {
         let index = self.findIndex(anchorIndex: anchorIndex, edge: newEdge)
         let edge = self.edge(index: index)
         let version: UInt32
-        if edge.isEqual(newEdge) {
+        if edge.xSegment == newEdge.xSegment {
             version = self.update(index: index, count: edge.count.add(newEdge.count))
         } else {
             version = self.update(index: index, edge: newEdge)
@@ -91,7 +91,7 @@ struct SplitRangeList {
     }
     
     mutating func findIndex(anchorIndex: DualIndex, edge: ShapeEdge) -> DualIndex {
-        let a = edge.a.bitPack
+        let a = edge.xSegment.a.bitPack
         let base: UInt32
         let node: UInt32
         if ranges[Int(anchorIndex.major)] < a && a <= ranges[Int(anchorIndex.major + 1)] {
@@ -126,9 +126,9 @@ struct SplitRangeList {
             
             i = min(edges.count - 1, i + length)
             
-            let a = edges[i].a
+            let a = edges[i].xSegment.a
             i += 1
-            while i < edges.count && edges[i].a == a {
+            while i < edges.count && edges[i].xSegment.a == a {
                 i += 1
             }
             

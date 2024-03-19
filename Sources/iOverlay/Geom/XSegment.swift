@@ -81,12 +81,10 @@ extension XSegment {
     }
     
     @inline(__always) func isLess(_ other: XSegment) -> Bool {
-        let a0 = self.a.bitPack
-        let a1 = other.a.bitPack
-        if a0 != a1 {
-            return a0 < a1
+        if self.a != other.a {
+            return Point.xLineCompare(a: self.a, b: other.a)
         } else {
-            return self.b.bitPack < other.b.bitPack
+            return Point.xLineCompare(a: self.b, b: other.b)
         }
     }
 }

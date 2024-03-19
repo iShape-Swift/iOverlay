@@ -12,20 +12,20 @@ extension LineSpace<VersionedIndex> {
 
 
     init(edges: [ShapeEdge]) {
-        var yMin = Int64.max
-        var yMax = Int64.min
+        var yMin = Int32.max
+        var yMax = Int32.min
         for edge in edges {
-            if edge.a.y > edge.b.y {
-                yMin = min(edge.b.y, yMin)
-                yMax = max(edge.a.y, yMax)
+            if edge.xSegment.a.y > edge.xSegment.b.y {
+                yMin = min(edge.xSegment.b.y, yMin)
+                yMax = max(edge.xSegment.a.y, yMax)
             } else {
-                yMin = min(edge.a.y, yMin)
-                yMax = max(edge.b.y, yMax)
+                yMin = min(edge.xSegment.a.y, yMin)
+                yMax = max(edge.xSegment.b.y, yMax)
             }
         }
         
         let maxLevel = Int(Double(edges.count).squareRoot()).logTwo
         
-        self.init(level: maxLevel, range: LineRange(min: Int32(yMin), max: Int32(yMax)))
+        self.init(level: maxLevel, range: LineRange(min: yMin, max: yMax))
     }
 }

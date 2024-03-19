@@ -5,7 +5,7 @@
 //  Created by Nail Sharipov on 06.12.2023.
 //
 
-public struct LineRange {
+public struct LineRange: Equatable {
     
     public let min: Int32
     public let max: Int32

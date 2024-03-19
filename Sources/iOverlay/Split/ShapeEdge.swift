@@ -11,44 +11,20 @@ import iShape
 public struct ShapeEdge {
 
     static let zero = ShapeEdge(a: .zero, b: .zero, count: ShapeCount(subj: 0, clip: 0))
-
-    // start < end
-    public let a: FixVec        // start
-    public let b: FixVec        // end
-
+    public let xSegment: XSegment
     var count: ShapeCount
     
-    public init(a: FixVec, b: FixVec, count: ShapeCount) {
-        if a.bitPack <= b.bitPack {
-            self.a = a
-            self.b = b
+    public init(a: Point, b: Point, count: ShapeCount) {
+        if Point.xLineCompare(a: a, b: b) {
+            xSegment = XSegment(a: a, b: b)
         } else {
-            self.a = b
-            self.b = a
+            xSegment = XSegment(a: b, b: a)
         }
         self.count = count
     }
 
-    init(min: FixVec, max: FixVec, count: ShapeCount) {
-        self.a = min
-        self.b = max
+    init(min: Point, max: Point, count: ShapeCount) {
+        self.xSegment = XSegment(a: min, b: max)
         self.count = count
     }
-    
-    
-    public func isLess(_ other: ShapeEdge) -> Bool {
-        let a0 = self.a.bitPack
-        let a1 = other.a.bitPack
-        if a0 != a1 {
-            return a0 < a1
-        } else {
-            return self.b.bitPack < other.b.bitPack
-        }
-    }
-
-    @inline(__always)
-    func isEqual(_ other: ShapeEdge) -> Bool {
-        a == other.a && b == other.b
-    }
-
 }
