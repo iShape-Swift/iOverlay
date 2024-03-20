@@ -12,18 +12,18 @@ import iFixFloat
 final class IntervalTreeTests: XCTestCase {
         
     func test_00() throws {
-        let nodes = ScanIntervalTree.testInitNodes(range: LineRange(min: 0, max: 128), power: 4)
+        let nodes = ScanTree.testInitNodes(range: LineRange(min: 0, max: 128), power: 4)
         
         XCTAssertEqual(nodes.count, 31)
     }
     
     func test_01() throws {
-        let nodes = ScanIntervalTree.testInitNodes(range: LineRange(min: 0, max: 128), power: 5)
+        let nodes = ScanTree.testInitNodes(range: LineRange(min: 0, max: 128), power: 5)
         XCTAssertEqual(nodes.count, 63)
     }
     
     func test_02() throws {
-        var tree = ScanIntervalTree(range: LineRange(min: 0, max: 128), power: 3)
+        var tree = ScanTree(range: LineRange(min: 0, max: 128), power: 3)
         let xSeg = XSegment(a: FixVec(0, 1), b: FixVec(0, 127))
         tree.insert(segment: VersionSegment(vIndex: .empty, xSegment: xSeg))
         
@@ -52,7 +52,7 @@ final class IntervalTreeTests: XCTestCase {
     }
     
     func test_03() throws {
-        var tree = ScanIntervalTree(range: LineRange(min: 0, max: 128), power: 3)
+        var tree = ScanTree(range: LineRange(min: 0, max: 128), power: 3)
         let xSeg = XSegment(a: FixVec(0, 16), b: FixVec(0, 112))
         tree.insert(segment: VersionSegment(vIndex: .empty, xSegment: xSeg))
         
@@ -81,7 +81,7 @@ final class IntervalTreeTests: XCTestCase {
     }
     
     func test_04() throws {
-        var tree = ScanIntervalTree(range: LineRange(min: 0, max: 128), power: 3)
+        var tree = ScanTree(range: LineRange(min: 0, max: 128), power: 3)
         let xSeg = XSegment(a: FixVec(0, 17), b: FixVec(0, 111))
         tree.insert(segment: VersionSegment(vIndex: .empty, xSegment: xSeg))
         
@@ -110,7 +110,7 @@ final class IntervalTreeTests: XCTestCase {
     }
     
     func test_05() throws {
-        var tree = ScanIntervalTree(range: LineRange(min: 0, max: 128), power: 3)
+        var tree = ScanTree(range: LineRange(min: 0, max: 128), power: 3)
         let xSeg = XSegment(a: FixVec(0, 32), b: FixVec(0, 96))
         tree.insert(segment: VersionSegment(vIndex: .empty, xSegment: xSeg))
         
@@ -139,7 +139,7 @@ final class IntervalTreeTests: XCTestCase {
     }
     
     func test_06() throws {
-        var tree = ScanIntervalTree(range: LineRange(min: 0, max: 128), power: 3)
+        var tree = ScanTree(range: LineRange(min: 0, max: 128), power: 3)
         let xSeg = XSegment(a: FixVec(0, 33), b: FixVec(0, 95))
         tree.insert(segment: VersionSegment(vIndex: .empty, xSegment: xSeg))
         

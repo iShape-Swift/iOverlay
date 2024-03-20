@@ -1,5 +1,5 @@
 //
-//  ScanIntervalTree.swift
+//  ScanTree.swift
 //  
 //
 //  Created by Nail Sharipov on 06.03.2024.
@@ -28,7 +28,7 @@ extension IntervalNode {
     }
 }
 
-struct ScanIntervalTree {
+struct ScanTree: ScanSplitStore {
 
     fileprivate let power: Int
     fileprivate var nodes: [IntervalNode]
@@ -276,29 +276,26 @@ struct ScanIntervalTree {
         }
     }
     
-    mutating func intersect(xSegment: XSegment, scanPos: Int32, shapeSource: (VersionedIndex) -> ShapeEdge?) -> CrossSegment? {
+    mutating func intersect(this: XSegment, scanPos: Int32) -> CrossSegment? {
         var s = 1 << power
         var i = s - 1
-        let range = xSegment.yRange
+        let range = this.yRange
         
         while s > 1 {
             s >>= 1
             var j = 0
             while j < self.nodes[i].list.count {
-                let seg = self.nodes[i].list[j]
-                if seg.xSegment.b.x <= scanPos {
+                let scan = self.nodes[i].list[j]
+                if scan.xSegment.b.x <= scanPos {
                     self.nodes[i].list.swapRemove(j)
                     continue
                 }
                 
-                if let cross = seg.xSegment.cross(xSegment) {
-                    if let shapeEdge = shapeSource(seg.vIndex) {
-                        return CrossSegment(index: seg.vIndex, cross: cross, edge: shapeEdge)
-                    }
-                    
+                // order is important! thix x scan
+                if let cross = this.cross(scan.xSegment) {
                     self.nodes[i].list.swapRemove(j)
-                    self.remove(segment: seg, scanPos: scanPos)
-                    continue
+                    self.remove(segment: scan, scanPos: scanPos)
+                    return CrossSegment(index: scan.vIndex, cross: cross)
                 }
                 j += 1
             }
@@ -353,20 +350,17 @@ struct ScanIntervalTree {
             var j = 0
             
             while j < self.nodes[i].list.count {
-                let seg = self.nodes[i].list[j]
-                if seg.xSegment.b.x <= scanPos {
+                let scan = self.nodes[i].list[j]
+                if scan.xSegment.b.x <= scanPos {
                     self.nodes[i].list.swapRemove(j)
                     continue
                 }
                 
-                if let cross = seg.xSegment.cross(xSegment) {
-                    if let shapeEdge = shapeSource(seg.vIndex) {
-                        return CrossSegment(index: seg.vIndex, cross: cross, edge: shapeEdge)
-                    }
-                    
+                // order is important! thix x scan
+                if let cross = this.cross(scan.xSegment) {
                     self.nodes[i].list.swapRemove(j)
-                    self.remove(segment: seg, scanPos: scanPos)
-                    continue
+                    self.remove(segment: scan, scanPos: scanPos)
+                    return CrossSegment(index: scan.vIndex, cross: cross)
                 }
                 j += 1
             }
@@ -375,6 +369,12 @@ struct ScanIntervalTree {
         }
         
         return nil
+    }
+    
+    mutating func clear() {
+        for i in 0..<nodes.count {
+            nodes[i].list.removeAll(keepingCapacity: true)
+        }
     }
 }
 
@@ -402,9 +402,9 @@ private extension LineRange {
 
 
 #if DEBUG
-extension ScanIntervalTree {
+extension ScanTree {
     static func testInitNodes(range: LineRange, power: Int) -> [IntervalNode] {
-        ScanIntervalTree.initNodes(range: range, power: power)
+        ScanTree.initNodes(range: range, power: power)
     }
     
     func node(index: Int) -> IntervalNode {

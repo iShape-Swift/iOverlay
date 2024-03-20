@@ -10,9 +10,9 @@ import iShape
 
 extension Array where Element == ShapeEdge {
     
-    func split<S: ScanSplit>(scanList: S) -> [Segment] {
-        // at this moment array is sorted
-        
+    func split<S: ScanSplitStore>(scanList: S) -> [Segment] {
+        var scanList = scanList
+
         var list = SplitRangeList(edges: self)
         
         var needToFix = true
@@ -29,16 +29,20 @@ extension Array where Element == ShapeEdge {
                     eIndex = list.removeAndNext(index: eIndex.index)
                     continue
                 }
-
-                guard let crossSegment = scanList.intersect(xSegment: thisEdge.xSegment, validate: { version in
-                    nil
-                }) else {
+                
+                let scanPos = thisEdge.xSegment.a.x
+                guard let crossSegment = scanList.intersect(this: thisEdge.xSegment, scanPos: scanPos) else {
                     scanList.insert(segment: VersionSegment(vIndex: eIndex, xSegment: thisEdge.xSegment))
+                    eIndex = list.next(index: eIndex.index)
                     continue
                 }
 
                 let vIndex = crossSegment.index
-                let scanEdge = crossSegment.edge
+                
+                guard let scanEdge = list.validateEdge(vIndex: vIndex) else {
+                    eIndex = list.next(index: eIndex.index)
+                    continue
+                }
                         
                 switch crossSegment.cross.type {
                 case .pure:

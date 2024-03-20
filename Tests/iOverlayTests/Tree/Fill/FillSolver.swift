@@ -9,7 +9,7 @@ import XCTest
 import iFixFloat
 @testable import iOverlay
 
-struct FillSolver<Scan: ScanFill> {
+struct FillSolver<Scan: ScanFillStore> {
     
     func run(scanList: Scan, items: [CountSegment], points: [Point]) -> [Int32] {
         var scanList = scanList

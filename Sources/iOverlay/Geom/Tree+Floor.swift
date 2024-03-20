@@ -28,7 +28,7 @@ extension RBTree where T == Floor {
         while index != .empty {
             let node = self[index]
             if node.value.seg.b.x <= stop {
-                self.delete(index: index)
+                _ = self.delete(index: index)
                 if node.parent != .empty {
                     index = node.parent
                 } else {

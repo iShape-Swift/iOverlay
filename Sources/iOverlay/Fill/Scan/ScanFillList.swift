@@ -7,7 +7,7 @@
 
 import iFixFloat
 
-struct ScanFillList: ScanFill {
+struct ScanFillList: ScanFillStore {
 
     private var buffer: [CountSegment] = []
 
@@ -15,7 +15,7 @@ struct ScanFillList: ScanFill {
         buffer.append(segment)
     }
     
-    mutating func findUnder(point p: Point, stop: Int32) -> CountSegment? {
+    mutating func findUnder(point p: Point, stop: Int32) -> ShapeCount {
         var i = 0
         var result: CountSegment? = nil
         while i < self.buffer.count {
@@ -37,6 +37,6 @@ struct ScanFillList: ScanFill {
             }
         }
         
-        return result
+        return result?.count ?? ShapeCount(subj: 0, clip: 0)
     }
 }

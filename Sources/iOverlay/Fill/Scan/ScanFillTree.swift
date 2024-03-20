@@ -8,9 +8,14 @@
 import iFixFloat
 import iTree
 
-struct ScanFillTree: ScanFill {
+struct ScanFillTree: ScanFillStore {
+
+    private var tree: RBTree<CountSegment>
     
-    private var tree = RBTree(empty: CountSegment(count: .init(subj: 0, clip: 0), xSegment: .init(a: .zero, b: .zero)))
+    init(count: Int) {
+        let capacity = Int(Double(count << 1).squareRoot())
+        self.tree = RBTree(empty: CountSegment(count: .init(subj: 0, clip: 0), xSegment: .init(a: .zero, b: .zero)), capacity: capacity)
+    }
     
     mutating func insert(segment: CountSegment, stop: Int32) {
         var index = tree.root
@@ -63,7 +68,7 @@ struct ScanFillTree: ScanFill {
         }
     }
     
-    mutating func findUnder(point p: Point, stop: Int32) -> CountSegment? {
+    mutating func findUnder(point p: Point, stop: Int32) -> ShapeCount {
         var index = tree.root
         var result: UInt32 = .empty
         while index != .empty {
@@ -86,9 +91,9 @@ struct ScanFillTree: ScanFill {
         }
         
         if result == .empty {
-            return nil
+            return ShapeCount(subj: 0, clip: 0)
         } else {
-            return tree[result].value
+            return tree[result].value.count
         }
     }
 }

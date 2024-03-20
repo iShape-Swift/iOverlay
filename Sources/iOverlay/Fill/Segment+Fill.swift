@@ -19,15 +19,12 @@ private struct PGroup {
     let p: Point
 }
 
-public extension Array where Element == Segment {
+extension Array where Element == Segment {
     
-    mutating func fill(fillRule: FillRule) {
-        /*
+    mutating func fill<S: ScanFillStore>(scanStore: S, fillRule: FillRule) {
+        var scanStore = scanStore
         var xBuf = [XGroup]()
         var pBuf = [PGroup]()
-        
-        let capacity = Int(3 * Double(self.count).squareRoot())
-        var scanTree = RBTree(empty: TreeFillSegment(count: .init(subj: 0, clip: 0), xSegment: XSegment(a: .zero, b: .zero)), capacity: capacity)
         
         let n = self.count
         var i = 0
@@ -44,11 +41,8 @@ public extension Array where Element == Segment {
             }
             
             if xBuf.count > 1 {
-                // sort all by a.y
                 xBuf.sort(by: { $0.x < $1.x })
             }
-            
-            // find nearest segment from scan list for all new segments
             
             var j = 0
             while j < xBuf.count {
@@ -70,7 +64,7 @@ public extension Array where Element == Segment {
                     pBuf.sortByAngle(center: p)
                 }
                 
-                var sumCount = scanTree.underAndNearest(point: p, stop: x)
+                var sumCount = scanStore.findUnder(point: p, stop: x)
 
                 // add new to scan
                 
@@ -79,17 +73,11 @@ public extension Array where Element == Segment {
                         _ = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
                     } else {
                         sumCount = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
-                        #if DEBUG
-                        scanTree.insert(value: TreeFillSegment(index: se.i, count: sumCount, xSegment: self[se.i].seg))
-                        #else
-                        scanTree.insert(value: TreeFillSegment(count: sumCount, xSegment: self[se.i].seg))
-                        #endif
+                        scanStore.insert(segment: CountSegment(count: sumCount, xSegment: self[se.i].seg), stop: x)
                     }
                 }
-                
             }
         }
-         */
     }
 }
 

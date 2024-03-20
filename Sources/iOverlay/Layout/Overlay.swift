@@ -74,30 +74,30 @@ public struct Overlay {
         edges.append(contentsOf: result.edges)
     }
 
-    public func buildSegments(fillRule: FillRule) -> [Segment] {
+    public func buildSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
         guard !edges.isEmpty else {
             return []
         }
         
-        var segments = self.prepareSegments(fillRule: fillRule)
+        var segments = self.prepareSegments(fillRule: fillRule, solver: solver)
         
         segments.filter()
         
         return segments
     }
     
-    public func buildVectors(fillRule: FillRule, overlayRule: OverlayRule) -> [VectorShape] {
+    public func buildVectors(fillRule: FillRule, overlayRule: OverlayRule, solver: Solver = .auto) -> [VectorShape] {
         guard !edges.isEmpty else {
             return []
         }
 
-        let graph = OverlayGraph(segments: self.prepareSegments(fillRule: fillRule))
+        let graph = OverlayGraph(segments: self.prepareSegments(fillRule: fillRule, solver: solver))
         let vectors = graph.extractVectors(overlayRule: overlayRule)
         
         return vectors
     }
     
-    private func prepareSegments(fillRule: FillRule) -> [Segment] {
+    private func prepareSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
         let sortedList = edges.sorted(by: { $0.xSegment.isLess($1.xSegment) })
         var buffer = [ShapeEdge]()
         buffer.reserveCapacity(sortedList.count)
@@ -121,16 +121,21 @@ public struct Overlay {
         
         let range = LineRange(min: yMin, max: yMax)
         
-        var segments = buffer.split(range: range)
-        
-        segments.fill(fillRule: fillRule)
+        var segments: [Segment]
+        if solver == .list || solver == .auto && buffer.count < 10_000 {
+            segments = buffer.split(scanList: ScanSplitList(count: buffer.count))
+            segments.fill(scanStore: ScanFillList(), fillRule: fillRule)
+        } else {
+            segments = buffer.split(scanList: ScanTree(range: range, count: buffer.count))
+            segments.fill(scanStore: ScanFillTree(count: buffer.count), fillRule: fillRule)
+        }
 
         return segments
     }
     
 
-    public func buildGraph(fillRule: FillRule = .nonZero) -> OverlayGraph {
-        OverlayGraph(segments: self.buildSegments(fillRule: fillRule))
+    public func buildGraph(fillRule: FillRule = .nonZero, solver: Solver = .auto) -> OverlayGraph {
+        OverlayGraph(segments: self.buildSegments(fillRule: fillRule, solver: solver))
     }
 
 }
