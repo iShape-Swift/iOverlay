@@ -5,6 +5,8 @@
 //  Created by Nail Sharipov on 20.03.2024.
 //
 
+import iFixFloat
+
 struct ScanSplitList: ScanSplitStore {
     
     private var buffer: [VersionSegment]
@@ -15,11 +17,11 @@ struct ScanSplitList: ScanSplitStore {
         buffer.reserveCapacity(capacity)
     }
     
-    mutating func intersect(this: XSegment, scanPos: Int32) -> CrossSegment? {
+    mutating func intersect(this: XSegment, scanPos: Point) -> CrossSegment? {
         var i = 0
         while i < buffer.count {
             let scan = self.buffer[i]
-            if scan.xSegment.b.x <= scanPos {
+            if Point.xLineCompare(a: scan.xSegment.b, b: scanPos) {
                 self.buffer.swapRemove(i)
                 continue
             }

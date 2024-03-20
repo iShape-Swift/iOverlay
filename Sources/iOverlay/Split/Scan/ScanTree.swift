@@ -184,7 +184,7 @@ struct ScanTree: ScanSplitStore {
         }
     }
     
-    mutating func remove(segment: VersionSegment, scanPos: Int32) {
+    mutating func remove(segment: VersionSegment, scanPos: Point) {
         // same logic as for insert but now we remove
         
         var s = 1 << power
@@ -276,7 +276,7 @@ struct ScanTree: ScanSplitStore {
         }
     }
     
-    mutating func intersect(this: XSegment, scanPos: Int32) -> CrossSegment? {
+    mutating func intersect(this: XSegment, scanPos: Point) -> CrossSegment? {
         var s = 1 << power
         var i = s - 1
         let range = this.yRange
@@ -286,7 +286,7 @@ struct ScanTree: ScanSplitStore {
             var j = 0
             while j < self.nodes[i].list.count {
                 let scan = self.nodes[i].list[j]
-                if scan.xSegment.b.x <= scanPos {
+                if Point.xLineCompare(a: scan.xSegment.b, b: scanPos) {
                     self.nodes[i].list.swapRemove(j)
                     continue
                 }
@@ -351,7 +351,7 @@ struct ScanTree: ScanSplitStore {
             
             while j < self.nodes[i].list.count {
                 let scan = self.nodes[i].list[j]
-                if scan.xSegment.b.x <= scanPos {
+                if Point.xLineCompare(a: scan.xSegment.b, b: scanPos) {
                     self.nodes[i].list.swapRemove(j)
                     continue
                 }

@@ -5,6 +5,8 @@
 //  Created by Nail Sharipov on 06.03.2024.
 //
 
+import iFixFloat
+
 struct VersionSegment {
     let vIndex: VersionedIndex
     let xSegment: XSegment
@@ -26,7 +28,7 @@ extension VersionSegment: Equatable {
 
 extension Array where Element == VersionSegment {
     
-    mutating func remove(segment: VersionSegment, scanPos: Int32) {
+    mutating func remove(segment: VersionSegment, scanPos: Point) {
         var j = 0
         while j < self.count {
             let seg = self[j]
@@ -35,7 +37,7 @@ extension Array where Element == VersionSegment {
                 return
             }
 
-            if seg.xSegment.b.x <= scanPos {
+            if Point.xLineCompare(a: seg.xSegment.b, b: scanPos) {
                 self.swapRemove(j)
                 continue
             }

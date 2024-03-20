@@ -30,7 +30,7 @@ extension Array where Element == ShapeEdge {
                     continue
                 }
                 
-                let scanPos = thisEdge.xSegment.a.x
+                let scanPos = thisEdge.xSegment.a
                 guard let crossSegment = scanList.intersect(this: thisEdge.xSegment, scanPos: scanPos) else {
                     scanList.insert(segment: VersionSegment(vIndex: eIndex, xSegment: thisEdge.xSegment))
                     eIndex = list.next(index: eIndex.index)
