@@ -10,8 +10,8 @@ import iShape
 
 extension Array where Element == ShapeEdge {
     
-    func split<S: ScanSplitStore>(scanList: S) -> [Segment] {
-        var scanList = scanList
+    func split<S: ScanSplitStore>(scanStore: S) -> [Segment] {
+        var scanList = scanStore
 
         var list = SplitRangeList(edges: self)
         

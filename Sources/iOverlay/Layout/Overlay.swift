@@ -123,11 +123,13 @@ public struct Overlay {
         
         var segments: [Segment]
         if solver == .list || solver == .auto && buffer.count < 10_000 {
-            segments = buffer.split(scanList: ScanSplitList(count: buffer.count))
+            segments = buffer.split(scanStore: ScanSplitList(count: buffer.count))
             segments.fill(scanStore: ScanFillList(), fillRule: fillRule)
         } else {
-            segments = buffer.split(scanList: ScanTree(range: range, count: buffer.count))
-            segments.fill(scanStore: ScanFillTree(count: buffer.count), fillRule: fillRule)
+            segments = buffer.split(scanStore: ScanSplitTree(range: range, count: buffer.count))
+//            segments = buffer.split(scanStore: ScanSplitList(count: buffer.count))
+            segments.fill(scanStore: ScanFillList(), fillRule: fillRule)
+//            segments.fill(scanStore: ScanFillTree(count: buffer.count), fillRule: fillRule)
         }
 
         return segments

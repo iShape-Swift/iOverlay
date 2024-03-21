@@ -27,7 +27,7 @@ struct FillSolver<Scan: ScanFillStore> {
                 i += 1
             }
             
-            let index = scanList.findUnder(point: p, stop: p.x)?.count.subj ?? .min
+            let index = scanList.findUnder(point: p, stop: p.x)?.subj ?? .min
             result.append(index)
         }
         

@@ -64,7 +64,7 @@ extension Array where Element == Segment {
                     pBuf.sortByAngle(center: p)
                 }
                 
-                var sumCount = scanStore.findUnder(point: p, stop: x)
+                var sumCount = scanStore.findUnder(point: p, stop: x) ?? ShapeCount(subj: 0, clip: 0)
 
                 // add new to scan
                 

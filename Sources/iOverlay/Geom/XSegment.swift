@@ -27,12 +27,12 @@ public struct XSegment {
         a.x == b.x
     }
     
-    @inline(__always)
-    init(a: FixVec, b: FixVec) {
-        assert(a.x <= b.x)
-        self.a = Point(a)
-        self.b = Point(b)
-    }
+//    @inline(__always)
+//    init(a: FixVec, b: FixVec) {
+//        assert(a.x <= b.x)
+//        self.a = Point(a)
+//        self.b = Point(b)
+//    }
     
     @inline(__always)
     init(a: Point, b: Point) {

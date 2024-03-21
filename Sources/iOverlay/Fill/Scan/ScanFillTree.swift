@@ -68,7 +68,7 @@ struct ScanFillTree: ScanFillStore {
         }
     }
     
-    mutating func findUnder(point p: Point, stop: Int32) -> ShapeCount {
+    mutating func findUnder(point p: Point, stop: Int32) -> ShapeCount? {
         var index = tree.root
         var result: UInt32 = .empty
         while index != .empty {
@@ -91,7 +91,7 @@ struct ScanFillTree: ScanFillStore {
         }
         
         if result == .empty {
-            return ShapeCount(subj: 0, clip: 0)
+            return nil
         } else {
             return tree[result].value.count
         }

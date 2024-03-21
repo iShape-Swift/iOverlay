@@ -15,9 +15,9 @@ final class TreeTests: XCTestCase {
     func test_00() throws {
         var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
         
-        tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: FixVec(0, 0), b: FixVec(1000, 1000))))
-        tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: FixVec(500, -250), b: FixVec(1500, -1250))))
-        tree.insert(value: TreeSegment(index: 2, xSegment: .init(a: FixVec(250, -750), b: FixVec(750, -750))))
+        tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: Point(0, 0), b: Point(1000, 1000))))
+        tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: Point(500, -250), b: Point(1500, -1250))))
+        tree.insert(value: TreeSegment(index: 2, xSegment: .init(a: Point(250, -750), b: Point(750, -750))))
         
         let root = tree[tree.root]
         
@@ -29,9 +29,9 @@ final class TreeTests: XCTestCase {
     func test_01() throws {
         var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
         
-        tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: FixVec(0,     0), b: FixVec(1000,     0))))
-        tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: FixVec(0,  1000), b: FixVec(1000,  1000))))
-        tree.insert(value: TreeSegment(index: 2, xSegment: .init(a: FixVec(0, -1000), b: FixVec(1000, -1000))))
+        tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: Point(0,     0), b: Point(1000,     0))))
+        tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: Point(0,  1000), b: Point(1000,  1000))))
+        tree.insert(value: TreeSegment(index: 2, xSegment: .init(a: Point(0, -1000), b: Point(1000, -1000))))
         
         let root = tree[tree.root]
         
@@ -43,9 +43,9 @@ final class TreeTests: XCTestCase {
     func test_03() throws {
         var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
         
-        tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: FixVec(0, 0), b: FixVec(1000, -1000))))
-        tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: FixVec(0, 0), b: FixVec(1000,     0))))
-        tree.insert(value: TreeSegment(index: 2, xSegment: .init(a: FixVec(0, 0), b: FixVec(1000,  1000))))
+        tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: Point(0, 0), b: Point(1000, -1000))))
+        tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: Point(0, 0), b: Point(1000,     0))))
+        tree.insert(value: TreeSegment(index: 2, xSegment: .init(a: Point(0, 0), b: Point(1000,  1000))))
         
         let root = tree[tree.root]
         
@@ -94,9 +94,9 @@ final class TreeTests: XCTestCase {
     func test_12() throws {
         var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
         
-        tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: FixVec(0, 0), b: FixVec(200,  200))))
-        tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: FixVec(0, 0), b: FixVec(200,    0))))
-        tree.insert(value: TreeSegment(index: 2, xSegment: .init(a: FixVec(0, 0), b: FixVec(200, -200))))
+        tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: Point(0, 0), b: Point(200,  200))))
+        tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: Point(0, 0), b: Point(200,    0))))
+        tree.insert(value: TreeSegment(index: 2, xSegment: .init(a: Point(0, 0), b: Point(200, -200))))
 
         XCTAssertEqual(tree.underAndNearest(point: Point(50,  100)), 0)
         XCTAssertEqual(tree.underAndNearest(point: Point(50, -100)), nil)
@@ -109,15 +109,15 @@ final class TreeTests: XCTestCase {
     func test_13() throws {
         var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
         
-        tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: FixVec(0,  400), b: FixVec(200,  400))))
-        tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: FixVec(0,  400), b: FixVec(200,  200))))
-        tree.insert(value: TreeSegment(index: 2, xSegment: .init(a: FixVec(0,  200), b: FixVec(200,  200))))
-        tree.insert(value: TreeSegment(index: 3, xSegment: .init(a: FixVec(0,    0), b: FixVec(200,  200))))
-        tree.insert(value: TreeSegment(index: 4, xSegment: .init(a: FixVec(0,    0), b: FixVec(200,    0))))
-        tree.insert(value: TreeSegment(index: 5, xSegment: .init(a: FixVec(0,    0), b: FixVec(200, -200))))
-        tree.insert(value: TreeSegment(index: 6, xSegment: .init(a: FixVec(0, -200), b: FixVec(200, -200))))
-        tree.insert(value: TreeSegment(index: 7, xSegment: .init(a: FixVec(0, -400), b: FixVec(200, -200))))
-        tree.insert(value: TreeSegment(index: 8, xSegment: .init(a: FixVec(0, -400), b: FixVec(200, -400))))
+        tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: Point(0,  400), b: Point(200,  400))))
+        tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: Point(0,  400), b: Point(200,  200))))
+        tree.insert(value: TreeSegment(index: 2, xSegment: .init(a: Point(0,  200), b: Point(200,  200))))
+        tree.insert(value: TreeSegment(index: 3, xSegment: .init(a: Point(0,    0), b: Point(200,  200))))
+        tree.insert(value: TreeSegment(index: 4, xSegment: .init(a: Point(0,    0), b: Point(200,    0))))
+        tree.insert(value: TreeSegment(index: 5, xSegment: .init(a: Point(0,    0), b: Point(200, -200))))
+        tree.insert(value: TreeSegment(index: 6, xSegment: .init(a: Point(0, -200), b: Point(200, -200))))
+        tree.insert(value: TreeSegment(index: 7, xSegment: .init(a: Point(0, -400), b: Point(200, -200))))
+        tree.insert(value: TreeSegment(index: 8, xSegment: .init(a: Point(0, -400), b: Point(200, -400))))
 
         XCTAssertEqual(tree.underAndNearest(point: Point(100,  450)), 0)
         XCTAssertEqual(tree.underAndNearest(point: Point(100,  400)), 1)

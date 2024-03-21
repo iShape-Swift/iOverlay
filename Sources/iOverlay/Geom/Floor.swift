@@ -12,7 +12,7 @@ struct Floor {
     let id: Int
     let seg: XSegment
     
-    init(id: Int, a: FixVec, b: FixVec) {
+    init(id: Int, a: Point, b: Point) {
         self.id = id
         self.seg = XSegment(a: a, b: b)
     }
@@ -28,7 +28,7 @@ extension FixPath {
         var b = self[n - 1]
         for a in self {
             if a.x < b.x && xMin < b.x && a.x <= xMax {
-                list.append(Floor(id: id, a: a, b: b))
+                list.append(Floor(id: id, a: Point(a), b: Point(b)))
             }
             b = a
         }
@@ -45,7 +45,7 @@ extension VectorPath {
         
         for vec in self {
             if vec.a.x < vec.b.x && xMin < vec.b.x && vec.a.x <= xMax {
-                list.append(Floor(id: id, a: vec.a, b: vec.b))
+                list.append(Floor(id: id, a: Point(vec.a), b: Point(vec.b)))
             }
         }
         return list

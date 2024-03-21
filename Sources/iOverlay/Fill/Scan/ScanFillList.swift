@@ -15,7 +15,7 @@ struct ScanFillList: ScanFillStore {
         buffer.append(segment)
     }
     
-    mutating func findUnder(point p: Point, stop: Int32) -> ShapeCount {
+    mutating func findUnder(point p: Point, stop: Int32) -> ShapeCount? {
         var i = 0
         var result: CountSegment? = nil
         while i < self.buffer.count {
@@ -37,6 +37,6 @@ struct ScanFillList: ScanFillStore {
             }
         }
         
-        return result?.count ?? ShapeCount(subj: 0, clip: 0)
+        return result?.count
     }
 }
