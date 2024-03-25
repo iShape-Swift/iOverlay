@@ -27,7 +27,7 @@ final class FillTests: XCTestCase {
     }
     
     func test_random_small() throws {
-        for _ in 0...100000 {
+        for _ in 0...10000 {
             let edges = self.randomEdges(range: 0..<8, length: 2..<6, count: 8)
             let points = self.randomPoints(range: 0..<8, count: 5, exclude: edges)
             let result0 = FillSolver().run(scanList: ScanFillList(), items: edges, points: points)

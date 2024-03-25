@@ -12,9 +12,9 @@ struct VersionSegment {
     let xSegment: XSegment
 }
 
-#if DEBUG
+
 extension VersionedIndex: Equatable {
-    static func == (lhs: VersionedIndex, rhs: VersionedIndex) -> Bool {
+    public static func == (lhs: VersionedIndex, rhs: VersionedIndex) -> Bool {
         lhs.version == rhs.version && lhs.index == rhs.index
     }
 }
@@ -24,7 +24,6 @@ extension VersionSegment: Equatable {
         lhs.xSegment == rhs.xSegment && lhs.vIndex == rhs.vIndex
     }
 }
-#endif
 
 extension Array where Element == VersionSegment {
     
@@ -32,16 +31,12 @@ extension Array where Element == VersionSegment {
         var j = 0
         while j < self.count {
             let seg = self[j]
-            if segment == seg {
-                self.swapRemove(j)
-                return
-            }
 
-            if Point.xLineCompare(a: seg.xSegment.b, b: scanPos) {
+            if Point.xLineCompare(a: seg.xSegment.b, b: scanPos) || segment == seg {
                 self.swapRemove(j)
                 continue
             }
-            
+
             j += 1
         }
     }

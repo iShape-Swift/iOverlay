@@ -109,7 +109,7 @@ public extension XSegment {
         assert(other.isBoxContain(p))
         
         // still can be common ends cause rounding
-        // snap to a nearest end with radius 1, (1^2 + 1^2 == 2)
+        // snap to nearest end with radius 1, (1^2 + 1^2 == 2)
         
         let ra0 = a0.sqrDistance(f)
         let ra1 = a1.sqrDistance(f)
@@ -185,14 +185,14 @@ public extension XSegment {
         let x0: Int64
         let y0: Int64
         
-        // a1y and a1x cannot be zero simultaneously, cause we will get edge a0<>a1 zero length and it is impossible
+        // a1y and a1x cannot be zero simultaneously, because we will get edge a0<>a1 zero length and it is impossible
         
         if a1x == 0 {
-            // dxB is not zero cause it will be parallel case and it's impossible
+            // dxB is not zero because it will be parallel case and it's impossible
             x0 = 0
             y0 = xyB / dxB
         } else if a1y == 0 {
-            // dyB is not zero cause it will be parallel case and it's impossible
+            // dyB is not zero because it will be parallel case and it's impossible
             y0 = 0
             x0 = -xyB / dyB
         } else {

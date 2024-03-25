@@ -23,8 +23,8 @@ public struct ShapeEdge {
         self.count = count
     }
 
-    init(min: Point, max: Point, count: ShapeCount) {
-        self.xSegment = XSegment(a: min, b: max)
+    init(xSegment: XSegment, count: ShapeCount) {
+        self.xSegment = xSegment
         self.count = count
     }
 }

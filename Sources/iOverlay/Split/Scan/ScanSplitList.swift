@@ -11,6 +11,7 @@ struct ScanSplitList: ScanSplitStore {
     
     private var buffer: [VersionSegment]
     
+    @inline(__always)
     init(count: Int) {
         let capacity = Int(Double(count << 1).squareRoot())
         buffer = [VersionSegment]()
@@ -38,10 +39,12 @@ struct ScanSplitList: ScanSplitStore {
         return nil
     }
     
+    @inline(__always)
     mutating func insert(segment: VersionSegment) {
         buffer.append(segment)
     }
     
+    @inline(__always)
     mutating func clear() {
         buffer.removeAll(keepingCapacity: true)
     }

@@ -11,6 +11,7 @@ struct ScanFillList: ScanFillStore {
 
     private var buffer: [CountSegment] = []
 
+    @inline(__always)
     mutating func insert(segment: CountSegment, stop: Int32) {
         buffer.append(segment)
     }

@@ -72,7 +72,7 @@ extension Array where Element == ShapeEdge {
                     list.remove(index: vIndex.index)
                     
                     // new point must be exactly on the same line
-                    let isBend = thisEdge.isNotSameLine(x) || scanEdge.isNotSameLine(x)
+                    let isBend = thisEdge.xSegment.isNotSameLine(x) || scanEdge.xSegment.isNotSameLine(x)
                     needToFix = needToFix || isBend
                     
                     eIndex = newThisLeft
@@ -97,7 +97,7 @@ extension Array where Element == ShapeEdge {
                     eIndex = newThisLeft
                     
                     // new point must be exactly on the same line
-                    let isBend = thisEdge.isNotSameLine(x)
+                    let isBend = thisEdge.xSegment.isNotSameLine(x)
                     needToFix = needToFix || isBend
                 case .overlay_b:
                     // split this into 3 segments
@@ -116,7 +116,7 @@ extension Array where Element == ShapeEdge {
                     list.remove(index: eIndex.index)
                     
                     // new point must be exactly on the same line
-                    let isBend = thisEdge.isNotSameLine(scanEdge.xSegment.a) || thisEdge.isNotSameLine(scanEdge.xSegment.b)
+                    let isBend = thisEdge.xSegment.isNotSameLine(scanEdge.xSegment.a) || thisEdge.xSegment.isNotSameLine(scanEdge.xSegment.b)
                     needToFix = needToFix || isBend
                     
                     eIndex = newThis0
@@ -138,7 +138,7 @@ extension Array where Element == ShapeEdge {
                     list.remove(index: vIndex.index)
                     
                     // new point must be exactly on the same line
-                    let isBend = scanEdge.isNotSameLine(x)
+                    let isBend = scanEdge.xSegment.isNotSameLine(x)
                     needToFix = needToFix || isBend
                     
                     // do not update eIndex
@@ -159,7 +159,7 @@ extension Array where Element == ShapeEdge {
                     
                     list.remove(index: vIndex.index)
                     
-                    let isBend = scanEdge.isNotSameLine(thisEdge.xSegment.a) || scanEdge.isNotSameLine(thisEdge.xSegment.b)
+                    let isBend = scanEdge.xSegment.isNotSameLine(thisEdge.xSegment.a) || scanEdge.xSegment.isNotSameLine(thisEdge.xSegment.b)
                     needToFix = needToFix || isBend
                     
                     // do not update eIndex
@@ -192,7 +192,7 @@ extension Array where Element == ShapeEdge {
                     list.remove(index: vIndex.index)
                     
                     // new point must be exactly on the same line
-                    let isBend = thisEdge.isNotSameLine(xThis) || scanEdge.isNotSameLine(xScan)
+                    let isBend = thisEdge.xSegment.isNotSameLine(xThis) || scanEdge.xSegment.isNotSameLine(xScan)
                     needToFix = needToFix || isBend
                     
                     eIndex = newThisLeft
@@ -209,21 +209,24 @@ extension Array where Element == ShapeEdge {
 }
 
 
-private extension ShapeEdge {
+private extension XSegment {
     
     @inline(__always)
     func isNotSameLine(_ point: Point) -> Bool {
         let p = FixVec(point)
-        let a = FixVec(self.xSegment.a)
-        let b = FixVec(self.xSegment.b)
+        let a = FixVec(self.a)
+        let b = FixVec(self.b)
         return Triangle.isNotLine(p0: a, p1: b, p2: p)
     }
+}
 
+private extension ShapeEdge {
     static func createAndValidate(a: Point, b: Point, count: ShapeCount) -> ShapeEdge {
         if Point.xLineCompare(a: a, b: b) {
-            ShapeEdge(min: a, max: b, count: count)
+            ShapeEdge(xSegment: XSegment(a: a, b: b), count: count)
         } else {
-            ShapeEdge(min: b, max: a, count: count.invert())
+            ShapeEdge(xSegment: XSegment(a: b, b: a), count: count.invert())
         }
     }
 }
+
