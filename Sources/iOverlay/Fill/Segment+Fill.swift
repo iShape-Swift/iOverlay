@@ -9,9 +9,9 @@ import iFixFloat
 import iShape
 import iTree
 
-private struct XGroup {
+private struct YGroup {
     let i: Int
-    let x: Int32
+    let y: Int32
 }
 
 private struct PGroup {
@@ -23,7 +23,7 @@ extension Array where Element == Segment {
     
     mutating func fill<S: ScanFillStore>(scanStore: S, fillRule: FillRule) {
         var scanStore = scanStore
-        var xBuf = [XGroup]()
+        var xBuf = [YGroup]()
         var pBuf = [PGroup]()
         
         let n = self.count
@@ -36,23 +36,23 @@ extension Array where Element == Segment {
             
             // find all new segments with same a.x
             while i < n && self[i].seg.a.x == x {
-                xBuf.append(XGroup(i: i, x: self[i].seg.a.y))
+                xBuf.append(YGroup(i: i, y: self[i].seg.a.y))
                 i += 1
             }
             
             if xBuf.count > 1 {
-                xBuf.sort(by: { $0.x < $1.x })
+                xBuf.sort(by: { $0.y < $1.y })
             }
             
             var j = 0
             while j < xBuf.count {
                 
-                let y = xBuf[j].x
+                let y = xBuf[j].y
                 
                 pBuf.removeAll(keepingCapacity: true)
                 
                 // group new segments by same y (all segments in eBuf must have same a)
-                while j < xBuf.count && xBuf[j].x == y {
+                while j < xBuf.count && xBuf[j].y == y {
                     let handler = xBuf[j]
                     pBuf.append(PGroup(i: handler.i, p: self[handler.i].seg.b))
                     j += 1

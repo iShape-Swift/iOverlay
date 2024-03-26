@@ -13,7 +13,7 @@ import iTree
 final class TreeTests: XCTestCase {
     
     func test_00() throws {
-        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
+        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)), capacity: 8 )
         
         tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: Point(0, 0), b: Point(1000, 1000))))
         tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: Point(500, -250), b: Point(1500, -1250))))
@@ -27,7 +27,7 @@ final class TreeTests: XCTestCase {
     }
 
     func test_01() throws {
-        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
+        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)), capacity: 8 )
         
         tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: Point(0,     0), b: Point(1000,     0))))
         tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: Point(0,  1000), b: Point(1000,  1000))))
@@ -41,7 +41,7 @@ final class TreeTests: XCTestCase {
     }
     
     func test_03() throws {
-        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
+        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)), capacity: 8 )
         
         tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: Point(0, 0), b: Point(1000, -1000))))
         tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: Point(0, 0), b: Point(1000,     0))))
@@ -56,7 +56,7 @@ final class TreeTests: XCTestCase {
     
     
     func test_10() throws {
-        var tree = RBTree(empty: 0)
+        var tree = RBTree(empty: 0, capacity: 8)
         for value in [-10, -7, 0, 5, 7, 10, 20] {
             tree.insert(value: value)
         }
@@ -79,7 +79,7 @@ final class TreeTests: XCTestCase {
     
 
     func test_11() throws {
-        var tree = RBTree(empty: 0)
+        var tree = RBTree(empty: 0, capacity: 8)
         for value in 0...100 {
             tree.insert(value: value)
         }
@@ -92,7 +92,7 @@ final class TreeTests: XCTestCase {
     }
     
     func test_12() throws {
-        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
+        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)), capacity: 8 )
         
         tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: Point(0, 0), b: Point(200,  200))))
         tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: Point(0, 0), b: Point(200,    0))))
@@ -107,7 +107,7 @@ final class TreeTests: XCTestCase {
     }
     
     func test_13() throws {
-        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)) )
+        var tree = RBTree(empty: TreeSegment(index: .max, xSegment: .init(a: .zero, b: .zero)), capacity: 8 )
         
         tree.insert(value: TreeSegment(index: 0, xSegment: .init(a: Point(0,  400), b: Point(200,  400))))
         tree.insert(value: TreeSegment(index: 1, xSegment: .init(a: Point(0,  400), b: Point(200,  200))))

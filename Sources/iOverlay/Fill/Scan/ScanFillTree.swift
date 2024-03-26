@@ -36,7 +36,6 @@ struct ScanFillTree: ScanFillStore {
             } else {
                 isLeft = segment < node.value
                 if isLeft {
-                    isLeft = true
                     index = node.left
                 } else {
                     index = node.right
