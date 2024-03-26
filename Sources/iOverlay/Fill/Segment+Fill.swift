@@ -21,8 +21,18 @@ private struct PGroup {
 
 extension Array where Element == Segment {
     
-    mutating func fill<S: ScanFillStore>(scanStore: S, fillRule: FillRule) {
-        var scanStore = scanStore
+    mutating func fill(fillRule: FillRule, solver: Solver) {
+        let isList = solver == .list || solver == .auto && self.count < 1_000
+        if isList {
+            var store = ScanFillList(count: self.count)
+            return self.fill(scanStore: &store, fillRule: fillRule)
+        } else {
+            var store = ScanFillTree(count: self.count)
+            return self.fill(scanStore: &store, fillRule: fillRule)
+        }
+    }
+    
+    private mutating func fill<S: ScanFillStore>(scanStore: inout S, fillRule: FillRule) {
         var xBuf = [YGroup]()
         var pBuf = [PGroup]()
         
@@ -64,7 +74,7 @@ extension Array where Element == Segment {
                     pBuf.sortByAngle(center: p)
                 }
                 
-                var sumCount = scanStore.findUnder(point: p, stop: x) ?? ShapeCount(subj: 0, clip: 0)
+                var sumCount = scanStore.underAndNearest(point: p, stop: x) ?? ShapeCount(subj: 0, clip: 0)
 
                 // add new to scan
                 

@@ -1,30 +1,30 @@
 //
-//  ScanFillList.swift
-//  
+//  ScanHoleList.swift
 //
-//  Created by Nail Sharipov on 05.03.2024.
+//
+//  Created by Nail Sharipov on 26.03.2024.
 //
 
 import iFixFloat
 
-struct ScanFillList: ScanFillStore {
+struct ScanHoleList: ScanHoleStore {
 
-    private var buffer: [CountSegment]
+    private var buffer: [IdSegment]
 
     init(count: Int) {
-        self.buffer = [CountSegment]()
+        self.buffer = [IdSegment]()
         let capacity = Int(Double(count << 1).squareRoot())
         self.buffer.reserveCapacity(capacity)
     }
     
     @inline(__always)
-    mutating func insert(segment: CountSegment, stop: Int32) {
+    mutating func insert(segment: IdSegment, stop: Int32) {
         buffer.append(segment)
     }
     
-    mutating func underAndNearest(point p: Point, stop: Int32) -> ShapeCount? {
+    mutating func underAndNearest(point p: Point, stop: Int32) -> Int {
         var i = 0
-        var result: CountSegment? = nil
+        var result: IdSegment? = nil
         while i < self.buffer.count {
             if self.buffer[i].xSegment.b.x <= stop {
                 self.buffer.swapRemove(i)
@@ -44,6 +44,6 @@ struct ScanFillList: ScanFillStore {
             }
         }
         
-        return result?.count
+        return result?.id ?? 0
     }
 }

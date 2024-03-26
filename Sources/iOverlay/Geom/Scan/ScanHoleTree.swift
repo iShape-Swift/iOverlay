@@ -1,23 +1,23 @@
 //
-//  ScanFillTree.swift
+//  ScanHoleTree.swift
 //
 //
-//  Created by Nail Sharipov on 05.03.2024.
+//  Created by Nail Sharipov on 26.03.2024.
 //
 
 import iFixFloat
 import iTree
 
-struct ScanFillTree: ScanFillStore {
-
-    private var tree: RBTree<CountSegment>
+struct ScanHoleTree: ScanHoleStore {
+    
+    private var tree: RBTree<IdSegment>
     
     init(count: Int) {
         let capacity = Int(Double(count << 1).squareRoot())
-        self.tree = RBTree(empty: CountSegment(count: .init(subj: 0, clip: 0), xSegment: .init(a: .zero, b: .zero)), capacity: capacity)
+        self.tree = RBTree(empty: IdSegment(id: .max, xSegment: .init(a: .zero, b: .zero)), capacity: capacity)
     }
     
-    mutating func insert(segment: CountSegment, stop: Int32) {
+    mutating func insert(segment: IdSegment, stop: Int32) {
         var index = tree.root
         var pIndex = UInt32.empty
         var isLeft = false
@@ -67,7 +67,7 @@ struct ScanFillTree: ScanFillStore {
         }
     }
     
-    mutating func underAndNearest(point p: Point, stop: Int32) -> ShapeCount? {
+    mutating func underAndNearest(point p: Point, stop: Int32) -> Int {
         var index = tree.root
         var result: UInt32 = .empty
         while index != .empty {
@@ -89,10 +89,7 @@ struct ScanFillTree: ScanFillStore {
             }
         }
         
-        if result == .empty {
-            return nil
-        } else {
-            return tree[result].value.count
-        }
+        return tree[result].value.id
     }
+ 
 }

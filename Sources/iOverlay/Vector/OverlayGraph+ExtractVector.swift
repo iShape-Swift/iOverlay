@@ -100,14 +100,14 @@ private extension Array where Element == VectorShape {
         let xMin = iPoints[0].point.x
         let xMax = iPoints[iPoints.count - 1].point.x
         
-        var floors = [Floor]()
+        var segments = [IdSegment]()
         for i in 0..<self.count {
-            floors.append(contentsOf: self[i][0].floors(id: i, xMin: xMin, xMax: xMax))
+            segments.append(contentsOf: self[i][0].idSegments(id: i, xMin: xMin, xMax: xMax))
         }
         
-        floors.sort(by: { $0.seg.a.x < $1.seg.a.x })
+        segments.sort(by: { $0.xSegment.a.x < $1.xSegment.a.x })
 
-        let solution = HolesSolver.solve(shapeCount: self.count, iPoints: iPoints, floors: floors)
+        let solution = HolesSolver.solve(shapeCount: self.count, iPoints: iPoints, segments: segments)
 
         
         for shapeIndex in 0..<solution.holeCounter.count {

@@ -14,7 +14,7 @@ final class FillTests: XCTestCase {
     func test_single_random() throws {
         let edges = self.randomEdges(range: 0..<10, length: 2..<6, count: 20)
         let points = self.randomPoints(range: 0..<10, count: 20, exclude: edges)
-        let result0 = FillSolver().run(scanList: ScanFillList(), items: edges, points: points)
+        let result0 = FillSolver().run(scanList: ScanFillList(count: edges.count), items: edges, points: points)
         let result1 = FillSolver().run(scanList: ScanFillTree(count: points.count), items: edges, points: points)
         
         let isEqual = result0 == result1
@@ -30,7 +30,7 @@ final class FillTests: XCTestCase {
         for _ in 0...10000 {
             let edges = self.randomEdges(range: 0..<8, length: 2..<6, count: 8)
             let points = self.randomPoints(range: 0..<8, count: 5, exclude: edges)
-            let result0 = FillSolver().run(scanList: ScanFillList(), items: edges, points: points)
+            let result0 = FillSolver().run(scanList: ScanFillList(count: edges.count), items: edges, points: points)
             let result1 = FillSolver().run(scanList: ScanFillTree(count: points.count), items: edges, points: points)
             
             let isEqual = result0 == result1
@@ -49,7 +49,7 @@ final class FillTests: XCTestCase {
         for _ in 0...1000 {
             let edges = self.randomEdges(range: 0..<512, length: 2..<16, count: 100)
             let points = self.randomPoints(range: 0..<512, count: 100, exclude: edges)
-            let result0 = FillSolver().run(scanList: ScanFillList(), items: edges, points: points)
+            let result0 = FillSolver().run(scanList: ScanFillList(count: edges.count), items: edges, points: points)
             let result1 = FillSolver().run(scanList: ScanFillTree(count: points.count), items: edges, points: points)
             
             let isEqual = result0 == result1
@@ -73,7 +73,7 @@ final class FillTests: XCTestCase {
         
         let points = [Point(x: 3, y: 7), Point(x: 5, y: 7)]
         
-        let result0 = FillSolver().run(scanList: ScanFillList(), items: edges, points: points)
+        let result0 = FillSolver().run(scanList: ScanFillList(count: edges.count), items: edges, points: points)
         let result1 = FillSolver().run(scanList: ScanFillTree(count: points.count), items: edges, points: points)
 
         XCTAssertEqual(result0, result1)
@@ -89,7 +89,7 @@ final class FillTests: XCTestCase {
         
         let points = [Point(x: 1, y: 7)]
         
-        let result0 = FillSolver().run(scanList: ScanFillList(), items: edges, points: points)
+        let result0 = FillSolver().run(scanList: ScanFillList(count: edges.count), items: edges, points: points)
         let result1 = FillSolver().run(scanList: ScanFillTree(count: points.count), items: edges, points: points)
 
         XCTAssertTrue(result0 == result1)

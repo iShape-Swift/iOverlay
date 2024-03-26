@@ -118,24 +118,10 @@ public struct Overlay {
         if !prev.count.isEmpty {
             buffer.append(prev)
         }
-        
-        let isSmallRange = (yMax - yMin) < 128
-        let isList: Bool
-        #if DEBUG
-            isList = solver == .list || solver == .auto && (buffer.count < 1_000 || isSmallRange)
-        #else
-            isList = solver == .list || solver == .auto && buffer.count < 1_000 || isSmallRange
-        #endif
 
-        var segments: [Segment]
-        if isList {
-            segments = buffer.split(scanStore: ScanSplitList(count: buffer.count))
-            segments.fill(scanStore: ScanFillList(), fillRule: fillRule)
-        } else {
-            let range = LineRange(min: yMin, max: yMax)
-            segments = buffer.split(scanStore: ScanSplitTree(range: range, count: buffer.count))
-            segments.fill(scanStore: ScanFillTree(count: buffer.count), fillRule: fillRule)
-        }
+        var segments = buffer.split(solver: solver, range: LineRange(min: yMin, max: yMax))
+
+        segments.fill(fillRule: fillRule, solver: solver)
 
         return segments
     }

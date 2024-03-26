@@ -10,9 +10,25 @@ import iShape
 
 extension Array where Element == ShapeEdge {
     
-    func split<S: ScanSplitStore>(scanStore: S) -> [Segment] {
-        var scanList = scanStore
+    func split(solver: Solver, range: LineRange) -> [Segment] {
+        let isSmallRange = range.max - range.min < 128
+        let isList: Bool
+        #if DEBUG
+            isList = solver == .list || solver == .auto && (self.count < 1_000 || isSmallRange)
+        #else
+            isList = solver == .list || solver == .auto && self.count < 1_000 || isSmallRange
+        #endif
 
+        if isList {
+            var store = ScanSplitList(count: self.count)
+            return self.split(scanStore: &store)
+        } else {
+            var store = ScanSplitTree(range: range, count: self.count)
+            return self.split(scanStore: &store)
+        }
+    }
+    
+    private func split<S: ScanSplitStore>(scanStore: inout S) -> [Segment] {
         var list = SplitRangeList(edges: self)
         
         var needToFix = true
@@ -31,8 +47,8 @@ extension Array where Element == ShapeEdge {
                 }
                 
                 let scanPos = thisEdge.xSegment.a
-                guard let crossSegment = scanList.intersect(this: thisEdge.xSegment, scanPos: scanPos) else {
-                    scanList.insert(segment: VersionSegment(vIndex: eIndex, xSegment: thisEdge.xSegment))
+                guard let crossSegment = scanStore.intersect(this: thisEdge.xSegment, scanPos: scanPos) else {
+                    scanStore.insert(segment: VersionSegment(vIndex: eIndex, xSegment: thisEdge.xSegment))
                     eIndex = list.next(index: eIndex.index)
                     continue
                 }
@@ -76,7 +92,7 @@ extension Array where Element == ShapeEdge {
                     needToFix = needToFix || isBend
                     
                     eIndex = newThisLeft
-                    scanList.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
+                    scanStore.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
                 case .end_b:
                     // scan edge end divide this edge into 2 parts
                     
@@ -142,7 +158,7 @@ extension Array where Element == ShapeEdge {
                     needToFix = needToFix || isBend
                     
                     // do not update eIndex
-                    scanList.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
+                    scanStore.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
                 case .overlay_a:
                     // split scan into 3 segments
                     
@@ -163,7 +179,7 @@ extension Array where Element == ShapeEdge {
                     needToFix = needToFix || isBend
                     
                     // do not update eIndex
-                    scanList.insert(segment: VersionSegment(vIndex: newScan0, xSegment: scan0.xSegment))
+                    scanStore.insert(segment: VersionSegment(vIndex: newScan0, xSegment: scan0.xSegment))
                 case .penetrate:
                     // penetrate each other
                     
@@ -197,11 +213,11 @@ extension Array where Element == ShapeEdge {
                     
                     eIndex = newThisLeft
                     
-                    scanList.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
+                    scanStore.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
                 }
             } // while
             
-            scanList.clear()
+            scanStore.clear()
         } // while
         
         return list.segments()

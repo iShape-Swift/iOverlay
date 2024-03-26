@@ -15,13 +15,18 @@ struct HolesSolution {
 
 struct HolesSolver {
 
-    static func solve(shapeCount: Int, iPoints: [IdPoint], floors: [Floor]) -> HolesSolution {
+    static func solve(shapeCount: Int, iPoints: [IdPoint], segments: [IdSegment]) -> HolesSolution {
+        if iPoints.count < 128 {
+            var scanTree = ScanHoleList(count: segments.count)
+            return Self.solve(scanStore: &scanTree, shapeCount: shapeCount, iPoints: iPoints, segments: segments)
+        } else {
+            var scanTree = ScanHoleTree(count: segments.count)
+            return Self.solve(scanStore: &scanTree, shapeCount: shapeCount, iPoints: iPoints, segments: segments)
+        }
+    }
+    
+    private static func solve<S: ScanHoleStore>(scanStore: inout S, shapeCount: Int, iPoints: [IdPoint], segments: [IdSegment]) -> HolesSolution {
         let holeCount = iPoints.count
-        
-        let capacity = Int(4 * Double(shapeCount).squareRoot())
-        
-        var scanTree = RBTree(empty: Floor(id: .max, a: .zero, b: .zero), capacity: capacity)
-
         var holeShape = [Int](repeating: 0, count: holeCount)
         var holeCounter = [Int](repeating: 0, count: shapeCount)
        
@@ -31,10 +36,10 @@ struct HolesSolver {
         while i < iPoints.count {
             let x = iPoints[i].point.x
             
-            while j < floors.count && floors[j].seg.a.x < x {
-                let floor = floors[j]
-                if floor.seg.b.x > x {
-                    scanTree.insert(value: floor)
+            while j < segments.count && segments[j].xSegment.a.x < x {
+                let idSegment = segments[j]
+                if idSegment.xSegment.b.x > x {
+                    scanStore.insert(segment: idSegment, stop: x)
                 }
                 j += 1
             }
@@ -44,7 +49,7 @@ struct HolesSolver {
                 let p = iPoints[i].point
                 
                 // find nearest scan segment for y
-                let shapeIndex = scanTree.underAndNearest(point: p, stop: x)
+                let shapeIndex = scanStore.underAndNearest(point: p, stop: x)
                 let holeIndex = iPoints[i].id
                 
                 holeShape[holeIndex] = shapeIndex

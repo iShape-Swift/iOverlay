@@ -11,6 +11,6 @@ protocol ScanFillStore {
  
     mutating func insert(segment: CountSegment, stop: Int32)
 
-    mutating func findUnder(point p: Point, stop: Int32) -> ShapeCount?
+    mutating func underAndNearest(point p: Point, stop: Int32) -> ShapeCount?
 
 }
