@@ -14,3 +14,9 @@ struct VersionedIndex {
     
     var isNotNil: Bool { index.major != .max && index.minor != .max }
 }
+
+extension VersionedIndex: Equatable {
+    public static func == (lhs: VersionedIndex, rhs: VersionedIndex) -> Bool {
+        lhs.version == rhs.version && lhs.index == rhs.index
+    }
+}

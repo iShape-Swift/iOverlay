@@ -12,13 +12,6 @@ struct VersionSegment {
     let xSegment: XSegment
 }
 
-
-extension VersionedIndex: Equatable {
-    public static func == (lhs: VersionedIndex, rhs: VersionedIndex) -> Bool {
-        lhs.version == rhs.version && lhs.index == rhs.index
-    }
-}
-
 extension VersionSegment: Equatable {
     public static func == (lhs: VersionSegment, rhs: VersionSegment) -> Bool {
         lhs.xSegment == rhs.xSegment && lhs.vIndex == rhs.vIndex

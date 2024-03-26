@@ -18,8 +18,9 @@ struct ScanSplitList: ScanSplitStore {
         buffer.reserveCapacity(capacity)
     }
     
-    mutating func intersect(this: XSegment, scanPos: Point) -> CrossSegment? {
+    mutating func intersect(this: XSegment) -> CrossSegment? {
         var i = 0
+        let scanPos = this.a
         while i < buffer.count {
             let scan = self.buffer[i]
             if Point.xLineCompare(a: scan.xSegment.b, b: scanPos) {

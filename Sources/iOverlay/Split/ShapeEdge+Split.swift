@@ -21,14 +21,14 @@ extension Array where Element == ShapeEdge {
 
         if isList {
             var store = ScanSplitList(count: self.count)
-            return self.split(scanStore: &store)
+            return self.solve(scanStore: &store)
         } else {
             var store = ScanSplitTree(range: range, count: self.count)
-            return self.split(scanStore: &store)
+            return self.solve(scanStore: &store)
         }
     }
     
-    private func split<S: ScanSplitStore>(scanStore: inout S) -> [Segment] {
+    private func solve<S: ScanSplitStore>(scanStore: inout S) -> [Segment] {
         var list = SplitRangeList(edges: self)
         
         var needToFix = true
@@ -46,8 +46,7 @@ extension Array where Element == ShapeEdge {
                     continue
                 }
                 
-                let scanPos = thisEdge.xSegment.a
-                guard let crossSegment = scanStore.intersect(this: thisEdge.xSegment, scanPos: scanPos) else {
+                guard let crossSegment = scanStore.intersect(this: thisEdge.xSegment) else {
                     scanStore.insert(segment: VersionSegment(vIndex: eIndex, xSegment: thisEdge.xSegment))
                     eIndex = list.next(index: eIndex.index)
                     continue

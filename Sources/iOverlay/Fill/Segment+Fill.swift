@@ -25,14 +25,14 @@ extension Array where Element == Segment {
         let isList = solver == .list || solver == .auto && self.count < 1_000
         if isList {
             var store = ScanFillList(count: self.count)
-            return self.fill(scanStore: &store, fillRule: fillRule)
+            return self.solve(scanStore: &store, fillRule: fillRule)
         } else {
             var store = ScanFillTree(count: self.count)
-            return self.fill(scanStore: &store, fillRule: fillRule)
+            return self.solve(scanStore: &store, fillRule: fillRule)
         }
     }
     
-    private mutating func fill<S: ScanFillStore>(scanStore: inout S, fillRule: FillRule) {
+    private mutating func solve<S: ScanFillStore>(scanStore: inout S, fillRule: FillRule) {
         var xBuf = [YGroup]()
         var pBuf = [PGroup]()
         

@@ -33,13 +33,13 @@ struct ScanSplitTree: ScanSplitStore {
     fileprivate let power: Int
     fileprivate var nodes: [IntervalNode]
 
-    private static func initNodes(range: LineRange, power: Int) -> [IntervalNode] {
+    private static func createNodes(range: LineRange, power: Int) -> [IntervalNode] {
         let n = 1 << power
         
         // to make round more precise we use upscale/downscale
         let scale = 4
-        let len = range.max - range.min
-        let step = Int64(Double((1 << scale) * len) / Double(n))
+        let len = Int(range.max - range.min)
+        let step = Int64(Double(len << scale) / Double(n))
         
         let capacity = (n << 1) - 1
         var nodes = [IntervalNode](repeating: IntervalNode(range: LineRange(min: 0, max: 0)), count: capacity)
@@ -77,15 +77,15 @@ struct ScanSplitTree: ScanSplitStore {
     }
     
     init(range: LineRange, count: Int) {
-        let maxPowerInterval = range.logTwo
-        let maxPowerCount = Int32(Double(count).squareRoot()).logTwo
-        self.power = min(10, min(maxPowerInterval, maxPowerCount))
-        nodes = Self.initNodes(range: range, power: power)
+        let maxPowerRange = range.logTwo
+        let maxPowerCount = Int32((0.2 * Double(count)).squareRoot()).logTwo
+        self.power = min(12, min(maxPowerRange, maxPowerCount))
+        nodes = Self.createNodes(range: range, power: power)
     }
     
     init(range: LineRange, power: Int) {
         self.power = power
-        self.nodes = Self.initNodes(range: range, power: power)
+        self.nodes = Self.createNodes(range: range, power: power)
     }
     
     mutating func insert(segment: VersionSegment) {
@@ -294,10 +294,11 @@ struct ScanSplitTree: ScanSplitStore {
         }
     }
     
-    mutating func intersect(this: XSegment, scanPos: Point) -> CrossSegment? {
+    mutating func intersect(this: XSegment) -> CrossSegment? {
         var s = 1 << power
         var i = s - 1
         let range = this.yRange
+        let scanPos = this.a
         
         var earlyOut = false
         
@@ -354,7 +355,7 @@ struct ScanSplitTree: ScanSplitStore {
                 continue
             }
             
-            // order is important! thix x scan
+            // order is important! this x scan
             if let cross = this.cross(scan.xSegment) {
                 self.remove(segment: scan, scanPos: scanPos)
                 return CrossSegment(index: scan.vIndex, cross: cross)
@@ -403,11 +404,7 @@ private extension LineRange {
     }
     
     var logTwo: Int {
-        guard self.min < self.max else {
-            return 0
-        }
-        
-        return (max - min).logTwo
+        (max - min).logTwo
     }
 }
 
@@ -415,7 +412,7 @@ private extension LineRange {
 #if DEBUG
 extension ScanSplitTree {
     static func testInitNodes(range: LineRange, power: Int) -> [IntervalNode] {
-        ScanSplitTree.initNodes(range: range, power: power)
+        ScanSplitTree.createNodes(range: range, power: power)
     }
     
     func node(index: Int) -> IntervalNode {
