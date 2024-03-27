@@ -99,7 +99,7 @@ let intersect = graph.extractShapes(overlayRule: OverlayRule.intersect)
 let xor = graph.extractShapes(overlayRule: OverlayRule.xor)
 
 // get clean shapes from subject, self intersections will be removed
-let xor = graph.extractShapes(overlayRule: OverlayRule.subject)
+let subject = graph.extractShapes(overlayRule: OverlayRule.subject)
 ```
 
 ### Union
