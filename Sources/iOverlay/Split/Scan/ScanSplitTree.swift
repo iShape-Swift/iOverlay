@@ -355,7 +355,7 @@ struct ScanSplitTree: ScanSplitStore {
                 continue
             }
             
-            // order is important! this x scan
+            // order is important! this * scan
             if let cross = this.cross(scan.xSegment) {
                 self.remove(segment: scan, scanPos: scanPos)
                 return CrossSegment(index: scan.vIndex, cross: cross)
@@ -400,7 +400,7 @@ private extension Int32 {
 private extension LineRange {
 
     var middle: Int32 {
-        self.min + ((self.max - self.min) >> 1)
+        (self.max + self.min) >> 1
     }
     
     var logTwo: Int {

@@ -5,6 +5,17 @@
 //  Created by Nail Sharipov on 22.11.2023.
 //
 
+struct DualIndex: Equatable {
+    static let empty = DualIndex(major: .max, minor: .max)
+    let major: UInt32
+    let minor: UInt32
+    
+    init(major: UInt32, minor: UInt32) {
+        self.major = major
+        self.minor = minor
+    }
+}
+
 struct VersionedIndex {
 
     static let empty = VersionedIndex(version: .max, index: .empty)

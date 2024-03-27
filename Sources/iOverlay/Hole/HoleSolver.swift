@@ -1,5 +1,5 @@
 //
-//  HolesSolver.swift
+//  HoleSolver.swift
 //
 //
 //  Created by Nail Sharipov on 31.01.2024.
@@ -8,14 +8,14 @@
 import iFixFloat
 import iTree
 
-struct HolesSolution {
+struct HoleSolution {
     let holeShape: [Int]
     let holeCounter: [Int]
 }
 
-struct HolesSolver {
+struct HoleSolver {
 
-    static func solve(shapeCount: Int, iPoints: [IdPoint], segments: [IdSegment]) -> HolesSolution {
+    static func solve(shapeCount: Int, iPoints: [IdPoint], segments: [IdSegment]) -> HoleSolution {
         if iPoints.count < 128 {
             var scanTree = ScanHoleList(count: segments.count)
             return Self.solve(scanStore: &scanTree, shapeCount: shapeCount, iPoints: iPoints, segments: segments)
@@ -25,7 +25,7 @@ struct HolesSolver {
         }
     }
     
-    private static func solve<S: ScanHoleStore>(scanStore: inout S, shapeCount: Int, iPoints: [IdPoint], segments: [IdSegment]) -> HolesSolution {
+    private static func solve<S: ScanHoleStore>(scanStore: inout S, shapeCount: Int, iPoints: [IdPoint], segments: [IdSegment]) -> HoleSolution {
         let holeCount = iPoints.count
         var holeShape = [Int](repeating: 0, count: holeCount)
         var holeCounter = [Int](repeating: 0, count: shapeCount)
@@ -59,7 +59,7 @@ struct HolesSolver {
             }
         }
         
-        return HolesSolution(holeShape: holeShape, holeCounter: holeCounter)
+        return HoleSolution(holeShape: holeShape, holeCounter: holeCounter)
     }
     
 }

@@ -107,7 +107,7 @@ private extension Array where Element == VectorShape {
         
         segments.sort(by: { $0.xSegment.a.x < $1.xSegment.a.x })
 
-        let solution = HolesSolver.solve(shapeCount: self.count, iPoints: iPoints, segments: segments)
+        let solution = HoleSolver.solve(shapeCount: self.count, iPoints: iPoints, segments: segments)
 
         
         for shapeIndex in 0..<solution.holeCounter.count {
