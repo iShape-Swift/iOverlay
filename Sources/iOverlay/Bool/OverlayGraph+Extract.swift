@@ -10,6 +10,15 @@ import iFixFloat
 
 public extension OverlayGraph {
 
+    /// Extracts and returns shapes from the overlay graph based on the specified overlay rule and minimum area threshold.
+    ///
+    /// This method traverses the `OverlayGraph`, identifying and constructing shapes that meet the criteria defined by the `overlayRule`. Shapes with an area less than the specified `minArea` are excluded from the result, allowing for the filtration of negligible shapes.
+    ///
+    /// - Parameters:
+    ///   - overlayRule: The rule determining how shapes are extracted from the overlay.
+    ///   - minArea: The minimum area a shape must have to be included in the return value. This parameter helps in filtering out insignificant shapes or noise. Defaults to 0, which includes all shapes regardless of size.
+    ///
+    /// - Returns: An array of `FixShape`.
     func extractShapes(overlayRule: OverlayRule, minArea: FixFloat = 0) -> [FixShape] {
         var visited = self.links.filter(overlayRule: overlayRule)
 

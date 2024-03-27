@@ -13,12 +13,17 @@ private struct End {
     let bitPack: BitPack
 }
 
+/// A representation of geometric shapes organized for efficient boolean operations.
+///
+/// `OverlayGraph` is a core structure designed to facilitate the execution of boolean operations on shapes, such as union, intersection, and difference. It organizes and preprocesses geometric data, making it optimized for these operations. This struct is the result of compiling shape data into a form where boolean operations can be applied directly, efficiently managing the complex relationships between different geometric entities.
+///
+/// Use `OverlayGraph` to perform boolean operations on the geometric shapes you've added to an `Overlay`, after it has processed the shapes according to the specified fill and overlay rules.
 public struct OverlayGraph {
     
     let nodes: [OverlayNode]
     let links: [OverlayLink]
     
-    public init(segments: [Segment]) {
+    init(segments: [Segment]) {
         let n = segments.count
         
         guard n > 0 else {

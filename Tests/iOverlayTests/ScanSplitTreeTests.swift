@@ -169,7 +169,6 @@ final class IntervalTreeTests: XCTestCase {
     func test_07() throws {
         var tree = ScanSplitTree(range: LineRange(min: -8, max: 9), power: 3)
         let version = VersionedIndex(version: 0, index: .empty)
-        let scanPos = Point(0, 0)
         let a0 = Point(0, -6)
         let b0 = Point(8,  0)
         let a1 = Point(0,  3)
@@ -178,7 +177,7 @@ final class IntervalTreeTests: XCTestCase {
         let xs = XSegment(a: a1, b: b1)
         
         tree.insert(segment: vs)
-        let r1 = tree.intersect(this: xs, scanPos: scanPos)
+        let r1 = tree.intersect(this: xs)
         
         XCTAssertNil(r1)
         XCTAssertTrue(tree.count > 0)
@@ -197,7 +196,7 @@ final class IntervalTreeTests: XCTestCase {
         var tree = ScanSplitTree(range: range, count: testSet.count)
         var i = 0
         for s in testSet {
-            if let res = tree.intersect(this: s, scanPos: s.a) {
+            if let res = tree.intersect(this: s) {
                 result.append(res.cross.point)
                 if res.cross.type == .penetrate {
                     result.append(res.cross.second)
@@ -225,7 +224,7 @@ final class IntervalTreeTests: XCTestCase {
         var tree = ScanSplitTree(range: testSet.range(), count: testSet.count)
         var i = 0
         for s in testSet {
-            if let res = tree.intersect(this: s, scanPos: s.a) {
+            if let res = tree.intersect(this: s) {
                 result.append(res.cross.point)
                 if res.cross.type == .penetrate {
                     result.append(res.cross.second)
@@ -253,7 +252,7 @@ final class IntervalTreeTests: XCTestCase {
         var tree = ScanSplitTree(range: testSet.range(), count: testSet.count)
         var i = 0
         for s in testSet {
-            if let res = tree.intersect(this: s, scanPos: s.a) {
+            if let res = tree.intersect(this: s) {
                 result.append(res.cross.point)
                 if res.cross.type == .penetrate {
                     result.append(res.cross.second)
@@ -275,7 +274,6 @@ final class IntervalTreeTests: XCTestCase {
         var list = ScanSplitList(count: 1)
         var tree = ScanSplitTree(range: LineRange(min: range.lowerBound, max: range.upperBound), power: 5)
         let version = VersionedIndex(version: 0, index: .empty)
-        let scanPos = Point(0, 0)
         for _ in 0...100_000 {
             let a0 = Point(0, Int32.random(in: range))
             let b0 = Point(8, Int32.random(in: range))
@@ -287,8 +285,8 @@ final class IntervalTreeTests: XCTestCase {
             list.insert(segment: vs)
             tree.insert(segment: vs)
             
-            let r0 = list.intersect(this: xs, scanPos: scanPos)
-            let r1 = tree.intersect(this: xs, scanPos: scanPos)
+            let r0 = list.intersect(this: xs)
+            let r1 = tree.intersect(this: xs)
 
             if (r0 == nil) != (r1 == nil) {
                 print("a0: \(a0), b0: \(b0), a1: \(a1), b1: \(b1)")

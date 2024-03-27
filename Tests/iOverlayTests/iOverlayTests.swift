@@ -18,24 +18,37 @@ final class iOverlayTests: XCTestCase {
         overlay.add(paths: test.subjPaths, type: .subject)
         overlay.add(paths: test.clipPaths, type: .clip)
         
-        let graph = overlay.buildGraph(fillRule: test.fillRule)
+        let solvers = [Solver.list, Solver.tree]
         
-        let clip = graph.extractShapes(overlayRule: .clip)
-        let subject = graph.extractShapes(overlayRule: .subject)
-        let difference = graph.extractShapes(overlayRule: .difference)
-        let intersect = graph.extractShapes(overlayRule: .intersect)
-        let union = graph.extractShapes(overlayRule: .union)
-        let xor = graph.extractShapes(overlayRule: .xor)
+        for solver in solvers {
+            let graph = overlay.buildGraph(fillRule: test.fillRule, solver: solver)
+            
+            let clip = graph.extractShapes(overlayRule: .clip)
+            let subject = graph.extractShapes(overlayRule: .subject)
+            let difference = graph.extractShapes(overlayRule: .difference)
+            let intersect = graph.extractShapes(overlayRule: .intersect)
+            let union = graph.extractShapes(overlayRule: .union)
+            let xor = graph.extractShapes(overlayRule: .xor)
 
-        
-//        print(PrintJson.json(clip: clip, subject: subject, difference: difference, intersect: intersect, union: union, xor: xor, subjPaths: test.subjPaths, clipPaths: test.clipPaths, fillRule: test.fillRule))
-        
-        XCTAssertEqual(test.clip, clip)
-        XCTAssertEqual(test.subject, subject)
-        XCTAssertEqual(test.difference, difference)
-        XCTAssertEqual(test.intersect, intersect)
-        XCTAssertEqual(test.union, union)
-        XCTAssertEqual(test.xor, xor)
+            
+//            print(PrintJson.json(clip: clip, subject: subject, difference: difference, intersect: intersect, union: union, xor: xor, subjPaths: test.subjPaths, clipPaths: test.clipPaths, fillRule: test.fillRule))
+            
+            XCTAssertTrue(self.test(result: clip, bank: test.clip))
+            XCTAssertTrue(self.test(result: subject, bank: test.subject))
+            XCTAssertTrue(self.test(result: difference, bank: test.difference))
+            XCTAssertTrue(self.test(result: intersect, bank: test.intersect))
+            XCTAssertTrue(self.test(result: union, bank: test.union))
+            XCTAssertTrue(self.test(result: xor, bank: test.xor))
+        }
+    }
+    
+    func test(result: [FixShape], bank: [[FixShape]]) -> Bool {
+        for item in bank {
+            if item == result {
+                return true
+            }
+        }
+        return false
     }
     
     func test_00() throws {

@@ -8,22 +8,55 @@
 import iShape
 import iFixFloat
 
+/// An enumeration defining the types of shapes involved in Boolean operations.
+///
+/// Specifies the type of shape being processed, influencing how the shape participates in Boolean operations. This distinction is critical for understanding how shapes interact during operations like union, intersection, and subtraction.
+///
+/// **Note:** All operations except for `Difference` are commutative, meaning the order of `Subject` and `Clip` shapes does not impact the outcome. The `Difference` operation, on the other hand, subtracts the `Clip` shape from the `Subject`, making the order of these shapes significant.
+///
+/// Cases:
+/// - `Subject`: The primary shape(s) for operations. Acts as the base layer in the operation.
+/// - `Clip`: The modifying shape(s) that are applied to the `Subject`. Determines how the `Subject` is altered or intersected.
 public enum ShapeType {
     case subject
     case clip
 }
 
+/// Represents the geometric data necessary for constructing an `OverlayGraph`, facilitating boolean operations on shapes.
+///
+/// This struct is crucial for preparing and uploading geometry data required by boolean operations. It serves as a container for edge data derived from shapes and paths, supporting various initializations and modifications.
 public struct Overlay {
 
     private var yMin: Int32 = .max
     private var yMax: Int32 = .min
     public internal (set) var edges: [ShapeEdge]
     
+    
+    
+    /// Initializes a new `Overlay` with a specified capacity to optimize memory and performance.
+    ///
+    /// This constructor is ideal for situations where the total count of edges is known beforehand, allowing for efficient memory management.
+    ///
+    /// - Parameter capacity: The initial storage capacity for edges. It's recommended to match or slightly exceed the expected number of edges to minimize reallocations.
+    ///
+    /// Example:
+    /// ```
+    /// let overlay = Overlay(capacity: 120) // Optimizes for up to 120 edges
+    /// ```
     public init(capacity: Int = 64) {
         edges = [ShapeEdge]()
         edges.reserveCapacity(capacity)
     }
-
+    
+    
+    
+    /// Initializes a new `Overlay` with subject and clip paths.
+    ///
+    /// This method allows for the direct specification of subject and clip paths, which are then processed and stored as edge data within the `Overlay`.
+    ///
+    /// - Parameters:
+    ///   - subjectPaths: The paths defining the subject shape.
+    ///   - clipPaths: The paths defining the clip shape.
     public init(subjectPaths: [FixPath], clipPaths: [FixPath]) {
         edges = [ShapeEdge]()
         edges.reserveCapacity(subjectPaths.count)
@@ -31,6 +64,12 @@ public struct Overlay {
         self.add(paths: clipPaths, type: .clip)
     }
     
+    
+    
+    /// Initializes a new `Overlay` with subject and clip shapes.
+    /// - Parameters:
+    ///   - subjShapes: An array of shapes to be used as the subject in the overlay operation.
+    ///   - clipShapes: An array of shapes to be used as the clip in the overlay operation.
     public init(subjShapes: FixShapes, clipShapes: FixShapes) {
         edges = [ShapeEdge]()
         edges.reserveCapacity(subjShapes.pointsCount + clipShapes.pointsCount)
@@ -42,29 +81,59 @@ public struct Overlay {
         }
     }
     
+    
+    
+    /// Initializes a new `Overlay` with subject and clip shapes.
+    /// - Parameters:
+    ///   - subjShape: A  shape to be used as the subject in the overlay operation.
+    ///   - clipShape: A  shape to be used as the clip in the overlay operation.
     public init(subjShape: FixShape, clipShape: FixShape) {
         edges = [ShapeEdge]()
         edges.reserveCapacity(subjShape.pointsCount + clipShape.pointsCount)
         self.add(shape: subjShape, type: .subject)
         self.add(shape: clipShape, type: .clip)
     }
-
+    
+    
+    
+    /// Adds multiple shapes to the overlay as either subject or clip shapes.
+    /// - Parameters:
+    ///   - shapes: An array of `FixShape` instances to be added to the overlay.
+    ///   - type: Specifies the role of the added shapes in the overlay operation, either as `Subject` or `Clip`.
     public mutating func add(shapes: FixShapes, type: ShapeType) {
         for shape in shapes {
             self.add(shape: shape, type: type)
         }
     }
     
+        
+    
+    /// Adds a single shape to the overlay as either a subject or clip shape.
+    /// - Parameters:
+    ///   - shape: A reference to a `FixShape` instance to be added.
+    ///   - type: Specifies the role of the added shape in the overlay operation, either as `Subject` or `Clip`.
     public mutating func add(shape: FixShape, type: ShapeType) {
         self.add(paths: shape.paths, type: type)
     }
     
+    
+    
+    /// Adds multiple paths to the overlay as either subject or clip paths.
+    /// - Parameters:
+    ///   - paths: An array of `FixPath` instances to be added to the overlay.
+    ///   - type: Specifies the role of the added paths in the overlay operation, either as `Subject` or `Clip`.
     public mutating func add(paths: [FixPath], type: ShapeType) {
         for path in paths {
             self.add(path: path, type: type)
         }
     }
+
     
+    
+    /// Adds a single path to the overlay as either subject or clip paths.
+    /// - Parameters:
+    ///   - path: A reference to a `FixPath` instance to be added.
+    ///   - type: Specifies the role of the added path in the overlay operation, either as `Subject` or `Clip`.
     public mutating func add(path: FixPath, type: ShapeType) {
         guard let result = path.removedDegenerates().createEdges(type: type) else {
             return
@@ -74,6 +143,14 @@ public struct Overlay {
         edges.append(contentsOf: result.edges)
     }
 
+    
+    
+    
+    /// Constructs segments from the added paths or shapes according to the specified fill rule.
+    /// - Parameters:
+    ///   - fillRule: The fill rule to use when determining the inside of shapes.
+    ///   - solver: Type of solver to use.
+    /// - Returns: Array of segments.
     public func buildSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
         guard !edges.isEmpty else {
             return []
@@ -86,6 +163,14 @@ public struct Overlay {
         return segments
     }
     
+    
+    
+    /// Constructs vector shapes from the added paths or shapes, applying the specified fill and overlay rules. This method is particularly useful for development purposes and for creating visualizations in educational demos, where understanding the impact of different rules on the final geometry is crucial.
+    /// - Parameters:
+    ///   - fillRule: The fill rule to use for the shapes.
+    ///   - overlayRule: The overlay rule to apply.
+    ///   - solver: Type of solver to use.
+    /// - Returns: Array of  vector shapes.
     public func buildVectors(fillRule: FillRule, overlayRule: OverlayRule, solver: Solver = .auto) -> [VectorShape] {
         guard !edges.isEmpty else {
             return []
@@ -126,7 +211,12 @@ public struct Overlay {
         return segments
     }
     
-
+    
+    /// Constructs an `OverlayGraph` from the added paths or shapes using the specified fill rule. This graph is the foundation for executing boolean operations, allowing for the analysis and manipulation of the geometric data. The `OverlayGraph` created by this method represents a preprocessed state of the input shapes, optimized for the application of boolean operations based on the provided fill rule.
+    /// - Parameters:
+    ///   - fillRule: The fill rule to use for the shapes.
+    ///   - solver: Type of solver to use.
+    /// - Returns: An `OverlayGraph` prepared for boolean operations.
     public func buildGraph(fillRule: FillRule = .nonZero, solver: Solver = .auto) -> OverlayGraph {
         OverlayGraph(segments: self.buildSegments(fillRule: fillRule, solver: solver))
     }

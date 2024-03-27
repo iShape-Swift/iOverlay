@@ -13,9 +13,8 @@ struct ScanSplitList: ScanSplitStore {
     
     @inline(__always)
     init(count: Int) {
-        let capacity = Int(Double(count << 1).squareRoot())
         buffer = [VersionSegment]()
-        buffer.reserveCapacity(capacity)
+        buffer.reserveCapacity(count.logSqrt)
     }
     
     mutating func intersect(this: XSegment) -> CrossSegment? {

@@ -12,15 +12,16 @@ import simd
 @testable import iOverlay
 
 struct OverlayTest: Decodable {
+    
     let fillRule: FillRule
     let subjPaths: [[FixVec]]
     let clipPaths: [[FixVec]]
-    let clip: [FixShape]
-    let subject: [FixShape]
-    let difference: [FixShape]
-    let intersect: [FixShape]
-    let union: [FixShape]
-    let xor: [FixShape]
+    let clip: [[FixShape]]
+    let subject: [[FixShape]]
+    let difference: [[FixShape]]
+    let intersect: [[FixShape]]
+    let union: [[FixShape]]
+    let xor: [[FixShape]]
 
     enum CodingKeys: String, CodingKey {
         case fillRule
@@ -53,12 +54,12 @@ struct OverlayTest: Decodable {
         
         subjPaths = try container.decode([[FixVec]].self, forKey: .subjPaths)
         clipPaths = try container.decode([[FixVec]].self, forKey: .clipPaths)
-        clip = try container.decode([FixShape].self, forKey: .clip)
-        subject = try container.decode([FixShape].self, forKey: .subject)
-        difference = try container.decode([FixShape].self, forKey: .difference)
-        intersect = try container.decode([FixShape].self, forKey: .intersect)
-        union = try container.decode([FixShape].self, forKey: .union)
-        xor = try container.decode([FixShape].self, forKey: .xor)
+        clip = try container.decode([[FixShape]].self, forKey: .clip)
+        subject = try container.decode([[FixShape]].self, forKey: .subject)
+        difference = try container.decode([[FixShape]].self, forKey: .difference)
+        intersect = try container.decode([[FixShape]].self, forKey: .intersect)
+        union = try container.decode([[FixShape]].self, forKey: .union)
+        xor = try container.decode([[FixShape]].self, forKey: .xor)
     }
 }
 

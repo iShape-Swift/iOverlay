@@ -38,8 +38,8 @@ struct ScanSplitTree: ScanSplitStore {
         
         // to make round more precise we use upscale/downscale
         let scale = 4
-        let len = Int(range.max - range.min)
-        let step = Int64(Double(len << scale) / Double(n))
+        let len = Int64(range.max - range.min)
+        let step = (len << scale) / Int64(n)
         
         let capacity = (n << 1) - 1
         var nodes = [IntervalNode](repeating: IntervalNode(range: LineRange(min: 0, max: 0)), count: capacity)
@@ -78,8 +78,8 @@ struct ScanSplitTree: ScanSplitStore {
     
     init(range: LineRange, count: Int) {
         let maxPowerRange = range.logTwo
-        let maxPowerCount = Int32((0.2 * Double(count)).squareRoot()).logTwo
-        self.power = min(12, min(maxPowerRange, maxPowerCount))
+        let maxPowerCount = Int32(count).logTwo >> 1
+        self.power = max(2, min(12, min(maxPowerRange, maxPowerCount)))
         nodes = Self.createNodes(range: range, power: power)
     }
     
@@ -119,7 +119,6 @@ struct ScanSplitTree: ScanSplitStore {
         let sm = s
         
         if range.min == nodes[iLt].range.min {
-            assert(!nodes[iLt].list.contains(where: { $0 == segment }))
             nodes[iLt].list.append(segment)
         } else {
             earlyOut = false
@@ -135,7 +134,6 @@ struct ScanSplitTree: ScanSplitStore {
                 let rt = i + s
                 
                 if e <= middle {
-                    assert(!nodes[rt].list.contains(where: { $0 == segment }))
                     nodes[rt].list.append(segment)
                     if e == middle {
                         // no more append is possible
@@ -151,13 +149,11 @@ struct ScanSplitTree: ScanSplitStore {
             // add to leaf anyway
             if !earlyOut {
                 // we down to a leaf, add it anyway
-                assert(!nodes[i].list.contains(where: { $0 == segment }))
                 nodes[i].list.append(segment)
             }
         }
 
         if range.max == nodes[iRt].range.max {
-            assert(!nodes[iRt].list.contains(where: { $0 == segment }))
             nodes[iRt].list.append(segment)
         } else {
             earlyOut = false
@@ -173,7 +169,6 @@ struct ScanSplitTree: ScanSplitStore {
                 let rt = i + s
 
                 if e >= middle {
-                    assert(!nodes[lt].list.contains(where: { $0 == segment }))
                     nodes[lt].list.append(segment)
                     if e == middle {
                         // no more append is possible
@@ -188,7 +183,6 @@ struct ScanSplitTree: ScanSplitStore {
                     
             if !earlyOut {
                 // we down to a leaf, add it anyway
-                assert(!nodes[i].list.contains(where: { $0 == segment }))
                 nodes[i].list.append(segment)
             }
         }
