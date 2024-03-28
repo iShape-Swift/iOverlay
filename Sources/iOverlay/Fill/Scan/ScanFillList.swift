@@ -14,7 +14,7 @@ struct ScanFillList: ScanFillStore {
     @inline(__always)
     init(count: Int) {
         self.buffer = [CountSegment]()
-        self.buffer.reserveCapacity(count.logSqrt)
+        self.buffer.reserveCapacity(count.log2Sqrt)
     }
     
     @inline(__always)

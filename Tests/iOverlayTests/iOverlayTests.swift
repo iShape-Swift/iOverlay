@@ -13,12 +13,10 @@ final class iOverlayTests: XCTestCase {
     
     private func execute(index: Int) {
         let test = OverlayTestBank.load(index: index)
-
-        var overlay = Overlay()
-        overlay.add(paths: test.subjPaths, type: .subject)
-        overlay.add(paths: test.clipPaths, type: .clip)
+        let overlay = Overlay(subjectPaths: test.subjPaths, clipPaths: test.clipPaths)
         
         let solvers = [Solver.list, Solver.tree]
+//        let solvers = [Solver.list]
         
         for solver in solvers {
             let graph = overlay.buildGraph(fillRule: test.fillRule, solver: solver)
@@ -30,7 +28,6 @@ final class iOverlayTests: XCTestCase {
             let union = graph.extractShapes(overlayRule: .union)
             let xor = graph.extractShapes(overlayRule: .xor)
 
-            
 //            print(PrintJson.json(clip: clip, subject: subject, difference: difference, intersect: intersect, union: union, xor: xor, subjPaths: test.subjPaths, clipPaths: test.clipPaths, fillRule: test.fillRule))
             
             XCTAssertTrue(self.test(result: clip, bank: test.clip))
@@ -40,6 +37,15 @@ final class iOverlayTests: XCTestCase {
             XCTAssertTrue(self.test(result: union, bank: test.union))
             XCTAssertTrue(self.test(result: xor, bank: test.xor))
         }
+    }
+    
+    func debugExecute(index: Int, overlayRule: OverlayRule, solver: Solver) {
+        let test = OverlayTestBank.load(index: index)
+        let overlay = Overlay(subjectPaths: test.subjPaths, clipPaths: test.clipPaths)
+        let graph = overlay.buildGraph(fillRule: test.fillRule, solver: solver)
+        let result = graph.extractShapes(overlayRule: overlayRule)
+        
+        print("result: \(result)")
     }
     
     func test(result: [FixShape], bank: [[FixShape]]) -> Bool {
@@ -477,5 +483,10 @@ final class iOverlayTests: XCTestCase {
     
     func test_106() throws {
         self.execute(index: 106)
+    }
+    
+    
+    func test_debug() throws {
+        self.debugExecute(index: 106, overlayRule: .subject, solver: .list)
     }
 }

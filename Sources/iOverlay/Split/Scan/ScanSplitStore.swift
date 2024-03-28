@@ -14,7 +14,7 @@ struct CrossSegment {
 
 protocol ScanSplitStore {
     
-    mutating func intersect(this: XSegment) -> CrossSegment?
+    mutating func intersectAndRemoveOther(this: XSegment) -> CrossSegment?
  
     mutating func insert(segment: VersionSegment)
  

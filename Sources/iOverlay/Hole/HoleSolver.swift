@@ -17,8 +17,8 @@ struct HoleSolver {
 
     static func solve(shapeCount: Int, iPoints: [IdPoint], segments: [IdSegment]) -> HoleSolution {
         if iPoints.count < 128 {
-            var scanTree = ScanHoleList(count: segments.count)
-            return Self.solve(scanStore: &scanTree, shapeCount: shapeCount, iPoints: iPoints, segments: segments)
+            var scanList = ScanHoleList(count: segments.count)
+            return Self.solve(scanStore: &scanList, shapeCount: shapeCount, iPoints: iPoints, segments: segments)
         } else {
             var scanTree = ScanHoleTree(count: segments.count)
             return Self.solve(scanStore: &scanTree, shapeCount: shapeCount, iPoints: iPoints, segments: segments)
@@ -47,8 +47,7 @@ struct HoleSolver {
             while i < iPoints.count && iPoints[i].point.x == x {
                 
                 let p = iPoints[i].point
-                
-                // find nearest scan segment for y
+
                 let shapeIndex = scanStore.underAndNearest(point: p, stop: x)
                 let holeIndex = iPoints[i].id
                 

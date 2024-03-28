@@ -14,10 +14,10 @@ struct ScanSplitList: ScanSplitStore {
     @inline(__always)
     init(count: Int) {
         buffer = [VersionSegment]()
-        buffer.reserveCapacity(count.logSqrt)
+        buffer.reserveCapacity(count.log2Sqrt)
     }
     
-    mutating func intersect(this: XSegment) -> CrossSegment? {
+    mutating func intersectAndRemoveOther(this: XSegment) -> CrossSegment? {
         var i = 0
         let scanPos = this.a
         while i < buffer.count {

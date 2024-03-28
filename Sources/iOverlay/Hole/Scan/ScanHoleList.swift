@@ -13,7 +13,7 @@ struct ScanHoleList: ScanHoleStore {
 
     init(count: Int) {
         self.buffer = [IdSegment]()
-        self.buffer.reserveCapacity(count.logSqrt)
+        self.buffer.reserveCapacity(count.log2Sqrt)
     }
     
     @inline(__always)

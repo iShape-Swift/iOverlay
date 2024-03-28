@@ -26,7 +26,6 @@ public enum EdgeCrossType {
 
     case pure               // simple intersection with no overlaps or common points
     case overlay_a          // a is inside b
-    case overlay_b          // b is inside a
     case penetrate          // a and b penetrate each other
     case end_a
     case end_b
@@ -202,7 +201,6 @@ public extension XSegment {
             let xym = xyB.leadingZeroBitCountIgnoreSign
             
             // x
-            
             let xd = a1y * dxB
             let xdm = xd.leadingZeroBitCountIgnoreSign
             
@@ -273,11 +271,6 @@ public extension XSegment {
             return nil
         }
         
-        if isA {
-            // b inside a
-            return edgeA.solveInside(other: edgeB, end: .end_b, overlay: .overlay_b)
-        }
-        
         if isB {
             // a inside b
             return edgeB.solveInside(other: edgeA, end: .end_a, overlay: .overlay_a)
@@ -289,12 +282,18 @@ public extension XSegment {
             return nil
         }
         
+        assert(!isA && !isB)
+        
         // penetrate
         
         let ap = edgeA.isBoxContain(edgeB.a) ? edgeB.a : edgeB.b
         let bp = edgeB.isBoxContain(edgeA.a) ? edgeA.a : edgeA.b
         
-        return EdgeCross(type: .penetrate, point: ap, second: bp)
+        if Point.xLineCompare(a: ap, b: bp) {
+            return EdgeCross(type: .penetrate, point: ap, second: bp)
+        } else {
+            return EdgeCross(type: .penetrate, point: bp, second: ap)
+        }
     }
     
     private func solveInside(other: XSegment, end: EdgeCrossType, overlay: EdgeCrossType) -> EdgeCross {

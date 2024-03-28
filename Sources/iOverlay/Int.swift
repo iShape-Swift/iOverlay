@@ -11,7 +11,7 @@ extension Int {
         Int.bitWidth - self.leadingZeroBitCount
     }
     
-    var logSqrt: Int {
+    var log2Sqrt: Int {
         assert(self >= 0)
         
         let n = (self.logTwo + 1) >> 1

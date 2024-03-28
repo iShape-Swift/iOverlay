@@ -177,7 +177,7 @@ final class IntervalTreeTests: XCTestCase {
         let xs = XSegment(a: a1, b: b1)
         
         tree.insert(segment: vs)
-        let r1 = tree.intersect(this: xs)
+        let r1 = tree.intersectAndRemoveOther(this: xs)
         
         XCTAssertNil(r1)
         XCTAssertTrue(tree.count > 0)
@@ -196,7 +196,7 @@ final class IntervalTreeTests: XCTestCase {
         var tree = ScanSplitTree(range: range, count: testSet.count)
         var i = 0
         for s in testSet {
-            if let res = tree.intersect(this: s) {
+            if let res = tree.intersectAndRemoveOther(this: s) {
                 result.append(res.cross.point)
                 if res.cross.type == .penetrate {
                     result.append(res.cross.second)
@@ -224,7 +224,7 @@ final class IntervalTreeTests: XCTestCase {
         var tree = ScanSplitTree(range: testSet.range(), count: testSet.count)
         var i = 0
         for s in testSet {
-            if let res = tree.intersect(this: s) {
+            if let res = tree.intersectAndRemoveOther(this: s) {
                 result.append(res.cross.point)
                 if res.cross.type == .penetrate {
                     result.append(res.cross.second)
@@ -252,7 +252,7 @@ final class IntervalTreeTests: XCTestCase {
         var tree = ScanSplitTree(range: testSet.range(), count: testSet.count)
         var i = 0
         for s in testSet {
-            if let res = tree.intersect(this: s) {
+            if let res = tree.intersectAndRemoveOther(this: s) {
                 result.append(res.cross.point)
                 if res.cross.type == .penetrate {
                     result.append(res.cross.second)
@@ -285,8 +285,8 @@ final class IntervalTreeTests: XCTestCase {
             list.insert(segment: vs)
             tree.insert(segment: vs)
             
-            let r0 = list.intersect(this: xs)
-            let r1 = tree.intersect(this: xs)
+            let r0 = list.intersectAndRemoveOther(this: xs)
+            let r1 = tree.intersectAndRemoveOther(this: xs)
 
             if (r0 == nil) != (r1 == nil) {
                 print("a0: \(a0), b0: \(b0), a1: \(a1), b1: \(b1)")

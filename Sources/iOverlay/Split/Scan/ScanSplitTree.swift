@@ -288,7 +288,7 @@ struct ScanSplitTree: ScanSplitStore {
         }
     }
     
-    mutating func intersect(this: XSegment) -> CrossSegment? {
+    mutating func intersectAndRemoveOther(this: XSegment) -> CrossSegment? {
         var s = 1 << power
         var i = s - 1
         let range = this.yRange

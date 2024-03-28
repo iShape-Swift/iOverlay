@@ -13,7 +13,7 @@ struct ScanFillTree: ScanFillStore {
     private var tree: RBTree<CountSegment>
     
     init(count: Int) {
-        self.tree = RBTree(empty: CountSegment(count: .init(subj: 0, clip: 0), xSegment: .init(a: .zero, b: .zero)), capacity: count.logSqrt)
+        self.tree = RBTree(empty: CountSegment(count: .init(subj: 0, clip: 0), xSegment: .init(a: .zero, b: .zero)), capacity: count.log2Sqrt)
     }
     
     mutating func insert(segment: CountSegment, stop: Int32) {

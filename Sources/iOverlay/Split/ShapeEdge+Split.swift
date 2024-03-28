@@ -46,7 +46,7 @@ extension Array where Element == ShapeEdge {
                     continue
                 }
                 
-                guard let crossSegment = scanStore.intersect(this: thisEdge.xSegment) else {
+                guard let crossSegment = scanStore.intersectAndRemoveOther(this: thisEdge.xSegment) else {
                     scanStore.insert(segment: VersionSegment(vIndex: eIndex, xSegment: thisEdge.xSegment))
                     eIndex = list.next(index: eIndex.index)
                     continue
@@ -55,7 +55,6 @@ extension Array where Element == ShapeEdge {
                 let vIndex = crossSegment.index
                 
                 guard let scanEdge = list.validateEdge(vIndex: vIndex) else {
-                    eIndex = list.next(index: eIndex.index)
                     continue
                 }
                         
@@ -114,27 +113,6 @@ extension Array where Element == ShapeEdge {
                     // new point must be exactly on the same line
                     let isBend = thisEdge.xSegment.isNotSameLine(x)
                     needToFix = needToFix || isBend
-                case .overlay_b:
-                    // split this into 3 segments
-                    
-                    let this0 = ShapeEdge(a: thisEdge.xSegment.a, b: scanEdge.xSegment.a, count: thisEdge.count)
-                    let this1 = ShapeEdge(a: scanEdge.xSegment.a, b: scanEdge.xSegment.b, count: thisEdge.count)
-                    let this2 = ShapeEdge(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b, count: thisEdge.count)
-                    
-                    assert(this0.xSegment.isLess(this1.xSegment))
-                    assert(this1.xSegment.isLess(this2.xSegment))
-                    
-                    _ = list.addAndMerge(anchorIndex: eIndex.index, newEdge: this1)
-                    _ = list.addAndMerge(anchorIndex: eIndex.index, newEdge: this2)
-                    let newThis0 = list.addAndMerge(anchorIndex: eIndex.index, newEdge: this0)
-                    
-                    list.remove(index: eIndex.index)
-                    
-                    // new point must be exactly on the same line
-                    let isBend = thisEdge.xSegment.isNotSameLine(scanEdge.xSegment.a) || thisEdge.xSegment.isNotSameLine(scanEdge.xSegment.b)
-                    needToFix = needToFix || isBend
-                    
-                    eIndex = newThis0
                 case .end_a:
                     // this edge end divide scan edge into 2 parts
                     
@@ -160,59 +138,55 @@ extension Array where Element == ShapeEdge {
                     scanStore.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
                 case .overlay_a:
                     // split scan into 3 segments
+                    list.remove(index: eIndex.index) // remove it first to avoid double merge
                     
                     let scan0 = ShapeEdge(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
-                    let scan1 = ShapeEdge(a: thisEdge.xSegment.a, b: thisEdge.xSegment.b, count: scanEdge.count)
+                    let scan1 = ShapeEdge(a: thisEdge.xSegment.a, b: thisEdge.xSegment.b, count: scanEdge.count.add(thisEdge.count))
                     let scan2 = ShapeEdge(a: thisEdge.xSegment.b, b: scanEdge.xSegment.b, count: scanEdge.count)
                     
                     assert(scan0.xSegment.isLess(scan1.xSegment))
                     assert(scan1.xSegment.isLess(scan2.xSegment))
                     
-                    let newScan0 = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scan0)
-                    _ = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scan1)
+                    // left part
+                    _ = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scan0)
+                    
+                    // middle part
+                    let mIndex = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scan1)
+                    
+                    // right part
                     _ = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scan2)
                     
                     list.remove(index: vIndex.index)
+
+                    // points exactly on same line so bend test no needed
+                    assert(!(scanEdge.xSegment.isNotSameLine(thisEdge.xSegment.a) || scanEdge.xSegment.isNotSameLine(thisEdge.xSegment.b)))
                     
-                    let isBend = scanEdge.xSegment.isNotSameLine(thisEdge.xSegment.a) || scanEdge.xSegment.isNotSameLine(thisEdge.xSegment.b)
-                    needToFix = needToFix || isBend
-                    
-                    // do not update eIndex
-                    scanStore.insert(segment: VersionSegment(vIndex: newScan0, xSegment: scan0.xSegment))
+                    eIndex = mIndex
                 case .penetrate:
                     // penetrate each other
                     
-                    let xThis = crossSegment.cross.point
-                    let xScan = crossSegment.cross.second
+                    // scan.a < p0 < p1 < this.b
+                    // scanLt < (scanRt == thisLt)-middle < thisRt
+                    
+                    let p0 = crossSegment.cross.point
+                    let p1 = crossSegment.cross.second
                     
                     // divide both segments
+
+                    let scanLt = ShapeEdge(a: scanEdge.xSegment.a, b: p0, count: scanEdge.count)
+                    let thisRt = ShapeEdge(a: p1, b: thisEdge.xSegment.b, count: thisEdge.count)
+                    let middle = ShapeEdge(a: p0, b: p1, count: scanEdge.count.add(thisEdge.count))
                     
-                    let thisLt = ShapeEdge(a: thisEdge.xSegment.a, b: xThis, count: thisEdge.count)
-                    let thisRt = ShapeEdge(a: xThis, b: thisEdge.xSegment.b, count: thisEdge.count)
-                    
-                    assert(thisLt.xSegment.isLess(thisRt.xSegment))
-                    
-                    let scanLt = ShapeEdge(a: scanEdge.xSegment.a, b: xScan, count: scanEdge.count)
-                    let scanRt = ShapeEdge(a: xScan, b: scanEdge.xSegment.b, count: scanEdge.count)
-                    
-                    assert(scanLt.xSegment.isLess(scanRt.xSegment))
-                    
-                    let newScanLeft = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scanLt)
-                    _ = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scanRt)
-                    
+                    let lIndex = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scanLt)
+                    let mIndex = list.addAndMerge(anchorIndex: lIndex.index, newEdge: middle)
                     _ = list.addAndMerge(anchorIndex: eIndex.index, newEdge: thisRt)
-                    let newThisLeft = list.addAndMerge(anchorIndex: eIndex.index, newEdge: thisLt)
-                    
+
                     list.remove(index: eIndex.index)
                     list.remove(index: vIndex.index)
                     
-                    // new point must be exactly on the same line
-                    let isBend = thisEdge.xSegment.isNotSameLine(xThis) || scanEdge.xSegment.isNotSameLine(xScan)
-                    needToFix = needToFix || isBend
+                    eIndex = mIndex
                     
-                    eIndex = newThisLeft
-                    
-                    scanStore.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
+                    assert(!(scanEdge.xSegment.isNotSameLine(p0) || thisEdge.xSegment.isNotSameLine(p1)))
                 }
             } // while
             

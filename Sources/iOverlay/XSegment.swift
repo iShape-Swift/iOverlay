@@ -47,16 +47,6 @@ extension XSegment {
         assert(p != a && p != b)
         return Triangle.isClockwisePoints(p0: a, p1: p, p2: b)
     }
-
-    /// Determines if a point `p` is above a segment
-    /// - Note: This function assumes `a.x <= p.x < b.x`.
-    /// - Parameters:
-    ///   - p: The point to check.
-    /// - Returns: `true` if point `p` is above the segment, `false` otherwise.
-    @inline(__always) func isAbove(point p: Point) -> Bool {
-        assert(a.x <= p.x && p.x <= b.x)
-        return Triangle.isClockwisePoints(p0: a, p1: b, p2: p)
-    }
     
     /// Determines if first segment is under the second segment
     /// - Note: This function assumes `other.a.x < b.x`, `a.x < other.b.x`.
