@@ -1,6 +1,6 @@
 //
 //  FixEdge.swift
-//  
+//
 //
 //  Created by Nail Sharipov on 10.07.2023.
 //
@@ -8,38 +8,151 @@
 import iShape
 import iFixFloat
 
-public struct EdgeCross {
+public enum CrossResult {
     
-    public let type: EdgeCrossType
-    public let point: Point
-    public let second: Point
+    case pure(Point)        // simple intersection with no overlaps or common points
+    case end_overlap
+    case equal
+    case overlap
+    case this_end(Point)
+    case scan_end(Point)
+}
 
-    @usableFromInline
-    init(type: EdgeCrossType, point: Point, second: Point = .zero) {
-        self.type = type
-        self.point = point
-        self.second = second
+extension XSegment {
+
+    func debugCross(_ other: XSegment) -> CrossResult? {
+        let testX =
+        // a > all other
+        self.a.x > other.a.x && self.a.x > other.b.x &&
+        // b > all other
+        self.b.x > other.a.x && self.b.x > other.b.x ||
+        // a < all other
+        self.a.x < other.a.x && self.a.x < other.b.x &&
+        // b < all other
+        self.b.x < other.a.x && self.b.x < other.b.x
+        
+        guard !testX else {
+            return nil
+        }
+        
+        return self.scanCross(other)
     }
-}
-
-public enum EdgeCrossType {
-
-    case pure               // simple intersection with no overlaps or common points
-    case overlay_a          // a is inside b
-    case penetrate          // a and b penetrate each other
-    case end_a
-    case end_b
-}
-
-public extension XSegment {
     
-    func cross(_ other: XSegment) -> EdgeCross? {
+    
+    func scanCross(_ other: XSegment) -> CrossResult? {
+        // by this time segments already at intersection range by x
+#if DEBUG
+        let testX =
+        // a > all other
+        self.a.x > other.a.x && self.a.x > other.b.x &&
+        // b > all other
+        self.b.x > other.a.x && self.b.x > other.b.x ||
+        // a < all other
+        self.a.x < other.a.x && self.a.x < other.b.x &&
+        // b < all other
+        self.b.x < other.a.x && self.b.x < other.b.x
+        
+        assert(!testX)
+#endif
+        
+        
+        let testY =
+        // a > all other
+        self.a.y > other.a.y && self.a.y > other.b.y &&
+        // b > all other
+        self.b.y > other.a.y && self.b.y > other.b.y ||
+        // a < all other
+        self.a.y < other.a.y && self.a.y < other.b.y &&
+        // b < all other
+        self.b.y < other.a.y && self.b.y < other.b.y
+        
+        guard !testY else {
+            return nil
+        }
+        
+        let isEnd0 = self.a == other.a || self.a == other.b
+        let isEnd1 = self.b == other.a || self.b == other.b
+  
+        if isEnd0 && isEnd1 {
+            return .equal
+        }
+        
+        let a0 = FixVec(self.a)
+        let b0 = FixVec(self.b)
+
+        let a1 = FixVec(other.a)
+        let b1 = FixVec(other.b)
+        
+        
+        let a0b0a1 = Triangle.clockDirection(p0: a0, p1: b0, p2: a1)
+        let a0b0b1 = Triangle.clockDirection(p0: a0, p1: b0, p2: b1)
+
+        let a1b1a0 = Triangle.clockDirection(p0: a1, p1: b1, p2: a0)
+        let a1b1b0 = Triangle.clockDirection(p0: a1, p1: b1, p2: b0)
+        
+        
+        let isCollinear = a0b0a1 == 0 && a0b0b1 == 0 && a1b1a0 == 0 && a1b1b0 == 0
+
+        if (isEnd0 || isEnd1) && isCollinear {
+            let dotProduct: Int64
+            if isEnd0 {
+                dotProduct = (a0 - b0).dotProduct(a0 - (a0 == a1 ? b1 : a1))
+            } else {
+                dotProduct = (b0 - a0).dotProduct(b0 - (b0 == a1 ? b1 : a1))
+            }
+            if dotProduct < 0 {
+                // only one common end
+                return nil
+            } else {
+                return .end_overlap
+            }
+        } else if isCollinear {
+            return .overlap
+        } else if isEnd0 || isEnd1 {
+            assert(!(isEnd0 && isEnd1))
+            return nil
+        }
+        
+        let notSame0 = a0b0a1 != a0b0b1
+        let notSame1 = a1b1a0 != a1b1b0
+        
+        guard notSame0 && notSame1 else {
+            return nil
+        }
+        
+        let p = Self.crossPoint(a0: a0, a1: b0, b0: a1, b1: b1)
+        
+        // still can be common ends cause rounding
+        // snap to nearest end with radius 1, (1^2 + 1^2 == 2)
+        
+        let ra0 = a0.sqrDistance(p)
+        let rb0 = b0.sqrDistance(p)
+        
+        let ra1 = a1.sqrDistance(p)
+        let rb1 = b1.sqrDistance(p)
+        
+        if ra0 <= 2 || ra1 <= 2 || rb0 <= 2 || rb1 <= 2 {
+            let r0 = min(ra0, rb0)
+            let r1 = min(ra1, rb1)
+            
+            if r0 <= r1 {
+                let p = ra0 < rb0 ? a0 : b0
+                return .this_end(Point(p))
+            } else {
+                let p = ra1 < rb1 ? a1 : b1
+                return .scan_end(Point(p))
+            }
+        } else {
+            return .pure(Point(p))
+        }
+    }
+        /*
         let a0 = FixVec(self.a)
         let a1 = FixVec(self.b)
-
+        
         let b0 = FixVec(other.a)
         let b1 = FixVec(other.b)
-
+        
         let a0Area = Triangle.unsafeAreaTwo(p0: b0, p1: a0, p2: b1)
         let a1Area = Triangle.unsafeAreaTwo(p0: b0, p1: a1, p2: b1)
         
@@ -47,7 +160,7 @@ public extension XSegment {
             // same line
             return Self.sameLineOverlay(self, other)
         }
-
+        
         let comA0 = a0 == b0 || a0 == b1
         let comA1 = a1 == b0 || a1 == b1
         
@@ -56,7 +169,7 @@ public extension XSegment {
         guard !hasSameEnd else {
             return nil
         }
-
+        
         guard a0Area != 0 else {
             if other.isBoxContain(self.a) {
                 return EdgeCross(type: .end_a, point: self.a)
@@ -64,7 +177,7 @@ public extension XSegment {
                 return nil
             }
         }
-
+        
         guard a1Area != 0 else {
             if other.isBoxContain(self.b) {
                 return EdgeCross(type: .end_a, point: self.b)
@@ -72,9 +185,9 @@ public extension XSegment {
                 return nil
             }
         }
-
+        
         let b0Area = Triangle.unsafeAreaTwo(p0: a0, p1: b0, p2: a1)
-
+        
         guard b0Area != 0 else {
             if self.isBoxContain(other.a) {
                 return EdgeCross(type: .end_b, point: other.a)
@@ -82,9 +195,9 @@ public extension XSegment {
                 return nil
             }
         }
-
+        
         let b1Area = Triangle.unsafeAreaTwo(p0: a0, p1: b1, p2: a1)
-
+        
         guard b1Area != 0 else {
             if self.isBoxContain(other.b) {
                 return EdgeCross(type: .end_b, point: other.b)
@@ -92,15 +205,15 @@ public extension XSegment {
                 return nil
             }
         }
-
+        
         // areas of triangles must have opposite sign
         let areaACondition = a0Area > 0 && a1Area < 0 || a0Area < 0 && a1Area > 0
         let areaBCondition = b0Area > 0 && b1Area < 0 || b0Area < 0 && b1Area > 0
-
+        
         guard areaACondition && areaBCondition else {
             return nil
         }
-
+        
         let f = Self.crossPoint(a0: a0, a1: a1, b0: b0, b1: b1)
         let p = Point(f)
         
@@ -112,14 +225,14 @@ public extension XSegment {
         
         let ra0 = a0.sqrDistance(f)
         let ra1 = a1.sqrDistance(f)
-
+        
         let rb0 = b0.sqrDistance(f)
         let rb1 = b1.sqrDistance(f)
         
         if ra0 <= 2 || ra1 <= 2 || rb0 <= 2 || rb1 <= 2 {
             let ra = min(ra0, ra1)
             let rb = min(rb0, rb1)
-
+            
             if ra <= rb {
                 let a = ra0 < ra1 ? a0 : a1
                 return EdgeCross(type: .end_a, point: Point(a))
@@ -131,6 +244,7 @@ public extension XSegment {
             return EdgeCross(type: .pure, point: p)
         }
     }
+    */
     
     private static func crossPoint(a0: FixVec, a1: FixVec, b0: FixVec, b1: FixVec) -> FixVec {
         /// edges are not parralel
@@ -159,16 +273,16 @@ public extension XSegment {
         /// let y = ky / divider
         ///
         /// return FixVec(x, y)
-
+        
         /// offset approach
         /// move all picture by -a0. Point a0 will be equal (0, 0)
-
+        
         // move a0.x to 0
         // move all by a0.x
         let a1x = a1.x - a0.x
         let b0x = b0.x - a0.x
         let b1x = b1.x - a0.x
-
+        
         // move a0.y to 0
         // move all by a0.y
         let a1y = a1.y - a0.y
@@ -180,7 +294,7 @@ public extension XSegment {
         
         // let xyA = 0
         let xyB = b0x * b1y - b0y * b1x
- 
+        
         let x0: Int64
         let y0: Int64
         
@@ -225,7 +339,7 @@ public extension XSegment {
         
         return FixVec(x, y)
     }
-
+    /*
     private func isBoxContain(_ p: Point) -> Bool {
         let xContain = a.x <= p.x && p.x <= b.x // a.x <= b.x by definition of xSegment
         let yContain = a.y <= p.y && p.y <= b.y || b.y <= p.y && p.y <= a.y
@@ -257,7 +371,7 @@ public extension XSegment {
             eyMin = edge.b.y
             eyMax = edge.a.y
         }
-
+        
         return syMin <= eyMin && eyMax <= syMax
     }
     
@@ -311,6 +425,7 @@ public extension XSegment {
             return EdgeCross(type: overlay, point: .zero)
         }
     }
+    */
 }
 private extension Int64 {
     

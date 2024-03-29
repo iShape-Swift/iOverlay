@@ -13,180 +13,152 @@ extension Array where Element == ShapeEdge {
     func split(solver: Solver, range: LineRange) -> [Segment] {
         let isSmallRange = range.max - range.min < 128
         let isList: Bool
-        #if DEBUG
-            isList = solver == .list || solver == .auto && (self.count < 1_000 || isSmallRange)
-        #else
-            isList = solver == .list || solver == .auto && self.count < 1_000 || isSmallRange
-        #endif
-
+#if DEBUG
+        isList = solver == .list || solver == .auto && (self.count < 1_000 || isSmallRange)
+#else
+        isList = solver == .list || solver == .auto && self.count < 1_000 || isSmallRange
+#endif
+        
+        let rangeList = SplitRangeList(edges: self)
         if isList {
-            var store = ScanSplitList(count: self.count)
-            return self.solve(scanStore: &store)
+            var solver = SplitSolver(list: rangeList, scanStore: ScanSplitList(count: self.count))
+            return solver.solve()
         } else {
-            var store = ScanSplitTree(range: range, count: self.count)
-            return self.solve(scanStore: &store)
+            var solver = SplitSolver(list: rangeList, scanStore: ScanSplitTree(range: range, count: self.count))
+            return solver.solve()
         }
     }
+}
+
+private struct SplitSolver<S: ScanSplitStore> {
     
-    private func solve<S: ScanSplitStore>(scanStore: inout S) -> [Segment] {
-        var list = SplitRangeList(edges: self)
+    private var scanStore: S
+    private var list: SplitRangeList
+    
+    init(list: SplitRangeList, scanStore: S) {
+        self.list = list
+        self.scanStore = scanStore
+    }
+    
+    mutating func solve() -> [Segment] {
         
         var needToFix = true
         
         while needToFix {
             needToFix = false
             
-            var eIndex = list.first()
+            var this = list.first()
 
-            while eIndex.isNotNil {
-                let thisEdge = list.edge(index: eIndex.index)
+            while this.isNotNil {
+                let thisEdge = list.edge(index: this.index)
 
                 guard !thisEdge.count.isEmpty else {
-                    eIndex = list.removeAndNext(index: eIndex.index)
+                    this = list.removeAndNext(index: this.index)
                     continue
                 }
                 
-                guard let crossSegment = scanStore.intersectAndRemoveOther(this: thisEdge.xSegment) else {
-                    scanStore.insert(segment: VersionSegment(vIndex: eIndex, xSegment: thisEdge.xSegment))
-                    eIndex = list.next(index: eIndex.index)
+                guard let scanResult = scanStore.intersectAndRemoveOther(this: thisEdge.xSegment) else {
+                    scanStore.insert(segment: VersionSegment(vIndex: this, xSegment: thisEdge.xSegment))
+                    this = list.next(index: this.index)
                     continue
                 }
 
-                let vIndex = crossSegment.index
+                let other = scanResult.other
                 
-                guard let scanEdge = list.validateEdge(vIndex: vIndex) else {
+                guard let scanEdge = list.validateEdge(vIndex: other) else {
                     continue
                 }
+                
+                switch scanResult.cross {
+                case .equal:
+                    // TODO investigate this case
+                    continue
+                case .pure(let point):
+
+                    this = self.pure(
+                        point: point,
+                        thisEdge: thisEdge,
+                        this: this.index,
+                        scanEdge: scanEdge,
+                        other: other.index
+                    )
+                    needToFix = needToFix || thisEdge.xSegment.isNotSameLine(point) || scanEdge.xSegment.isNotSameLine(point)
+                    
+                case .scan_end(let point):
+                    
+                    this = self.divideThis(
+                        point: point,
+                        thisEdge: thisEdge,
+                        this: this.index
+                    )
+                    needToFix = needToFix || scanEdge.xSegment.isNotSameLine(point)
+                    
+                case .this_end(let point):
+
+                    self.divideScan(
+                        point: point,
+                        thisEdge: thisEdge,
+                        scanEdge: scanEdge,
+                        other: other.index
+                    )
+                    needToFix = needToFix || thisEdge.xSegment.isNotSameLine(point)
+
+                case .end_overlap:
+                    // segments are collinear
+                    // 2 situation are possible
+                    // this.a inside scan(other)
+                    // or
+                    // scan.b inside this
+                    
+                    if thisEdge.xSegment.b == scanEdge.xSegment.b {
+                        // this.a inside scan(other)
                         
-                switch crossSegment.cross.type {
-                case .pure:
-                    // if the two segments intersect at a point that isn't an end point of either segment...
+                        this = self.divideScanOverlap(
+                            thisEdge: thisEdge,
+                            this: this.index,
+                            scanEdge: scanEdge,
+                            other: other.index
+                        )
+                        
+                        // scan.a < this.a
+                        assert(Point.xLineCompare(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a))
+                    } else {
+                        // scan.b inside this
+                        
+                        this = self.divideThisOverlap(
+                            thisEdge: thisEdge,
+                            this: this.index,
+                            scanEdge: scanEdge,
+                            other: other.index
+                        )
+                        
+                        // scan.b < this.b
+                        assert(Point.xLineCompare(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b))
+                    }
+                case .overlap:
+                    // segments are collinear
+                    // 2 situation are possible
+                    // this if fully inside scan(other)
+                    // or
+                    // partly overlap each other
                     
-                    let x = crossSegment.cross.point
-                    
-                    // divide both segments
-                    
-                    let thisLt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.a, b: x, count: thisEdge.count)
-                    let thisRt = ShapeEdge.createAndValidate(a: x, b: thisEdge.xSegment.b, count: thisEdge.count)
-                    
-                    assert(thisLt.xSegment.isLess(thisRt.xSegment))
-                    
-                    let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: x, count: scanEdge.count)
-                    let scanRt = ShapeEdge.createAndValidate(a: x, b: scanEdge.xSegment.b, count: scanEdge.count)
-                    
-                    assert(scanLt.xSegment.isLess(scanRt.xSegment))
-                    
-                    let newThisLeft = list.addAndMerge(anchorIndex: eIndex.index, newEdge: thisLt)
-                    _ = list.addAndMerge(anchorIndex: eIndex.index, newEdge: thisRt)
-                    
-                    let newScanLeft = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scanLt)
-                    _ = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scanRt)
-                    
-                    list.remove(index: eIndex.index)
-                    list.remove(index: vIndex.index)
-                    
-                    // new point must be exactly on the same line
-                    let isBend = thisEdge.xSegment.isNotSameLine(x) || scanEdge.xSegment.isNotSameLine(x)
-                    needToFix = needToFix || isBend
-                    
-                    eIndex = newThisLeft
-                    scanStore.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
-                case .end_b:
-                    // scan edge end divide this edge into 2 parts
-                    
-                    let x = crossSegment.cross.point
-                    
-                    // divide this edge
-                    
-                    let thisLt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.a, b: x, count: thisEdge.count)
-                    let thisRt = ShapeEdge.createAndValidate(a: x, b: thisEdge.xSegment.b, count: thisEdge.count)
-                    
-                    assert(thisLt.xSegment.isLess(thisRt.xSegment))
-                    
-                    _ = list.addAndMerge(anchorIndex: eIndex.index, newEdge: thisRt)
-                    let newThisLeft = list.addAndMerge(anchorIndex: eIndex.index, newEdge: thisLt)
-                    
-                    list.remove(index: eIndex.index)
-                    
-                    eIndex = newThisLeft
-                    
-                    // new point must be exactly on the same line
-                    let isBend = thisEdge.xSegment.isNotSameLine(x)
-                    needToFix = needToFix || isBend
-                case .end_a:
-                    // this edge end divide scan edge into 2 parts
-                    
-                    let x = crossSegment.cross.point
-                    
-                    // divide scan edge
-                    
-                    let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: x, count: scanEdge.count)
-                    let scanRt = ShapeEdge.createAndValidate(a: x, b: scanEdge.xSegment.b, count: scanEdge.count)
-                    
-                    assert(scanLt.xSegment.isLess(scanRt.xSegment))
-                    
-                    let newScanLeft = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scanLt)
-                    _ = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scanRt)
-                    
-                    list.remove(index: vIndex.index)
-                    
-                    // new point must be exactly on the same line
-                    let isBend = scanEdge.xSegment.isNotSameLine(x)
-                    needToFix = needToFix || isBend
-                    
-                    // do not update eIndex
-                    scanStore.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
-                case .overlay_a:
-                    // split scan into 3 segments
-                    list.remove(index: eIndex.index) // remove it first to avoid double merge
-                    
-                    let scan0 = ShapeEdge(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
-                    let scan1 = ShapeEdge(a: thisEdge.xSegment.a, b: thisEdge.xSegment.b, count: scanEdge.count.add(thisEdge.count))
-                    let scan2 = ShapeEdge(a: thisEdge.xSegment.b, b: scanEdge.xSegment.b, count: scanEdge.count)
-                    
-                    assert(scan0.xSegment.isLess(scan1.xSegment))
-                    assert(scan1.xSegment.isLess(scan2.xSegment))
-                    
-                    // left part
-                    _ = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scan0)
-                    
-                    // middle part
-                    let mIndex = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scan1)
-                    
-                    // right part
-                    _ = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scan2)
-                    
-                    list.remove(index: vIndex.index)
-
-                    // points exactly on same line so bend test no needed
-                    assert(!(scanEdge.xSegment.isNotSameLine(thisEdge.xSegment.a) || scanEdge.xSegment.isNotSameLine(thisEdge.xSegment.b)))
-                    
-                    eIndex = mIndex
-                case .penetrate:
-                    // penetrate each other
-                    
-                    // scan.a < p0 < p1 < this.b
-                    // scanLt < (scanRt == thisLt)-middle < thisRt
-                    
-                    let p0 = crossSegment.cross.point
-                    let p1 = crossSegment.cross.second
-                    
-                    // divide both segments
-
-                    let scanLt = ShapeEdge(a: scanEdge.xSegment.a, b: p0, count: scanEdge.count)
-                    let thisRt = ShapeEdge(a: p1, b: thisEdge.xSegment.b, count: thisEdge.count)
-                    let middle = ShapeEdge(a: p0, b: p1, count: scanEdge.count.add(thisEdge.count))
-                    
-                    let lIndex = list.addAndMerge(anchorIndex: vIndex.index, newEdge: scanLt)
-                    let mIndex = list.addAndMerge(anchorIndex: lIndex.index, newEdge: middle)
-                    _ = list.addAndMerge(anchorIndex: eIndex.index, newEdge: thisRt)
-
-                    list.remove(index: eIndex.index)
-                    list.remove(index: vIndex.index)
-                    
-                    eIndex = mIndex
-                    
-                    assert(!(scanEdge.xSegment.isNotSameLine(p0) || thisEdge.xSegment.isNotSameLine(p1)))
+                    if Point.xLineCompare(a: thisEdge.xSegment.b, b: scanEdge.xSegment.b) {
+                        // partly overlap
+                        this = self.divideBothPartlyOverlap(
+                            thisEdge: thisEdge,
+                            this: this.index,
+                            scanEdge: scanEdge,
+                            other: other.index
+                        )
+                    } else {
+                        // this inside scan
+                        this = self.divideBothThisInsideScan(
+                            thisEdge: thisEdge,
+                            this: this.index,
+                            scanEdge: scanEdge,
+                            other: other.index
+                        )
+                    }
                 }
             } // while
             
@@ -194,6 +166,135 @@ extension Array where Element == ShapeEdge {
         } // while
         
         return list.segments()
+    }
+    
+    private mutating func pure(point p: Point, thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, other: DualIndex) -> VersionedIndex {
+        // classic middle intersection, no ends, overlaps etc
+        
+        let thisLt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.a, b: p, count: thisEdge.count)
+        let thisRt = ShapeEdge.createAndValidate(a: p, b: thisEdge.xSegment.b, count: thisEdge.count)
+        
+        assert(thisLt.xSegment.isLess(thisRt.xSegment))
+        
+        let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: p, count: scanEdge.count)
+        let scanRt = ShapeEdge.createAndValidate(a: p, b: scanEdge.xSegment.b, count: scanEdge.count)
+        
+        assert(scanLt.xSegment.isLess(scanRt.xSegment))
+        
+        let ltThis = list.addAndMerge(anchorIndex: this, newEdge: thisLt)
+        _ = list.addAndMerge(anchorIndex: this, newEdge: thisRt)
+        
+        let ltScan = list.addAndMerge(anchorIndex: other, newEdge: scanLt)
+        _ = list.addAndMerge(anchorIndex: other, newEdge: scanRt)
+        
+        list.remove(index: this)
+        list.remove(index: other)
+        
+        scanStore.insert(segment: VersionSegment(vIndex: ltScan, xSegment: scanLt.xSegment))
+        
+        return ltThis
+    }
+    
+    private mutating func divideThis(point p: Point, thisEdge: ShapeEdge, this: DualIndex) -> VersionedIndex {
+        let thisLt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.a, b: p, count: thisEdge.count)
+        let thisRt = ShapeEdge.createAndValidate(a: p, b: thisEdge.xSegment.b, count: thisEdge.count)
+        
+        assert(thisLt.xSegment.isLess(thisRt.xSegment))
+        
+        let ltThis = list.addAndMerge(anchorIndex: this, newEdge: thisLt)
+        _ = list.addAndMerge(anchorIndex: ltThis.index, newEdge: thisRt)
+        
+        list.remove(index: this)
+        
+        return ltThis
+    }
+    
+    private mutating func divideScan(point p: Point, thisEdge: ShapeEdge, scanEdge: ShapeEdge, other: DualIndex) {
+        // this segment-end divide scan(other) segment into 2 parts
+        
+        let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: p, count: scanEdge.count)
+        let scanRt = ShapeEdge.createAndValidate(a: p, b: scanEdge.xSegment.b, count: scanEdge.count)
+        
+        assert(scanLt.xSegment.isLess(scanRt.xSegment))
+        
+        let newScanLeft = list.addAndMerge(anchorIndex: other, newEdge: scanLt)
+        let newScanRight = list.addAndMerge(anchorIndex: other, newEdge: scanRt)
+        
+        list.remove(index: other)
+        
+        if thisEdge.xSegment.isLess(scanRt.xSegment) {
+            scanStore.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
+        } else {
+            scanStore.insert(segment: VersionSegment(vIndex: newScanRight, xSegment: scanRt.xSegment))
+        }
+    }
+    
+    private mutating func divideScanOverlap(thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, other: DualIndex) -> VersionedIndex {
+        // segments collinear
+        // this.b == scan.b and scan.b < this.a < scan.b
+        
+        let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
+        let merge = ShapeEdge(xSegment: thisEdge.xSegment, count: thisEdge.count.add(scanEdge.count))
+        
+//        assert(scanLt.xSegment.isLess(thisEdge.xSegment))
+        
+        _ = list.addAndMerge(anchorIndex: other, newEdge: scanLt)
+        _ = list.update(index: this, edge: merge)
+        
+        list.remove(index: other)
+
+        return list.next(index: this)
+    }
+    
+    private mutating func divideThisOverlap(thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, other: DualIndex) -> VersionedIndex {
+        // segments collinear
+        // this.a == scan.a and this.a < scan.b < this.b
+        
+        let merge = thisEdge.count.add(scanEdge.count)
+        let thisRt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b, count: thisEdge.count)
+        
+        _ = list.update(index: other, count: merge)
+        _ = list.addAndMerge(anchorIndex: other, newEdge: thisRt)
+        
+        list.remove(index: this)
+
+        return list.next(index: other)
+    }
+    
+    private mutating func divideBothPartlyOverlap(thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, other: DualIndex) -> VersionedIndex {
+        // segments collinear
+        // scan.a < this.a < scan.b < this.b
+        
+        let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
+        let middle = ShapeEdge.createAndValidate(a: thisEdge.xSegment.a, b: scanEdge.xSegment.b, count: scanEdge.count.add(thisEdge.count))
+        let thisRt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b, count: thisEdge.count)
+        
+        let lt = list.addAndMerge(anchorIndex: other, newEdge: scanLt).index
+        let md = list.addAndMerge(anchorIndex: lt, newEdge: middle).index
+        _ = list.addAndMerge(anchorIndex: md, newEdge: thisRt)
+
+        list.remove(index: this)
+        list.remove(index: other)
+        
+        return list.next(index: md)
+    }
+    
+    private mutating func divideBothThisInsideScan(thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, other: DualIndex) -> VersionedIndex {
+        // segments collinear
+        // scan.a < this.a < this.b < scan.b
+        
+        let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
+        let merge = thisEdge.count.add(scanEdge.count)
+        let scanRt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.b, b: scanEdge.xSegment.b, count: scanEdge.count)
+        
+        _ = list.update(index: this, count: merge)
+        
+        _ = list.addAndMerge(anchorIndex: other, newEdge: scanLt)
+        _ = list.addAndMerge(anchorIndex: this, newEdge: scanRt)
+
+        list.remove(index: other)
+
+        return list.next(index: this)
     }
 }
 

@@ -16,12 +16,6 @@ struct DualIndex: Equatable {
     }
 }
 
-extension DualIndex: Comparable {
-    static func < (lhs: DualIndex, rhs: DualIndex) -> Bool {
-        lhs.major < rhs.major || lhs.major == rhs.major && lhs.minor < rhs.minor
-    }
-}
-
 struct VersionedIndex {
 
     static let empty = VersionedIndex(version: .max, index: .empty)

@@ -8,8 +8,8 @@
 import iFixFloat
 
 struct CrossSegment {
-    let index: VersionedIndex
-    let cross: EdgeCross
+    let other: VersionedIndex
+    let cross: CrossResult
 }
 
 protocol ScanSplitStore {

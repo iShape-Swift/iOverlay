@@ -350,9 +350,9 @@ struct ScanSplitTree: ScanSplitStore {
             }
             
             // order is important! this * scan
-            if let cross = this.cross(scan.xSegment) {
+            if let cross = this.scanCross(scan.xSegment) {
                 self.remove(segment: scan, scanPos: scanPos)
-                return CrossSegment(index: scan.vIndex, cross: cross)
+                return CrossSegment(other: scan.vIndex, cross: cross)
             }
             j += 1
         }

@@ -28,9 +28,9 @@ struct ScanSplitList: ScanSplitStore {
             }
             
             // order is important! thix x scan
-            if let cross = this.cross(scan.xSegment) {
+            if let cross = this.scanCross(scan.xSegment) {
                 self.buffer.swapRemove(i)
-                return CrossSegment(index: scan.vIndex, cross: cross)
+                return CrossSegment(other: scan.vIndex, cross: cross)
             }
             
             i += 1
