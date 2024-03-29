@@ -18,6 +18,10 @@ struct ScanSplitList: ScanSplitStore {
     }
     
     mutating func intersectAndRemoveOther(this: XSegment) -> CrossSegment? {
+        // normally scan list contain segments before this segment,
+        // but sometimes after rollback it can contain segments behind this segment
+        // in that case we remove segments (they will be added automatically later)
+
         var i = 0
         let scanPos = this.a
         while i < buffer.count {
