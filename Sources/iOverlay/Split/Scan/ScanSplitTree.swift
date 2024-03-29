@@ -344,7 +344,11 @@ struct ScanSplitTree: ScanSplitStore {
         
         while j < self.nodes[index].list.count {
             let scan = self.nodes[index].list[j]
-            if Point.xLineCompare(a: scan.xSegment.b, b: scanPos) {
+            
+            let isScanOutdated = Point.xLineCompare(a: scan.xSegment.b, b: scanPos)
+            let isScanBehind = scan.xSegment.isLess(this)
+            
+            if isScanOutdated || !isScanBehind {
                 self.nodes[index].list.swapRemove(j)
                 continue
             }

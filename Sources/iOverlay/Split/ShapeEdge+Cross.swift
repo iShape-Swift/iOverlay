@@ -12,7 +12,6 @@ public enum CrossResult {
     
     case pure(Point)        // simple intersection with no overlaps or common points
     case end_overlap
-    case equal
     case overlap
     case this_end(Point)
     case scan_end(Point)
@@ -73,9 +72,7 @@ extension XSegment {
         let isEnd0 = self.a == other.a || self.a == other.b
         let isEnd1 = self.b == other.a || self.b == other.b
   
-        if isEnd0 && isEnd1 {
-            return .equal
-        }
+        assert(!(isEnd0 && isEnd1))
         
         let a0 = FixVec(self.a)
         let b0 = FixVec(self.b)

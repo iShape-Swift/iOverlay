@@ -22,7 +22,11 @@ struct ScanSplitList: ScanSplitStore {
         let scanPos = this.a
         while i < buffer.count {
             let scan = self.buffer[i]
-            if Point.xLineCompare(a: scan.xSegment.b, b: scanPos) {
+            
+            let isScanOutdated = Point.xLineCompare(a: scan.xSegment.b, b: scanPos)
+            let isScanBehind = scan.xSegment.isLess(this)
+
+            if isScanOutdated || !isScanBehind {
                 self.buffer.swapRemove(i)
                 continue
             }

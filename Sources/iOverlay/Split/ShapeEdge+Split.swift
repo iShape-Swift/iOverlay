@@ -70,9 +70,6 @@ private struct SplitSolver<S: ScanSplitStore> {
                 }
                 
                 switch scanResult.cross {
-                case .equal:
-                    // TODO investigate this case
-                    continue
                 case .pure(let point):
 
                     this = self.pure(
