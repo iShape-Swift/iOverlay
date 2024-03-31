@@ -20,10 +20,10 @@ public enum CrossResult {
 struct ScanCrossSolver {
     
     static func isValid(scan: XSegment, this: XSegment) -> Bool {
-        let isOutdate = Point.xLineCompare(a: scan.b, b: this.a)
+        let isOutdated = Point.xLineCompare(a: scan.b, b: this.a)
         let isBehind = scan.isLess(this)
         
-        return !isOutdate && isBehind
+        return !isOutdated && isBehind
     }
     
     static func debugCross(target: XSegment, other: XSegment) -> CrossResult? {
