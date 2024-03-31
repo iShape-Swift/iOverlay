@@ -81,26 +81,45 @@ private struct SplitSolver<S: ScanSplitStore> {
                     )
                     needToFix = needToFix || thisEdge.xSegment.isNotSameLine(point) || scanEdge.xSegment.isNotSameLine(point)
                     
-                case .scan_end(let point):
+                case .otherEndExact(let point):
                     
-                    this = self.divideThis(
+                    this = self.divideThisExact(
                         point: point,
                         thisEdge: thisEdge,
                         this: this.index
                     )
-                    needToFix = needToFix || scanEdge.xSegment.isNotSameLine(point)
                     
-                case .this_end(let point):
+                case .otherEndRound(let point):
+                    
+                    this = self.divideThisRound(
+                        point: point,
+                        thisEdge: thisEdge,
+                        this: this.index
+                    )
+                    
+                    needToFix = true
+                    
+                case .targetEndExact(let point):
 
-                    self.divideScan(
+                    self.divideScanExact(
                         point: point,
                         thisEdge: thisEdge,
                         scanEdge: scanEdge,
                         other: other.index
                     )
-                    needToFix = needToFix || thisEdge.xSegment.isNotSameLine(point)
 
-                case .end_overlap:
+                case .targetEndRound(let point):
+                    
+                    self.divideScanRound(
+                        point: point,
+                        thisEdge: thisEdge,
+                        scanEdge: scanEdge,
+                        other: other.index
+                    )
+                    
+                    needToFix = true
+                    
+                case .endOverlap:
                     // segments are collinear
                     // 2 situation are possible
                     // this.a inside scan(other)
@@ -182,17 +201,39 @@ private struct SplitSolver<S: ScanSplitStore> {
         _ = list.addAndMerge(anchorIndex: this, newEdge: thisRt)
         
         let ltScan = list.addAndMerge(anchorIndex: other, newEdge: scanLt)
-        _ = list.addAndMerge(anchorIndex: other, newEdge: scanRt)
+        let rtScan = list.addAndMerge(anchorIndex: other, newEdge: scanRt)
         
         list.remove(index: this)
         list.remove(index: other)
         
-        scanStore.insert(segment: VersionSegment(vIndex: ltScan, xSegment: scanLt.xSegment))
+        assert(thisLt.xSegment.a.x <= p.x)
+        
+        if ScanCrossSolver.isValid(scan: scanLt.xSegment, this: thisLt.xSegment) {
+            scanStore.insert(segment: VersionSegment(vIndex: ltScan, xSegment: scanLt.xSegment))
+        }
+
+        if ScanCrossSolver.isValid(scan: scanRt.xSegment, this: thisLt.xSegment) {
+            scanStore.insert(segment: VersionSegment(vIndex: rtScan, xSegment: scanRt.xSegment))
+        }
         
         return ltThis
     }
     
-    private mutating func divideThis(point p: Point, thisEdge: ShapeEdge, this: DualIndex) -> VersionedIndex {
+    private mutating func divideThisExact(point p: Point, thisEdge: ShapeEdge, this: DualIndex) -> VersionedIndex {
+        let thisLt = ShapeEdge(xSegment: XSegment(a: thisEdge.xSegment.a, b: p), count: thisEdge.count)
+        let thisRt = ShapeEdge(xSegment: XSegment(a: p, b: thisEdge.xSegment.b), count: thisEdge.count)
+        
+        assert(thisLt.xSegment.isLess(thisRt.xSegment))
+        
+        let ltThis = list.addAndMerge(anchorIndex: this, newEdge: thisLt)
+        _ = list.addAndMerge(anchorIndex: ltThis.index, newEdge: thisRt)
+        
+        list.remove(index: this)
+        
+        return ltThis
+    }
+    
+    private mutating func divideThisRound(point p: Point, thisEdge: ShapeEdge, this: DualIndex) -> VersionedIndex {
         let thisLt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.a, b: p, count: thisEdge.count)
         let thisRt = ShapeEdge.createAndValidate(a: p, b: thisEdge.xSegment.b, count: thisEdge.count)
         
@@ -206,7 +247,29 @@ private struct SplitSolver<S: ScanSplitStore> {
         return ltThis
     }
     
-    private mutating func divideScan(point p: Point, thisEdge: ShapeEdge, scanEdge: ShapeEdge, other: DualIndex) {
+    private mutating func divideScanExact(point p: Point, thisEdge: ShapeEdge, scanEdge: ShapeEdge, other: DualIndex) {
+        // this segment-end divide scan(other) segment into 2 parts
+        
+        let scanLt = ShapeEdge(xSegment: XSegment(a: scanEdge.xSegment.a, b: p), count: scanEdge.count)
+        let scanRt = ShapeEdge(xSegment: XSegment(a: p, b: scanEdge.xSegment.b), count: scanEdge.count)
+        
+        assert(scanLt.xSegment.isLess(scanRt.xSegment))
+        
+        let newScanLeft = list.addAndMerge(anchorIndex: other, newEdge: scanLt)
+        let newScanRight = list.addAndMerge(anchorIndex: other, newEdge: scanRt)
+        
+        list.remove(index: other)
+
+        if thisEdge.xSegment.a.x < p.x {
+            // this < p
+            scanStore.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
+        } else if scanRt.xSegment.isLess(thisEdge.xSegment) {
+            // scanRt < this
+            scanStore.insert(segment: VersionSegment(vIndex: newScanRight, xSegment: scanRt.xSegment))
+        }
+    }
+    
+    private mutating func divideScanRound(point p: Point, thisEdge: ShapeEdge, scanEdge: ShapeEdge, other: DualIndex) {
         // this segment-end divide scan(other) segment into 2 parts
         
         let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: p, count: scanEdge.count)
@@ -219,9 +282,11 @@ private struct SplitSolver<S: ScanSplitStore> {
         
         list.remove(index: other)
         
-        if thisEdge.xSegment.isLess(scanRt.xSegment) {
+        if thisEdge.xSegment.a.x < p.x {
+            // this < p
             scanStore.insert(segment: VersionSegment(vIndex: newScanLeft, xSegment: scanLt.xSegment))
-        } else {
+        } else if scanRt.xSegment.isLess(thisEdge.xSegment) {
+            // scanRt < this
             scanStore.insert(segment: VersionSegment(vIndex: newScanRight, xSegment: scanRt.xSegment))
         }
     }
@@ -231,12 +296,10 @@ private struct SplitSolver<S: ScanSplitStore> {
         // this.b == scan.b and scan.b < this.a < scan.b
         
         let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
-        let merge = ShapeEdge(xSegment: thisEdge.xSegment, count: thisEdge.count.add(scanEdge.count))
-        
-//        assert(scanLt.xSegment.isLess(thisEdge.xSegment))
+        let merge = thisEdge.count.add(scanEdge.count)
         
         _ = list.addAndMerge(anchorIndex: other, newEdge: scanLt)
-        _ = list.update(index: this, edge: merge)
+        _ = list.update(index: this, count: merge)
         
         list.remove(index: other)
 

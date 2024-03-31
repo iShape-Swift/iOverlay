@@ -30,7 +30,7 @@ extension IntervalNode {
 
 struct ScanSplitTree: ScanSplitStore {
 
-    fileprivate let power: Int
+    private let power: Int
     fileprivate var nodes: [IntervalNode]
 
     private static func createNodes(range: LineRange, power: Int) -> [IntervalNode] {
@@ -349,16 +349,15 @@ struct ScanSplitTree: ScanSplitStore {
         while j < self.nodes[index].list.count {
             let scan = self.nodes[index].list[j]
             
-            let isScanOutdated = Point.xLineCompare(a: scan.xSegment.b, b: scanPos)
-            let isScanBehind = scan.xSegment.isLess(this)
+            let isValid = ScanCrossSolver.isValid(scan: scan.xSegment, this: this)
             
-            if isScanOutdated || !isScanBehind {
+            if !isValid {
                 self.nodes[index].list.swapRemove(j)
                 continue
             }
             
             // order is important! this * scan
-            if let cross = this.scanCross(scan.xSegment) {
+            if let cross = ScanCrossSolver.cross(target: this, other: scan.xSegment) {
                 self.remove(segment: scan, scanPos: scanPos)
                 return CrossSegment(other: scan.vIndex, cross: cross)
             }

@@ -27,16 +27,15 @@ struct ScanSplitList: ScanSplitStore {
         while i < buffer.count {
             let scan = self.buffer[i]
             
-            let isScanOutdated = Point.xLineCompare(a: scan.xSegment.b, b: scanPos)
-            let isScanBehind = scan.xSegment.isLess(this)
-
-            if isScanOutdated || !isScanBehind {
+            let isValid = ScanCrossSolver.isValid(scan: scan.xSegment, this: this)
+            
+            if !isValid {
                 self.buffer.swapRemove(i)
                 continue
             }
             
             // order is important! thix x scan
-            if let cross = this.scanCross(scan.xSegment) {
+            if let cross = ScanCrossSolver.cross(target: this, other: scan.xSegment) {
                 self.buffer.swapRemove(i)
                 return CrossSegment(other: scan.vIndex, cross: cross)
             }
