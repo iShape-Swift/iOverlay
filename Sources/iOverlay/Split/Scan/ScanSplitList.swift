@@ -23,7 +23,6 @@ struct ScanSplitList: ScanSplitStore {
         // in that case we remove segments (they will be added automatically later)
 
         var i = 0
-        let scanPos = this.a
         while i < buffer.count {
             let scan = self.buffer[i]
             

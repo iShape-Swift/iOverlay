@@ -158,7 +158,7 @@ private struct SplitSolver<S: ScanSplitStore> {
                     // or
                     // partly overlap each other
                     
-                    if Point.xLineCompare(a: thisEdge.xSegment.b, b: scanEdge.xSegment.b) {
+                    if Point.xLineCompare(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b) {
                         // partly overlap
                         this = self.divideBothPartlyOverlap(
                             thisEdge: thisEdge,
@@ -167,6 +167,7 @@ private struct SplitSolver<S: ScanSplitStore> {
                             other: other.index
                         )
                     } else {
+                        assert(Point.xLineCompare(a: thisEdge.xSegment.b, b: scanEdge.xSegment.b))
                         // this inside scan
                         this = self.divideBothThisInsideScan(
                             thisEdge: thisEdge,
@@ -318,7 +319,9 @@ private struct SplitSolver<S: ScanSplitStore> {
         
         list.remove(index: this)
         
-        scanStore.insert(segment: VersionSegment(vIndex: VersionedIndex(version: newVersion, index: other), xSegment: scanEdge.xSegment))
+        let verIndex = VersionedIndex(version: newVersion, index: other)
+        let verSegment = VersionSegment(vIndex: verIndex, xSegment: scanEdge.xSegment)
+        scanStore.insert(segment: verSegment)
 
         return list.next(index: other)
     }
@@ -381,4 +384,3 @@ private extension ShapeEdge {
         }
     }
 }
-

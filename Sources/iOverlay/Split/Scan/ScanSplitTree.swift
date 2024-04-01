@@ -339,6 +339,7 @@ struct ScanSplitTree: ScanSplitStore {
         }
     }
     
+    // TODO! scanPos == this.a
     private mutating func cross(index: Int, this: XSegment, scanPos: Point) -> CrossSegment? {
         // normally scan list contain segments before this segment,
         // but sometimes after rollback it can contain segments behind this segment
