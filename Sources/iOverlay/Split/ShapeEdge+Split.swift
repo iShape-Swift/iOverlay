@@ -169,7 +169,7 @@ private struct SplitSolver<S: ScanSplitStore> {
                     } else {
                         assert(Point.xLineCompare(a: thisEdge.xSegment.b, b: scanEdge.xSegment.b))
                         // this inside scan
-                        this = self.divideBothThisInsideScan(
+                        this = self.divideScanByThree(
                             thisEdge: thisEdge,
                             this: this.index,
                             scanEdge: scanEdge,
@@ -347,7 +347,7 @@ private struct SplitSolver<S: ScanSplitStore> {
         return list.next(index: md.index)
     }
     
-    private mutating func divideBothThisInsideScan(thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, other: DualIndex) -> VersionedIndex {
+    private mutating func divideScanByThree(thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, other: DualIndex) -> VersionedIndex {
         // segments collinear
         // scan.a < this.a < this.b < scan.b
         
@@ -355,12 +355,16 @@ private struct SplitSolver<S: ScanSplitStore> {
         let merge = thisEdge.count.add(scanEdge.count)
         let scanRt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.b, b: scanEdge.xSegment.b, count: scanEdge.count)
         
-        _ = list.update(index: this, count: merge)
+        let newVersion = list.update(index: this, count: merge)
         
         _ = list.addAndMerge(anchorIndex: other, newEdge: scanLt)
         _ = list.addAndMerge(anchorIndex: this, newEdge: scanRt)
 
         list.remove(index: other)
+        
+        let verIndex = VersionedIndex(version: newVersion, index: this)
+        let verSegment = VersionSegment(vIndex: verIndex, xSegment: thisEdge.xSegment)
+        scanStore.insert(segment: verSegment)
 
         return list.next(index: this)
     }
