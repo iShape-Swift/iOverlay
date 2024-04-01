@@ -335,13 +335,16 @@ private struct SplitSolver<S: ScanSplitStore> {
         let thisRt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b, count: thisEdge.count)
         
         let lt = list.addAndMerge(anchorIndex: other, newEdge: scanLt).index
-        let md = list.addAndMerge(anchorIndex: lt, newEdge: middle).index
-        _ = list.addAndMerge(anchorIndex: md, newEdge: thisRt)
+        let md = list.addAndMerge(anchorIndex: lt, newEdge: middle)
+        _ = list.addAndMerge(anchorIndex: md.index, newEdge: thisRt)
 
         list.remove(index: this)
         list.remove(index: other)
         
-        return list.next(index: md)
+        let verSegment = VersionSegment(vIndex: md, xSegment: middle.xSegment)
+        scanStore.insert(segment: verSegment)
+
+        return list.next(index: md.index)
     }
     
     private mutating func divideBothThisInsideScan(thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, other: DualIndex) -> VersionedIndex {
