@@ -293,7 +293,7 @@ private struct SplitSolver<S: ScanSplitStore> {
     
     private mutating func divideScanOverlap(thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, other: DualIndex) -> VersionedIndex {
         // segments collinear
-        // this.b == scan.b and scan.b < this.a < scan.b
+        // this.b == scan.b and scan.a < this.a < scan.b
         
         let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
         let merge = thisEdge.count.add(scanEdge.count)
@@ -313,10 +313,12 @@ private struct SplitSolver<S: ScanSplitStore> {
         let merge = thisEdge.count.add(scanEdge.count)
         let thisRt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b, count: thisEdge.count)
         
-        _ = list.update(index: other, count: merge)
+        let newVersion = list.update(index: other, count: merge)
         _ = list.addAndMerge(anchorIndex: other, newEdge: thisRt)
         
         list.remove(index: this)
+        
+        scanStore.insert(segment: VersionSegment(vIndex: VersionedIndex(version: newVersion, index: other), xSegment: scanEdge.xSegment))
 
         return list.next(index: other)
     }
