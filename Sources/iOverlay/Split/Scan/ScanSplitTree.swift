@@ -292,12 +292,11 @@ struct ScanSplitTree: ScanSplitStore {
         var s = 1 << power
         var i = s - 1
         let range = this.yRange
-        let scanPos = this.a
         
         var earlyOut = false
         
         while s > 0 {
-            if let cross = self.cross(index: i, this: this, scanPos: scanPos) {
+            if let cross = self.cross(index: i, this: this) {
                 return cross
             }
             s >>= 1
@@ -324,7 +323,7 @@ struct ScanSplitTree: ScanSplitStore {
         i = iLt
         
         while i <= iRt {
-            if let cross = self.cross(index: i, this: this, scanPos: scanPos) {
+            if let cross = self.cross(index: i, this: this) {
                 return cross
             }
             i += 1
@@ -339,8 +338,7 @@ struct ScanSplitTree: ScanSplitStore {
         }
     }
     
-    // TODO! scanPos == this.a
-    private mutating func cross(index: Int, this: XSegment, scanPos: Point) -> CrossSegment? {
+    private mutating func cross(index: Int, this: XSegment) -> CrossSegment? {
         // normally scan list contain segments before this segment,
         // but sometimes after rollback it can contain segments behind this segment
         // in that case we remove segments (they will be added automatically later)
@@ -359,7 +357,7 @@ struct ScanSplitTree: ScanSplitStore {
             
             // order is important! this * scan
             if let cross = ScanCrossSolver.cross(target: this, other: scan.xSegment) {
-                self.remove(segment: scan, scanPos: scanPos)
+                self.remove(segment: scan, scanPos: this.a)
                 return CrossSegment(other: scan.vIndex, cross: cross)
             }
             j += 1
