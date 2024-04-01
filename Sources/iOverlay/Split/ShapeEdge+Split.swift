@@ -86,7 +86,9 @@ private struct SplitSolver<S: ScanSplitStore> {
                     this = self.divideThisExact(
                         point: point,
                         thisEdge: thisEdge,
-                        this: this.index
+                        this: this.index,
+                        scanEdge: scanEdge,
+                        scanVer: other
                     )
                     
                 case .otherEndRound(let point):
@@ -94,7 +96,9 @@ private struct SplitSolver<S: ScanSplitStore> {
                     this = self.divideThisRound(
                         point: point,
                         thisEdge: thisEdge,
-                        this: this.index
+                        this: this.index,
+                        scanEdge: scanEdge,
+                        scanVer: other
                     )
                     
                     needToFix = true
@@ -220,7 +224,7 @@ private struct SplitSolver<S: ScanSplitStore> {
         return ltThis
     }
     
-    private mutating func divideThisExact(point p: Point, thisEdge: ShapeEdge, this: DualIndex) -> VersionedIndex {
+    private mutating func divideThisExact(point p: Point, thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, scanVer: VersionedIndex) -> VersionedIndex {
         let thisLt = ShapeEdge(xSegment: XSegment(a: thisEdge.xSegment.a, b: p), count: thisEdge.count)
         let thisRt = ShapeEdge(xSegment: XSegment(a: p, b: thisEdge.xSegment.b), count: thisEdge.count)
         
@@ -231,10 +235,14 @@ private struct SplitSolver<S: ScanSplitStore> {
         
         list.remove(index: this)
         
+        if ScanCrossSolver.isValid(scan: scanEdge.xSegment, this: thisLt.xSegment) {
+            scanStore.insert(segment: VersionSegment(vIndex: scanVer, xSegment: scanEdge.xSegment))
+        }
+        
         return ltThis
     }
     
-    private mutating func divideThisRound(point p: Point, thisEdge: ShapeEdge, this: DualIndex) -> VersionedIndex {
+    private mutating func divideThisRound(point p: Point, thisEdge: ShapeEdge, this: DualIndex, scanEdge: ShapeEdge, scanVer: VersionedIndex) -> VersionedIndex {
         let thisLt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.a, b: p, count: thisEdge.count)
         let thisRt = ShapeEdge.createAndValidate(a: p, b: thisEdge.xSegment.b, count: thisEdge.count)
         
@@ -244,6 +252,10 @@ private struct SplitSolver<S: ScanSplitStore> {
         _ = list.addAndMerge(anchorIndex: ltThis.index, newEdge: thisRt)
         
         list.remove(index: this)
+        
+        if ScanCrossSolver.isValid(scan: scanEdge.xSegment, this: thisLt.xSegment) {
+            scanStore.insert(segment: VersionSegment(vIndex: scanVer, xSegment: scanEdge.xSegment))
+        }
         
         return ltThis
     }
@@ -365,7 +377,7 @@ private struct SplitSolver<S: ScanSplitStore> {
         let verIndex = VersionedIndex(version: newVersion, index: this)
         let verSegment = VersionSegment(vIndex: verIndex, xSegment: thisEdge.xSegment)
         scanStore.insert(segment: verSegment)
-
+        
         return list.next(index: this)
     }
 }

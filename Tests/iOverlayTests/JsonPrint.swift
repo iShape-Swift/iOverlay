@@ -17,12 +17,12 @@ struct PrintJson {
         result.append("\"fillRule\": \(fillRule.json()),\n")
         result.append("\"subjPaths\": [\(subjPaths.json())],\n")
         result.append("\"clipPaths\": [\(clipPaths.json())],\n")
-        result.append("\"subject\": \(subject.json()),\n")
-        result.append("\"clip\": \(clip.json()),\n")
-        result.append("\"difference\": \(difference.json()),\n")
-        result.append("\"intersect\": \(intersect.json()),\n")
-        result.append("\"union\": \(union.json()),\n")
-        result.append("\"xor\": \(xor.json())\n")
+        result.append("\"subject\": [\(subject.json())],\n")
+        result.append("\"clip\": [\(clip.json())],\n")
+        result.append("\"difference\": [\(difference.json())],\n")
+        result.append("\"intersect\": [\(intersect.json())],\n")
+        result.append("\"union\": [\(union.json())],\n")
+        result.append("\"xor\": [\(xor.json())]\n")
         result.append("}")
         
         return result
