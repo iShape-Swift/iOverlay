@@ -8,7 +8,8 @@
 import iFixFloat
 
 public enum CrossResult {
-    case pure(Point)        // simple intersection with no overlaps or common points
+    case pureExact(Point)
+    case pureRound(Point)
     case endOverlap
     case overlap
     case targetEndExact(Point)
@@ -20,7 +21,7 @@ public enum CrossResult {
 struct ScanCrossSolver {
     
     static func isValid(scan: XSegment, this: XSegment) -> Bool {
-        let isOutdated = Point.xLineCompare(a: scan.b, b: this.a)
+        let isOutdated = scan.b < this.a
         let isBehind = scan.isLess(this)
         
         return !isOutdated && isBehind
@@ -134,8 +135,11 @@ struct ScanCrossSolver {
             return .targetEndExact(target.b)
         }
         
-        
         let p = Self.crossPoint(a0: a0, a1: b0, b0: a1, b1: b1)
+        
+        if Triangle.isLine(p0: a0, p1: p, p2: b0) && Triangle.isLine(p0: a1, p1: p, p2: b1) {
+            return .pureExact(Point(p))
+        }
         
         // still can be common ends because of rounding
         // snap to nearest end with r (1^2 + 1^2 == 2)
@@ -167,7 +171,7 @@ struct ScanCrossSolver {
             }
         }
 
-        return .pure(Point(p))
+        return .pureRound(Point(p))
     }
     
     private static func crossPoint(a0: FixVec, a1: FixVec, b0: FixVec, b1: FixVec) -> FixVec {

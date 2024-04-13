@@ -79,46 +79,50 @@ final class DinamycTests: XCTestCase {
     }
     
     
-    func randomPolygon(radius: Double, n: Int) -> FixPath {
-        var result = FixPath()
+    func randomPolygon(radius: Double, n: Int) -> Path {
+        var result = Path()
         result.reserveCapacity(n)
         let da = Double.pi * 0.7
         var a = 0.0
+        let r = radius * 1024
         for _ in 0..<n {
             let s = sin(a)
             let c = cos(a)
 
-            let x = (radius * c).fix
-            let y = (radius * s).fix
+            let x = Int32(r * c)
+            let y = Int32(r * s)
 
-            result.append(FixVec(x, y))
+            result.append(Point(x, y))
             a += da
         }
 
         return result
     }
     
-    func createStar(r0: Double, r1: Double, count: Int, angle: Double) -> FixShape {
+    func createStar(r0: Double, r1: Double, count: Int, angle: Double) -> Shape {
         let da = .pi / Double(count)
         var a = angle
 
-        var points = [FixVec]()
+        var points = [Point]()
 
+        let ir0 = 1024 * r0
+        let ir1 = 1024 * r1
+        
         for _ in 0..<count {
-            let xr0 = r0 * cos(a)
-            let yr0 = r0 * sin(a)
+            let xr0 = Int32(ir0 * cos(a))
+            let yr0 = Int32(ir0 * sin(a))
 
             a += da
 
-            let xr1 = r1 * cos(a)
-            let yr1 = r1 * sin(a)
+            let xr1 = Int32(ir1 * cos(a))
+            let yr1 = Int32(ir1 * sin(a))
 
             a += da
 
-            points.append(FixVec(xr0.fix, yr0.fix))
-            points.append(FixVec(xr1.fix, yr1.fix))
+            points.append(Point(xr0, yr0))
+            points.append(Point(xr1, yr1))
         }
 
-        return FixShape(contour: points)
+        return [points]
     }
 }

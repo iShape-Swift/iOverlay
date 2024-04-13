@@ -53,7 +53,7 @@ public extension OverlayGraph {
         repeat {
             let fill = SideFill(fill: link.fill, a: a.point, b: b.point)
             path.append(VectorEdge(fill: fill, a: a.point, b: b.point))
-            let node = nodes[b.index]
+            let node = nodes[b.id]
             
             if node.indices.count == 2 {
                 next = node.other(index: next)
@@ -107,17 +107,17 @@ private extension Array where Element == VectorShape {
         
         segments.sort(by: { $0.xSegment.a.x < $1.xSegment.a.x })
 
-        let solution = HoleSolver.solve(shapeCount: self.count, iPoints: iPoints, segments: segments)
+        let solution = ShapeBinder.solve(shapeCount: self.count, iPoints: iPoints, segments: segments)
 
         
-        for shapeIndex in 0..<solution.holeCounter.count {
-            let capacity = solution.holeCounter[shapeIndex]
+        for shapeIndex in 0..<solution.childrenCountForParent.count {
+            let capacity = solution.childrenCountForParent[shapeIndex]
             self[shapeIndex].reserveCapacity(capacity + 1)
         }
 
         for holeIndex in 0..<holes.count {
             let hole = holes[holeIndex]
-            let shapeIndex = solution.holeShape[holeIndex]
+            let shapeIndex = solution.parentForChild[holeIndex]
             self[shapeIndex].append(hole)
         }
     }

@@ -15,7 +15,7 @@ public struct ShapeEdge {
     var count: ShapeCount
     
     public init(a: Point, b: Point, count: ShapeCount) {
-        if Point.xLineCompare(a: a, b: b) {
+        if a < b {
             xSegment = XSegment(a: a, b: b)
         } else {
             xSegment = XSegment(a: b, b: a)

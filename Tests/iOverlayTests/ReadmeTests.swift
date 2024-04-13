@@ -17,26 +17,26 @@ final class ReadmeTests: XCTestCase {
 
         // add shape
         overlay.add(path: [
-            Vec(-20, -16).fix,
-            Vec(-20,  16).fix,
-            Vec( 20,  16).fix,
-            Vec( 20, -16).fix
+            Point(-20, -16),
+            Point(-20,  16),
+            Point( 20,  16),
+            Point( 20, -16)
         ], type: ShapeType.subject)
 
         // add hole
         overlay.add(path: [
-            Vec(-12, -8).fix,
-            Vec(-12,  8).fix,
-            Vec( 12,  8).fix,
-            Vec( 12, -8).fix
+            Point(-12, -8),
+            Point(-12,  8),
+            Point( 12,  8),
+            Point( 12, -8)
         ], type: ShapeType.subject)
 
         // add clip
         overlay.add(path: [
-            Vec(-4, -24).fix,
-            Vec(-4,  24).fix,
-            Vec( 4,  24).fix,
-            Vec( 4, -24).fix
+            Point(-4, -24),
+            Point(-4,  24),
+            Point( 4,  24),
+            Point( 4, -24)
         ], type: ShapeType.clip)
 
         // make overlay graph

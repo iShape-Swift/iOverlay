@@ -14,31 +14,31 @@ final class FillRuleTests: XCTestCase {
     
     func test_00() throws {
         let shapes = [
-            self.square(pos: CGPoint(x: -10.0, y: -10.0).fix),
-            self.square(pos: CGPoint(x: -10.0, y:   0.0).fix),
-            self.square(pos: CGPoint(x: -10.0, y:  10.0).fix),
-            self.square(pos: CGPoint(x:   0.0, y: -10.0).fix),
-            self.square(pos: CGPoint(x:   0.0, y:  10.0).fix),
-            self.square(pos: CGPoint(x:  10.0, y: -10.0).fix),
-            self.square(pos: CGPoint(x:  10.0, y:   0.0).fix),
-            self.square(pos: CGPoint(x:  10.0, y:  10.0).fix)
+            self.square(pos: Point(-10, -10)),
+            self.square(pos: Point(-10,   0)),
+            self.square(pos: Point(-10,  10)),
+            self.square(pos: Point(  0, -10)),
+            self.square(pos: Point(  0,  10)),
+            self.square(pos: Point( 10, -10)),
+            self.square(pos: Point( 10,   0)),
+            self.square(pos: Point( 10,  10))
             ]
 
         let simplified = shapes.simplify(fillRule: .nonZero)
         
         XCTAssertEqual(simplified.count, 1)
-        XCTAssertEqual(simplified[0].paths.count, 2)
+        XCTAssertEqual(simplified[0].count, 2)
     }
     
     
-    private func square(pos: FixVec) -> FixShape {
+    private func square(pos: Point) -> Shape {
         let path = [
-            CGPoint(x: -5.0, y: -5.0).fix + pos,
-            CGPoint(x: -5.0, y:  5.0).fix + pos,
-            CGPoint(x:  5.0, y:  5.0).fix + pos,
-            CGPoint(x:  5.0, y: -5.0).fix + pos
+            Point(-5 + pos.x, -5 + pos.y),
+            Point(-5 + pos.x,  5 + pos.y),
+            Point( 5 + pos.x,  5 + pos.y),
+            Point( 5 + pos.x, -5 + pos.y)
         ]
         
-        return FixShape(contour: path)
+        return [path]
     }
 }

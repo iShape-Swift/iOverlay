@@ -14,14 +14,14 @@ import simd
 struct OverlayTest: Decodable {
     
     let fillRule: FillRule
-    let subjPaths: [[FixVec]]
-    let clipPaths: [[FixVec]]
-    let clip: [[FixShape]]
-    let subject: [[FixShape]]
-    let difference: [[FixShape]]
-    let intersect: [[FixShape]]
-    let union: [[FixShape]]
-    let xor: [[FixShape]]
+    let subjPaths: [[Point]]
+    let clipPaths: [[Point]]
+    let clip: [[Shape]]
+    let subject: [[Shape]]
+    let difference: [[Shape]]
+    let intersect: [[Shape]]
+    let union: [[Shape]]
+    let xor: [[Shape]]
 
     enum CodingKeys: String, CodingKey {
         case fillRule
@@ -52,26 +52,14 @@ struct OverlayTest: Decodable {
             fillRule = FillRule.evenOdd
         }
         
-        subjPaths = try container.decode([[FixVec]].self, forKey: .subjPaths)
-        clipPaths = try container.decode([[FixVec]].self, forKey: .clipPaths)
-        clip = try container.decode([[FixShape]].self, forKey: .clip)
-        subject = try container.decode([[FixShape]].self, forKey: .subject)
-        difference = try container.decode([[FixShape]].self, forKey: .difference)
-        intersect = try container.decode([[FixShape]].self, forKey: .intersect)
-        union = try container.decode([[FixShape]].self, forKey: .union)
-        xor = try container.decode([[FixShape]].self, forKey: .xor)
-    }
-}
-
-extension FixShape: Decodable {
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let paths = try container.decode([FixPath].self, forKey: .paths)
-        self.init(paths: paths)
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case paths
+        subjPaths = try container.decode([[Point]].self, forKey: .subjPaths)
+        clipPaths = try container.decode([[Point]].self, forKey: .clipPaths)
+        clip = try container.decode([[Shape]].self, forKey: .clip)
+        subject = try container.decode([[Shape]].self, forKey: .subject)
+        difference = try container.decode([[Shape]].self, forKey: .difference)
+        intersect = try container.decode([[Shape]].self, forKey: .intersect)
+        union = try container.decode([[Shape]].self, forKey: .union)
+        xor = try container.decode([[Shape]].self, forKey: .xor)
     }
 }
 
@@ -97,43 +85,13 @@ struct OverlayTestBank {
     }
 }
 
-extension FixShape {
+extension Shape {
     
-    func compare(_ other: FixShape) -> Bool {
-        guard self.paths.count == other.paths.count else {
-            return false
-        }
-        
-        for i in 0..<paths.count {
-            if self.compare(other.paths, shift: i) {
-                return true
-            }
-        }
-        
-        return false
-    }
-    
-    
-    func compare(_ other: [FixPath], shift: Int) -> Bool {
-        let n = paths.count
-        for i in 0..<n {
-            let a0 = paths[i]
-            let a1 = other[(i + shift) % n]
-            if !a0.compare(a1) {
-                return false
-            }
-        }
-        return true
-    }
-
-}
-
-extension Array where Element == FixShape {
-    
-    func compare(_ other: [FixShape]) -> Bool {
+    func compare(_ other: Shape) -> Bool {
         guard self.count == other.count else {
             return false
         }
+        
         for i in 0..<count {
             if self.compare(other, shift: i) {
                 return true
@@ -143,7 +101,8 @@ extension Array where Element == FixShape {
         return false
     }
     
-    func compare(_ other: [FixShape], shift: Int) -> Bool {
+    
+    func compare(_ other: [Path], shift: Int) -> Bool {
         let n = self.count
         for i in 0..<n {
             let a0 = self[i]
@@ -157,9 +116,9 @@ extension Array where Element == FixShape {
 
 }
 
-extension FixPath {
+extension Array where Element == Shape {
     
-    func compare(_ other: FixPath) -> Bool {
+    func compare(_ other: [Shape]) -> Bool {
         guard self.count == other.count else {
             return false
         }
@@ -172,7 +131,36 @@ extension FixPath {
         return false
     }
     
-    func compare(_ other: FixPath, shift: Int) -> Bool {
+    func compare(_ other: [Shape], shift: Int) -> Bool {
+        let n = self.count
+        for i in 0..<n {
+            let a0 = self[i]
+            let a1 = other[(i + shift) % n]
+            if !a0.compare(a1) {
+                return false
+            }
+        }
+        return true
+    }
+
+}
+
+extension Path {
+    
+    func compare(_ other: Path) -> Bool {
+        guard self.count == other.count else {
+            return false
+        }
+        for i in 0..<count {
+            if self.compare(other, shift: i) {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    func compare(_ other: Path, shift: Int) -> Bool {
         let n = self.count
         for i in 0..<n {
             let a0 = self[i]
@@ -185,3 +173,47 @@ extension FixPath {
     }
 
 }
+
+#if DEBUG
+
+extension OverlayTest: Encodable {
+    
+    init(
+        fillRule: FillRule,
+        subjPaths: [[Point]],
+        clipPaths: [[Point]],
+        clip: [[Shape]],
+        subject: [[Shape]],
+        difference: [[Shape]],
+        intersect: [[Shape]],
+        union: [[Shape]],
+        xor: [[Shape]]
+    ) {
+        self.fillRule = fillRule
+        self.subjPaths = subjPaths
+        self.clipPaths = clipPaths
+        self.clip = clip
+        self.subject = subject
+        self.difference = difference
+        self.intersect = intersect
+        self.union = union
+        self.xor = xor
+    }
+}
+
+extension FillRule: Encodable {
+    public func encode(to encoder: any Encoder) throws {
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.singleValueContainer()
+             switch self {
+             case .evenOdd:
+                 try container.encode(0)
+             case .nonZero:
+                 try container.encode(1)
+             }
+        }
+    }
+}
+
+
+#endif

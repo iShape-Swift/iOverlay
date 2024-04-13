@@ -16,7 +16,7 @@ final class iOverlayTests: XCTestCase {
         let overlay = Overlay(subjectPaths: test.subjPaths, clipPaths: test.clipPaths)
         
         let solvers = [Solver.list, Solver.tree]
-//        let solvers = [Solver.list]
+//        let solvers = [Solver.tree]
         
         for solver in solvers {
             let graph = overlay.buildGraph(fillRule: test.fillRule, solver: solver)
@@ -27,8 +27,8 @@ final class iOverlayTests: XCTestCase {
             let intersect = graph.extractShapes(overlayRule: .intersect)
             let union = graph.extractShapes(overlayRule: .union)
             let xor = graph.extractShapes(overlayRule: .xor)
-
-//            print(PrintJson.json(clip: clip, subject: subject, difference: difference, intersect: intersect, union: union, xor: xor, subjPaths: test.subjPaths, clipPaths: test.clipPaths, fillRule: test.fillRule))
+            
+//            self.printTest(test, clip: clip, subject: subject, difference: difference, intersect: intersect, union: union, xor: xor)
             
             XCTAssertTrue(self.test(result: clip, bank: test.clip))
             XCTAssertTrue(self.test(result: subject, bank: test.subject))
@@ -39,7 +39,33 @@ final class iOverlayTests: XCTestCase {
         }
     }
     
-    func debugExecute(index: Int, overlayRule: OverlayRule, solver: Solver) {
+    private func printTest(_ test: OverlayTest, clip: [Shape], subject: [Shape], difference: [Shape], intersect: [Shape], union: [Shape], xor: [Shape]) {
+        let aTest = OverlayTest(
+            fillRule: test.fillRule,
+            subjPaths: test.subjPaths,
+            clipPaths: test.clipPaths,
+            clip: [clip],
+            subject: [subject],
+            difference: [difference],
+            intersect: [intersect],
+            union: [union],
+            xor: [xor]
+        )
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        do {
+            let data = try encoder.encode(aTest)
+            if let json = String(data: data, encoding: .utf8) {
+                print(json)
+            }
+        } catch {
+            print("Error converting to JSON: \(error)")
+        }
+        
+    }
+    
+    
+    private func debugExecute(index: Int, overlayRule: OverlayRule, solver: Solver) {
         let test = OverlayTestBank.load(index: index)
         let overlay = Overlay(subjectPaths: test.subjPaths, clipPaths: test.clipPaths)
         let graph = overlay.buildGraph(fillRule: test.fillRule, solver: solver)
@@ -48,7 +74,7 @@ final class iOverlayTests: XCTestCase {
         print("result: \(result)")
     }
     
-    func test(result: [FixShape], bank: [[FixShape]]) -> Bool {
+    func test(result: [Shape], bank: [[Shape]]) -> Bool {
         for item in bank {
             if item == result {
                 return true

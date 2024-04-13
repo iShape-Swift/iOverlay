@@ -45,7 +45,7 @@ final class CheckboardTests: XCTestCase {
         )
         
         let clipPaths = self.manySuares(
-            start: FixVec(15, 15),
+            start: Point(15, 15),
             size: 20,
             offset: 30,
             n: n - 1
@@ -62,14 +62,14 @@ final class CheckboardTests: XCTestCase {
         return result.count
     }
      
-     private func manySuares(start: FixVec, size a: FixFloat, offset: FixFloat, n: Int) -> [FixPath] {
-         var result = [FixPath]()
+     private func manySuares(start: Point, size a: Int32, offset: Int32, n: Int) -> [Path] {
+         var result = [Path]()
          result.reserveCapacity(n * n)
          var y = start.y
          for _ in 0..<n {
              var x = start.x
              for _ in 0..<n {
-                 let path: FixPath = [
+                 let path: Path = [
                      .init(x, y),
                      .init(x, y + a),
                      .init(x + a, y + a),

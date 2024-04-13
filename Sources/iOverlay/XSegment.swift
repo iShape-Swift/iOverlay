@@ -65,9 +65,9 @@ extension XSegment {
     
     @inline(__always) func isLess(_ other: XSegment) -> Bool {
         if self.a == other.a {
-            return Point.xLineCompare(a: self.b, b: other.b)
+            return self.b < other.b
         } else {
-            return Point.xLineCompare(a: self.a, b: other.a)
+            return self.a < other.a
         }
     }
 }

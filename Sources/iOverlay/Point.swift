@@ -7,11 +7,8 @@
 
 import iFixFloat
 
-extension Point {
-    
-    @inline(__always)
-    static func xLineCompare(a: Point, b: Point) -> Bool {
-        a.x < b.x || a.x == b.x && a.y < b.y
+extension Point: Comparable {
+    public static func < (lhs: SIMD2<Scalar>, rhs: SIMD2<Scalar>) -> Bool {
+        lhs.x < rhs.x || lhs.x == rhs.x && lhs.y < rhs.y
     }
-    
 }

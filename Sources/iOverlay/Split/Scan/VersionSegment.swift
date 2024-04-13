@@ -25,7 +25,7 @@ extension Array where Element == VersionSegment {
         while j < self.count {
             let seg = self[j]
 
-            if Point.xLineCompare(a: seg.xSegment.b, b: scanPos) || segment == seg {
+            if seg.xSegment.b < scanPos || segment == seg {
                 self.swapRemove(j)
                 continue
             }
