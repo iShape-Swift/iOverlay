@@ -11,7 +11,7 @@ import iShape
 extension Array where Element == ShapeEdge {
     
     func split(solver: Solver, range: LineRange) -> [Segment] {
-        let isSmallRange = range.max - range.min < 128
+        let isSmallRange = range.width < 128
         let isList: Bool
 #if DEBUG
         isList = solver == .list || solver == .auto && (self.count < 1_000 || isSmallRange)

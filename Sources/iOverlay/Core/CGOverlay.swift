@@ -70,137 +70,20 @@ public struct CGOverlay {
     ///   - solver: Type of solver to use.
     /// - Returns: An `CGOverlayGraph` prepared for boolean operations.
     public func buildGraph(fillRule: FillRule = .nonZero, solver: Solver = .auto) -> CGOverlayGraph {
-        let subjBox = self.subjPaths.box()
-        let clipBox = self.clipPaths.box()
+        let subjRect = CGRect(shape: self.subjPaths)
+        let clipRect = CGRect(shape: self.clipPaths)
         
-        let matrix = Matrix(minMax: subjBox.union(other: clipBox))
+        let unionRect = CGRect(rect0: subjRect, rect1: clipRect)
+        let adapter = PointAdapter(rect: unionRect)
         
-        let iSubj = matrix.convertToInt(paths: self.subjPaths)
-        let iClip = matrix.convertToInt(paths: self.clipPaths)
+        let iSubj = self.subjPaths.toShape(adapter: adapter)
+        let iClip = self.clipPaths.toShape(adapter: adapter)
         
         let overlay = Overlay(subjectPaths: iSubj, clipPaths: iClip)
         let graph = overlay.buildGraph(fillRule: fillRule, solver: solver)
         
-        return CGOverlayGraph(graph: graph, matrix: matrix)
+        return CGOverlayGraph(graph: graph, adapter: adapter)
     }
-}
-
-struct Matrix {
-    
-    let offset: CGPoint
-    let scale: CGFloat
-    let iScale: CGFloat
-    
-    fileprivate init(minMax: MinMax) {
-        let dx = minMax.xMax - minMax.xMin
-        let dy = minMax.yMax - minMax.yMin
-        
-        let ds = Swift.max(dx, dy)
-
-        let l = Double(Int32.max)
-
-        if ds > l {
-            let power = Int(log2(ds / l))
-            self.scale = Double(1 >> power)
-        } else {
-            let power = Int(log2(l / ds))
-            self.scale = 1.0 / Double(1 >> power)
-        }
-        self.iScale = 1.0 / self.scale
-        
-        offset = CGPoint(x: minMax.xMin, y: minMax.yMin)
-    }
-    
-    func convertToInt(paths: [[CGPoint]]) -> [Path] {
-        var result = [[Point]]()
-        result.reserveCapacity(paths.count)
-        for path in paths {
-            result.append(self.convertToInt(path: path))
-        }
-        return result
-    }
-    
-    private func convertToInt(path: [CGPoint]) -> Path {
-        var result = [Point]()
-        result.reserveCapacity(path.count)
-        for p in path {
-            result.append(self.convertToInt(point: p))
-        }
-        return result
-    }
-    
-    private func convertToInt(point p: CGPoint) -> Point {
-        let x = Int32(self.scale * p.x - self.offset.x)
-        let y = Int32(self.scale * p.y - self.offset.y)
-        return Point(x: x, y: y)
-    }
-    
-    func convertToFloat(paths: [[Point]]) -> [[CGPoint]] {
-        var result = [[CGPoint]]()
-        result.reserveCapacity(paths.count)
-        for path in paths {
-            result.append(self.convertToFloat(path: path))
-        }
-        return result
-    }
-    
-    private func convertToFloat(path: [Point]) -> [CGPoint] {
-        var result = [CGPoint]()
-        result.reserveCapacity(path.count)
-        for p in path {
-            result.append(self.convertToFloat(point: p))
-        }
-        return result
-    }
-    
-    private func convertToFloat(point p: Point) -> CGPoint {
-        let x = self.iScale * CGFloat(p.x) + self.offset.x
-        let y = self.iScale * CGFloat(p.y) + self.offset.y
-        return CGPoint(x: x, y: y)
-    }
-    
-    func convertToInt(area: CGFloat) -> Int64 {
-        Int64(area * (self.scale * self.scale))
-    }
-}
-
-private struct MinMax {
-    let xMin: CGFloat
-    let yMin: CGFloat
-    let xMax: CGFloat
-    let yMax: CGFloat
-    
-    func union(other: MinMax) -> MinMax {
-        let xMin = Swift.min(other.xMin, self.xMin)
-        let xMax = Swift.max(other.xMax, self.xMax)
-        let yMin = Swift.min(other.yMin, self.yMin)
-        let yMax = Swift.max(other.yMax, self.yMax)
-        
-        return MinMax(xMin: xMin, yMin: yMin, xMax: xMax, yMax: yMax)
-    }
-    
-}
-
-private extension Array where Element == [CGPoint] {
-
-    func box() -> MinMax {
-        let a = CGFloat.greatestFiniteMagnitude
-        var xMin = a
-        var yMin = a
-        var xMax = -a
-        var yMax = -a
-        for path in self {
-            for p in path {
-                xMin = Swift.min(xMin, p.x)
-                xMax = Swift.max(xMax, p.x)
-                yMin = Swift.min(yMin, p.y)
-                yMax = Swift.max(yMax, p.y)
-            }
-        }
-        
-        return MinMax(xMin: xMin, yMin: yMin, xMax: xMax, yMax: yMax)
-    }
-
 }
 
 #endif

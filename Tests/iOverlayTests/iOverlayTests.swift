@@ -567,8 +567,11 @@ final class iOverlayTests: XCTestCase {
         self.execute(index: 120)
     }
     
+    func test_121() throws {
+        self.execute(index: 121)
+    }
     
     func test_debug() throws {
-        self.debugExecute(index: 106, overlayRule: .subject, solver: .list)
+        self.debugExecute(index: 121, overlayRule: .subject, solver: .tree)
     }
 }

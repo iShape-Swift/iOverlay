@@ -12,11 +12,11 @@ import iShape
 public struct CGOverlayGraph {
 
     private let graph: OverlayGraph
-    private let matrix: Matrix
+    private let adapter: PointAdapter
 
-    init(graph: OverlayGraph, matrix: Matrix) {
+    init(graph: OverlayGraph, adapter: PointAdapter) {
         self.graph = graph
-        self.matrix = matrix
+        self.adapter = adapter
     }
     
     /// Extracts and returns shapes from the overlay graph based on the specified overlay rule and minimum area threshold.
@@ -29,10 +29,11 @@ public struct CGOverlayGraph {
     ///
     /// - Returns: An array of `[CGShape]`.
     func extractShapes(overlayRule: OverlayRule, minArea: CGFloat = 0) -> [CGShape] {
-        let intArea = self.matrix.convertToInt(area: minArea)
-        let intResult = graph.extractShapes(overlayRule: overlayRule, minArea: intArea)
+        let sqrScale = adapter.dirScale * adapter.dirScale
+        let iArea = Int64(sqrScale * minArea)
+        let shapes = graph.extractShapes(overlayRule: overlayRule, minArea: iArea)
 
-        return intResult.map({ matrix.convertToFloat(paths: $0 ) })
+        return shapes.toCGShapes(adapter: adapter)
     }
 }
 #endif

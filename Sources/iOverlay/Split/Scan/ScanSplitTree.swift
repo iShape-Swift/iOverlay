@@ -38,7 +38,7 @@ struct ScanSplitTree: ScanSplitStore {
         
         // to make round more precise we use upscale/downscale
         let scale = 4
-        let len = Int64(range.max - range.min)
+        let len = range.width
         let step = (len << scale) / Int64(n)
         
         let capacity = (n << 1) - 1
