@@ -140,4 +140,100 @@ final class FloatOverlayTests: XCTestCase {
         XCTAssertEqual(unionShapes[0].count, 1)
         XCTAssertEqual(unionShapes[0][0].count, 4)
     }
+    
+    func test_04() throws {
+        let a = 0.9
+        
+        var overlay = CGOverlay()
+
+        // add first shape
+        overlay.add(path: [
+            CGPoint(x:-a, y:-a),
+            CGPoint(x:-a, y: a),
+            CGPoint(x: 0, y: a),
+            CGPoint(x: 0, y:-a)
+        ], type: ShapeType.subject)
+
+        // add second shape
+        overlay.add(path: [
+            CGPoint(x: 0, y:-a),
+            CGPoint(x: 0, y: a),
+            CGPoint(x: a, y: a),
+            CGPoint(x: a, y:-a)
+        ], type: ShapeType.subject)
+
+        // make overlay graph
+        let graph = overlay.buildGraph()
+
+        // get union shapes
+        let unionShapes = graph.extractShapes(overlayRule: OverlayRule.union)
+        
+        XCTAssertEqual(unionShapes.count, 1)
+        XCTAssertEqual(unionShapes[0].count, 1)
+        XCTAssertEqual(unionShapes[0][0].count, 4)
+    }
+    
+    func test_05() throws {
+        let a = 0.99999_99999_99999_9
+        
+        var overlay = CGOverlay()
+
+        // add first shape
+        overlay.add(path: [
+            CGPoint(x:-a, y:-a),
+            CGPoint(x:-a, y: a),
+            CGPoint(x: 0, y: a),
+            CGPoint(x: 0, y:-a)
+        ], type: ShapeType.subject)
+
+        // add second shape
+        overlay.add(path: [
+            CGPoint(x: 0, y:-a),
+            CGPoint(x: 0, y: a),
+            CGPoint(x: a, y: a),
+            CGPoint(x: a, y:-a)
+        ], type: ShapeType.subject)
+
+        // make overlay graph
+        let graph = overlay.buildGraph()
+
+        // get union shapes
+        let unionShapes = graph.extractShapes(overlayRule: OverlayRule.union)
+        
+        XCTAssertEqual(unionShapes.count, 1)
+        XCTAssertEqual(unionShapes[0].count, 1)
+        XCTAssertEqual(unionShapes[0][0].count, 4)
+    }
+    
+    func test_06() throws {
+        let a = 1.99999_99999_99999
+        
+        var overlay = CGOverlay()
+
+        // add first shape
+        overlay.add(path: [
+            CGPoint(x:-a, y:-a),
+            CGPoint(x:-a, y: a),
+            CGPoint(x: 0, y: a),
+            CGPoint(x: 0, y:-a)
+        ], type: ShapeType.subject)
+
+        // add second shape
+        overlay.add(path: [
+            CGPoint(x: 0, y:-a),
+            CGPoint(x: 0, y: a),
+            CGPoint(x: a, y: a),
+            CGPoint(x: a, y:-a)
+        ], type: ShapeType.subject)
+
+        // make overlay graph
+        let graph = overlay.buildGraph()
+
+        // get union shapes
+        let unionShapes = graph.extractShapes(overlayRule: OverlayRule.union)
+        
+        XCTAssertEqual(unionShapes.count, 1)
+        XCTAssertEqual(unionShapes[0].count, 1)
+        XCTAssertEqual(unionShapes[0][0].count, 4)
+    }
 }

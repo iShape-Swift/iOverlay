@@ -13,30 +13,30 @@ import iFixFloat
 final class ReadmeTests: XCTestCase {
     
     func test_00() throws {
-        var overlay = Overlay()
+        var overlay = CGOverlay()
 
         // add shape
         overlay.add(path: [
-            Point(-20, -16),
-            Point(-20,  16),
-            Point( 20,  16),
-            Point( 20, -16)
+            CGPoint(x:-20, y:-16),
+            CGPoint(x:-20, y: 16),
+            CGPoint(x: 20, y: 16),
+            CGPoint(x: 20, y:-16)
         ], type: ShapeType.subject)
 
         // add hole
         overlay.add(path: [
-            Point(-12, -8),
-            Point(-12,  8),
-            Point( 12,  8),
-            Point( 12, -8)
+            CGPoint(x:-12, y:-8),
+            CGPoint(x:-12, y: 8),
+            CGPoint(x: 12, y: 8),
+            CGPoint(x: 12, y:-8)
         ], type: ShapeType.subject)
 
         // add clip
         overlay.add(path: [
-            Point(-4, -24),
-            Point(-4,  24),
-            Point( 4,  24),
-            Point( 4, -24)
+            CGPoint(x:-4, y:-24),
+            CGPoint(x:-4, y: 24),
+            CGPoint(x: 4, y: 24),
+            CGPoint(x: 4, y:-24)
         ], type: ShapeType.clip)
 
         // make overlay graph
