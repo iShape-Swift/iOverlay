@@ -93,7 +93,7 @@ private extension Path {
         }
 
         let uArea = self.unsafeArea
-        let absArea = abs(uArea) >> (FixFloat.fractionBits + 1)
+        let absArea = abs(uArea) >> 1
 
         if absArea < minArea {
             return false

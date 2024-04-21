@@ -9,7 +9,7 @@ extension FixShape: Equatable {
     }
 }
 
-final class iOverlayTests: XCTestCase {
+final class OverlayTests: XCTestCase {
     
     private func execute(index: Int) {
         let test = OverlayTestBank.load(index: index)
