@@ -6,8 +6,7 @@
 //
 
 import XCTest
-import iShape
-import iFixFloat
+
 @testable import iOverlay
 
 final class ReadmeTests: XCTestCase {

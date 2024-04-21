@@ -14,7 +14,7 @@ public struct CGOverlayGraph {
     private let graph: OverlayGraph
     private let adapter: PointAdapter
 
-    init(graph: OverlayGraph, adapter: PointAdapter) {
+    public init(graph: OverlayGraph, adapter: PointAdapter) {
         self.graph = graph
         self.adapter = adapter
     }
@@ -28,7 +28,7 @@ public struct CGOverlayGraph {
     ///   - minArea: The minimum area a shape must have to be included in the return value. This parameter helps in filtering out insignificant shapes or noise. Defaults to 0, which includes all shapes regardless of size.
     ///
     /// - Returns: An array of `[CGShape]`.
-    func extractShapes(overlayRule: OverlayRule, minArea: CGFloat = 0) -> [CGShape] {
+    public func extractShapes(overlayRule: OverlayRule, minArea: CGFloat = 0) -> [CGShape] {
         let sqrScale = adapter.dirScale * adapter.dirScale
         let iArea = Int64(sqrScale * minArea)
         let shapes = graph.extractShapes(overlayRule: overlayRule, minArea: iArea)
