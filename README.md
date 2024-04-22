@@ -45,8 +45,6 @@ Installing iOverlay is simple and easy using Swift Package Manager. Just follow 
 - In your Swift code, add the following using statement to access the library:
 
 ```swift
-import iFixFloat
-import iShape
 import iOverlay
 ```
 
