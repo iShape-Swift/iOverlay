@@ -236,4 +236,22 @@ final class FloatOverlayTests: XCTestCase {
         XCTAssertEqual(unionShapes[0].count, 1)
         XCTAssertEqual(unionShapes[0][0].count, 4)
     }
+    
+    func test_random() throws {
+        for n in 5...10 {
+            var points = [CGPoint](repeating: .zero, count: n)
+            for _ in 0...1000 {
+                for i in 0..<n {
+                    let x = CGFloat.random(in: -1...1)
+                    let y = CGFloat.random(in: -1...1)
+                    points[i] = CGPoint(x: x, y: y)
+                }
+                var overlay = CGOverlay()
+                overlay.add(path: points, type: .subject)
+                let graph = overlay.buildGraph()
+                let shapes = graph.extractShapes(overlayRule: OverlayRule.subject)
+                XCTAssertFalse(shapes.isEmpty)
+            }
+        }
+    }
 }
