@@ -57,30 +57,30 @@ import iOverlay
 Here's an example of how you can create a square with a hole and *union / differnce / intersect / xor* with other polygon:
 
 ```swift
-var overlay = Overlay()
+var overlay = CGOverlay()
 
 // add shape
 overlay.add(path: [
-    Vec(-20, -16).fix,
-    Vec(-20,  16).fix,
-    Vec( 20,  16).fix,
-    Vec( 20, -16).fix
+    CGPoint(x:-20, y:-16),
+    CGPoint(x:-20, y: 16),
+    CGPoint(x: 20, y: 16),
+    CGPoint(x: 20, y:-16)
 ], type: ShapeType.subject)
 
 // add hole
 overlay.add(path: [
-    Vec(-12, -8).fix,
-    Vec(-12,  8).fix,
-    Vec( 12,  8).fix,
-    Vec( 12, -8).fix
+    CGPoint(x:-12, y:-8),
+    CGPoint(x:-12, y: 8),
+    CGPoint(x: 12, y: 8),
+    CGPoint(x: 12, y:-8)
 ], type: ShapeType.subject)
 
 // add clip
 overlay.add(path: [
-    Vec(-4, -24).fix,
-    Vec(-4,  24).fix,
-    Vec( 4,  24).fix,
-    Vec( 4, -24).fix
+    CGPoint(x:-4, y:-24),
+    CGPoint(x:-4, y: 24),
+    CGPoint(x: 4, y: 24),
+    CGPoint(x: 4, y:-24)
 ], type: ShapeType.clip)
 
 // make overlay graph
