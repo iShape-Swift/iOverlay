@@ -5,6 +5,7 @@
 //  Created by Nail Sharipov on 22.11.2023.
 //
 
+/*
 let emptyIndex: UInt32 = .max
 
 
@@ -223,3 +224,4 @@ struct SplitLinkedList {
         }
     }
 }
+*/

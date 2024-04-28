@@ -8,7 +8,7 @@
 import iFixFloat
 
 struct CrossSegment {
-    let other: VersionedIndex
+    let other: IndexSegment
     let cross: CrossResult
 }
 
@@ -16,7 +16,7 @@ protocol ScanSplitStore {
     
     mutating func intersectAndRemoveOther(this: XSegment) -> CrossSegment?
  
-    mutating func insert(segment: VersionSegment)
+    mutating func insert(segment: IndexSegment)
  
     mutating func clear()
 }

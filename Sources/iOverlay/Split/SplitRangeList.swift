@@ -4,7 +4,7 @@
 //
 //  Created by Nail Sharipov on 22.11.2023.
 //
-
+/*
 struct SplitRangeList {
     
     private var ranges: [UInt64]
@@ -189,3 +189,4 @@ private extension Array where Element == UInt64 {
         return left
     }
 }
+*/

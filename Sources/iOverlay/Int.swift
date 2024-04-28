@@ -7,7 +7,7 @@
 
 extension Int {
     
-    private var logTwo: Int {
+    var logTwo: Int {
         Int.bitWidth - self.leadingZeroBitCount
     }
     
