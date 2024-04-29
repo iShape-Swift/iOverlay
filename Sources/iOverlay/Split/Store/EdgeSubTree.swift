@@ -26,6 +26,7 @@ struct EdgeSubTree {
     
     private (set) var tree: RBTree<ShapeEdge>
     
+    @inlinable
     init(edges: ArraySlice<ShapeEdge>) {
         let n = edges.count
         assert(n > 0)
@@ -33,6 +34,7 @@ struct EdgeSubTree {
 
     }
     
+    @inlinable
     func find(xSegment: XSegment) -> UInt32 {
         var index = tree.root
         
@@ -51,6 +53,7 @@ struct EdgeSubTree {
         return .empty
     }
     
+    @inlinable
     func findEqualOrNext(xSegment: XSegment) -> UInt32 {
         var pIndex = UInt32.empty
         var index = tree.root
@@ -74,6 +77,7 @@ struct EdgeSubTree {
         return pIndex
     }
     
+    @inlinable
     mutating func removeAndNext(_ rIndex: UInt32) -> UInt32 {
         let xSegment = self.tree[rIndex].value.xSegment
         _ = self.tree.delete(index: rIndex)
@@ -93,24 +97,29 @@ struct EdgeSubTree {
         return result
     }
     
+    @inlinable
     mutating func getAndRemove(_ index: UInt32) -> ShapeEdge {
         let edge = self.tree[index].value
         _ = self.tree.delete(index: index)
         return edge
     }
     
+    @inlinable
     mutating func remove(edge: ShapeEdge) {
         self.tree.delete(value: edge)
     }
 
+    @inlinable
     mutating func remove(index: UInt32) {
         _ = self.tree.delete(index: index)
     }
     
+    @inlinable
     mutating func update(index: UInt32, count: ShapeCount) {
         _ = self.tree[index].value.count = count
     }
     
+    @inlinable
     mutating func merge(edge: ShapeEdge) -> UInt32 {
         var pIndex = UInt32.empty
         var index = tree.root
@@ -138,7 +147,12 @@ struct EdgeSubTree {
             }
         }
         
-        return tree.insert(value: edge, pIndex: pIndex, isLeft: isLeft)
+        if pIndex == .empty {
+            tree.insertRoot(value: edge)
+            return tree.root
+        } else {
+            return tree.insert(value: edge, pIndex: pIndex, isLeft: isLeft)
+        }
     }
     
 }
