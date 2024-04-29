@@ -11,19 +11,19 @@ import iTree
 #if DEBUG
 struct IntervalNode {
     let range: LineRange
-    var list: [IndexSegment]
+    var list: [XSegment]
 }
 #else
 private struct IntervalNode {
     let range: LineRange
-    var list: [IndexSegment]
+    var list: [XSegment]
 }
 #endif
 
 extension IntervalNode {
     init(range: LineRange) {
         self.range = range
-        self.list = [IndexSegment]()
+        self.list = [XSegment]()
         self.list.reserveCapacity(4)
     }
 }
@@ -88,10 +88,10 @@ struct ScanSplitTree: ScanSplitStore {
         self.nodes = Self.createNodes(range: range, power: power)
     }
     
-    mutating func insert(segment: IndexSegment) {
+    mutating func insert(segment: XSegment) {
         var s = 1 << power
         var i = s - 1
-        let range = segment.xSegment.yRange
+        let range = segment.yRange
         
         var earlyOut = false
         
@@ -188,12 +188,12 @@ struct ScanSplitTree: ScanSplitStore {
         }
     }
     
-    mutating private func remove(segment: IndexSegment, scanPos: Point) {
+    mutating private func remove(segment: XSegment, scanPos: Point) {
         // same logic as for insert but now we remove
         
         var s = 1 << power
         var i = s - 1
-        let range = segment.xSegment.yRange
+        let range = segment.yRange
         
         var earlyOut = false
         
@@ -348,7 +348,7 @@ struct ScanSplitTree: ScanSplitStore {
         while j < self.nodes[index].list.count {
             let scan = self.nodes[index].list[j]
             
-            let isValid = ScanCrossSolver.isValid(scan: scan.xSegment, this: this)
+            let isValid = ScanCrossSolver.isValid(scan: scan, this: this)
             
             if !isValid {
                 self.nodes[index].list.swapRemove(j)
@@ -356,7 +356,7 @@ struct ScanSplitTree: ScanSplitStore {
             }
             
             // order is important! this * scan
-            if let cross = ScanCrossSolver.cross(target: this, other: scan.xSegment) {
+            if let cross = ScanCrossSolver.cross(target: this, other: scan) {
                 self.remove(segment: scan, scanPos: this.a)
                 return CrossSegment(other: scan, cross: cross)
             }

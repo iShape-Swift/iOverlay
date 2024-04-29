@@ -19,17 +19,21 @@ struct EdgeStore {
     
     init(edges: [ShapeEdge]) {
         // array must be sorted
+        guard edges.count <= Self.rangeLength else {
+            self.ranges = []
+            self.trees = [EdgeSubTree(edges: edges[...])]
+            return
+        }
         
-        let n = (edges.count - 1) / Self.rangeLength + 1
+        let n = edges.count / Self.rangeLength
         
         var ranges = [Int32]()
-        ranges.reserveCapacity(n + 1)
+        ranges.reserveCapacity(n)
         ranges.append(Int32.min)
         
         var trees = [EdgeSubTree]()
-        trees.reserveCapacity(n)
-        
-        
+        trees.reserveCapacity(n + 1)
+
         var i = 0
         while i < edges.count {
             var j = i
@@ -44,9 +48,10 @@ struct EdgeStore {
                 }
                 j += 1
             }
-            ranges.append(x)
             trees.append(EdgeSubTree(edges: edges[i..<j]))
             i = j
+            
+            ranges.append(x)
         }
         
         self.ranges = ranges
@@ -70,9 +75,10 @@ struct EdgeStore {
         self.trees[Int(index.tree)].tree[index.node].value
     }
     
-    func find(tree: UInt32, xSegment: XSegment) -> StoreIndex {
-        let node = self.trees[Int(tree)].find(xSegment: xSegment)
-        return StoreIndex(tree: tree, node: node)
+    func find(xSegment: XSegment) -> StoreIndex {
+        let tree = self.findTree(x: xSegment.a.x)
+        let node = self.trees[tree].find(xSegment: xSegment)
+        return StoreIndex(tree: UInt32(tree), node: node)
     }
     
     func findEqualOrNext(tree: UInt32, xSegment: XSegment) -> StoreIndex {
@@ -110,7 +116,8 @@ struct EdgeStore {
         self.trees[Int(index.tree)].getAndRemove(index.node)
     }
     
-    mutating func remove(tree: UInt32, edge: ShapeEdge) {
+    mutating func remove(edge: ShapeEdge) {
+        let tree = self.findTree(x: edge.xSegment.a.x)
         self.trees[Int(tree)].remove(edge: edge)
     }
     
@@ -122,19 +129,17 @@ struct EdgeStore {
         self.trees[Int(index.tree)].update(index: index.node, count: count)
     }
     
-    mutating func addAndMerge(tree: UInt32, newEdge: ShapeEdge) -> StoreIndex {
-        let tree = self.findTree(tree: tree, x: newEdge.xSegment.a.x)
-        let node = self.trees[Int(tree)].merge(edge: newEdge)
-        return StoreIndex(tree: tree, node: node)
+    mutating func addAndMerge(newEdge: ShapeEdge) -> StoreIndex {
+        let tree = self.findTree(x: newEdge.xSegment.a.x)
+        let node = self.trees[tree].merge(edge: newEdge)
+        return StoreIndex(tree: UInt32(tree), node: node)
     }
     
-    private func findTree(tree: UInt32, x: Int32) -> UInt32 {
-        let index = Int(tree)
-        if ranges[index] < x && x <= ranges[index + 1] {
-            return tree
-        } else {
-            return UInt32(ranges.findIndex(target: x) - 1)
+    private func findTree(x: Int32) -> Int {
+        guard !ranges.isEmpty else {
+            return 0
         }
+        return ranges.findIndex(target: x)
     }
     
     func segments() -> [Segment] {
@@ -180,5 +185,12 @@ private extension Array where Element == Int32 {
         }
         
         return left
+    }
+}
+
+
+struct TestFindIndex {
+    static func findIndex(array: [Int32], target: Int32) -> Int {
+        array.findIndex(target: target)
     }
 }

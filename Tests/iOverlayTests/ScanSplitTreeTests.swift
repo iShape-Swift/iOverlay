@@ -25,7 +25,7 @@ final class IntervalTreeTests: XCTestCase {
     func test_02() throws {
         var tree = ScanSplitTree(range: LineRange(min: 0, max: 128), power: 3)
         let xSeg = XSegment(a: Point(0, 1), b: Point(0, 127))
-        tree.insert(segment: IndexSegment(xSegment: xSeg, tree: 0))
+        tree.insert(segment: xSeg)
         
         
         XCTAssertTrue(!tree.node(index: 0).list.isEmpty)
@@ -54,7 +54,7 @@ final class IntervalTreeTests: XCTestCase {
     func test_03() throws {
         var tree = ScanSplitTree(range: LineRange(min: 0, max: 128), power: 3)
         let xSeg = XSegment(a: Point(0, 16), b: Point(0, 112))
-        tree.insert(segment: IndexSegment(xSegment: xSeg, tree: 0))
+        tree.insert(segment: xSeg)
         
         
         XCTAssertTrue(tree.node(index: 0).list.isEmpty)
@@ -83,7 +83,7 @@ final class IntervalTreeTests: XCTestCase {
     func test_04() throws {
         var tree = ScanSplitTree(range: LineRange(min: 0, max: 128), power: 3)
         let xSeg = XSegment(a: Point(0, 17), b: Point(0, 111))
-        tree.insert(segment: IndexSegment(xSegment: xSeg, tree: 0))
+        tree.insert(segment: xSeg)
         
         
         XCTAssertTrue(tree.node(index: 0).list.isEmpty)
@@ -112,7 +112,7 @@ final class IntervalTreeTests: XCTestCase {
     func test_05() throws {
         var tree = ScanSplitTree(range: LineRange(min: 0, max: 128), power: 3)
         let xSeg = XSegment(a: Point(0, 32), b: Point(0, 96))
-        tree.insert(segment: IndexSegment(xSegment: xSeg, tree: 0))
+        tree.insert(segment: xSeg)
         
         
         XCTAssertTrue(tree.node(index: 0).list.isEmpty)
@@ -141,7 +141,7 @@ final class IntervalTreeTests: XCTestCase {
     func test_06() throws {
         var tree = ScanSplitTree(range: LineRange(min: 0, max: 128), power: 3)
         let xSeg = XSegment(a: Point(0, 33), b: Point(0, 95))
-        tree.insert(segment: IndexSegment(xSegment: xSeg, tree: 0))
+        tree.insert(segment: xSeg)
         
         XCTAssertTrue(tree.node(index: 0).list.isEmpty)
         XCTAssertTrue(tree.node(index: 1).list.isEmpty)
@@ -174,7 +174,7 @@ final class IntervalTreeTests: XCTestCase {
         let b1 = Point(8,  8)
         
         let xs = XSegment(a: a1, b: b1)
-        tree.insert(segment: IndexSegment(xSegment: XSegment(a: a0, b: b0), tree: 0))
+        tree.insert(segment: XSegment(a: a0, b: b0))
         let r1 = tree.intersectAndRemoveOther(this: xs)
         
         XCTAssertNil(r1)

@@ -7,31 +7,14 @@
 
 import iFixFloat
 
-struct IndexSegment {
-    let tree: UInt32
-    let xSegment: XSegment
+extension Array where Element == XSegment {
     
-    init(xSegment: XSegment, tree: UInt32) {
-        self.xSegment = xSegment
-        self.tree = tree
-    }
-    
-}
-
-extension IndexSegment: Equatable {
-    public static func == (lhs: IndexSegment, rhs: IndexSegment) -> Bool {
-        lhs.xSegment == rhs.xSegment
-    }
-}
-
-extension Array where Element == IndexSegment {
-    
-    mutating func remove(segment: IndexSegment, scanPos: Point) {
+    mutating func remove(segment: XSegment, scanPos: Point) {
         var j = 0
         while j < self.count {
             let seg = self[j]
 
-            if seg.xSegment.b < scanPos || segment == seg {
+            if seg.b < scanPos || segment == seg {
                 self.swapRemove(j)
                 continue
             }
@@ -39,5 +22,4 @@ extension Array where Element == IndexSegment {
             j += 1
         }
     }
-    
 }

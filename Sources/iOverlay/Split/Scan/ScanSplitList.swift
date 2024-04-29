@@ -9,11 +9,11 @@ import iFixFloat
 
 struct ScanSplitList: ScanSplitStore {
     
-    private var buffer: [IndexSegment]
+    private var buffer: [XSegment]
     
     @inline(__always)
     init(count: Int) {
-        buffer = [IndexSegment]()
+        buffer = [XSegment]()
         buffer.reserveCapacity(count.log2Sqrt)
     }
     
@@ -26,7 +26,7 @@ struct ScanSplitList: ScanSplitStore {
         while i < buffer.count {
             let scan = self.buffer[i]
             
-            let isValid = ScanCrossSolver.isValid(scan: scan.xSegment, this: this)
+            let isValid = ScanCrossSolver.isValid(scan: scan, this: this)
             
             if !isValid {
                 self.buffer.swapRemove(i)
@@ -34,7 +34,7 @@ struct ScanSplitList: ScanSplitStore {
             }
             
             // order is important! thix x scan
-            if let cross = ScanCrossSolver.cross(target: this, other: scan.xSegment) {
+            if let cross = ScanCrossSolver.cross(target: this, other: scan) {
                 self.buffer.swapRemove(i)
                 return CrossSegment(other: scan, cross: cross)
             }
@@ -46,7 +46,7 @@ struct ScanSplitList: ScanSplitStore {
     }
     
     @inline(__always)
-    mutating func insert(segment: IndexSegment) {
+    mutating func insert(segment: XSegment) {
         buffer.append(segment)
     }
     
