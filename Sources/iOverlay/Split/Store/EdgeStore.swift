@@ -14,12 +14,12 @@ struct EdgeStore {
     
     private var ranges: [Int32]
     private var trees: [EdgeSubTree]
-    private static let rangeLength: Int = 2
+    private static let rangeLength: Int = 8
     
     
     init(edges: [ShapeEdge]) {
         // array must be sorted
-        guard edges.count <= Self.rangeLength else {
+        guard edges.count > Self.rangeLength else {
             self.ranges = []
             self.trees = [EdgeSubTree(edges: edges[...])]
             return
@@ -28,11 +28,10 @@ struct EdgeStore {
         let n = edges.count / Self.rangeLength
         
         var ranges = [Int32]()
-        ranges.reserveCapacity(n)
-        ranges.append(Int32.min)
+        ranges.reserveCapacity(n - 1)
         
         var trees = [EdgeSubTree]()
-        trees.reserveCapacity(n + 1)
+        trees.reserveCapacity(n)
 
         var i = 0
         while i < edges.count {
@@ -41,7 +40,7 @@ struct EdgeStore {
             while j < edges.count {
                 let xj = edges[j].xSegment.a.x
                 if x != xj {
-                    if j - i < Self.rangeLength {
+                    if j - i >= Self.rangeLength {
                         break
                     }
                     x = xj
@@ -51,7 +50,9 @@ struct EdgeStore {
             trees.append(EdgeSubTree(edges: edges[i..<j]))
             i = j
             
-            ranges.append(x)
+            if i < edges.count {
+                ranges.append(x)
+            }
         }
         
         self.ranges = ranges
