@@ -14,7 +14,7 @@ extension CountSegment: Comparable {
     
     @inline(__always)
     static func < (lhs: CountSegment, rhs: CountSegment) -> Bool {
-        lhs.xSegment < rhs.xSegment
+        lhs.xSegment.isUnder(segment: rhs.xSegment)
     }
 }
 

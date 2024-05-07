@@ -45,7 +45,7 @@ extension XSegment {
     @inline(__always) func isUnder(point p: Point) -> Bool {
         assert(a.x <= p.x && p.x <= b.x)
         assert(p != a && p != b)
-        return Triangle.isClockwisePoints(p0: a, p1: p, p2: b)
+        return Triangle.isClockwise(p0: a, p1: p, p2: b)
     }
     
     /// Determines if first segment is under the second segment
@@ -55,11 +55,11 @@ extension XSegment {
     /// - Returns: `true` if point first segment is under the second segment, `false` otherwise.
     @inline(__always) func isUnder(segment other: XSegment) -> Bool {
         if a == other.a {
-            return Triangle.isClockwisePoints(p0: a, p1: other.b, p2: b)
+            return Triangle.isClockwise(p0: a, p1: other.b, p2: b)
         } else if a.x < other.a.x {
-            return Triangle.isClockwisePoints(p0: a, p1: other.a, p2: b)
+            return Triangle.isClockwise(p0: a, p1: other.a, p2: b)
         } else {
-            return Triangle.isClockwisePoints(p0: other.a, p1: other.b, p2: a)
+            return Triangle.isClockwise(p0: other.a, p1: other.b, p2: a)
         }
     }
     
@@ -72,22 +72,14 @@ extension XSegment {
     }
 }
 
-private extension Triangle {
-    
-    @inline(__always)
-    static func isClockwisePoints(p0: Point, p1: Point, p2: Point) -> Bool {
-        Triangle.isClockwise(p0: FixVec(p0), p1: FixVec(p1), p2: FixVec(p2))
-    }
-    
-}
-
-
 extension XSegment: Comparable {
-    
     @inline(__always)
     public static func < (lhs: XSegment, rhs: XSegment) -> Bool {
-        lhs.isUnder(segment: rhs)
+        lhs.isLess(rhs)
     }
+}
+
+extension XSegment: Equatable {
     @inline(__always)
     public static func == (lhs: XSegment, rhs: XSegment) -> Bool {
         lhs.a == rhs.a && lhs.b == rhs.b

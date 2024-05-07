@@ -1,5 +1,5 @@
 //
-//  EdgeSubTree.swift
+//  SubStoreTree.swift
 //
 //
 //  Created by Nail Sharipov on 26.04.2024.
@@ -7,7 +7,7 @@
 
 import iTree
 
-struct EdgeSubTree {
+struct SubStoreTree {
     
     private (set) var tree: RBTree<ShapeEdge>
 

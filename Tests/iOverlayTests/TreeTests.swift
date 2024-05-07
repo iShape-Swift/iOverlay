@@ -10,6 +10,7 @@ import iFixFloat
 import iTree
 @testable import iOverlay
 
+
 final class TreeTests: XCTestCase {
     
     func test_00() throws {
@@ -148,7 +149,7 @@ struct TreeSegment {
 
 extension TreeSegment: Comparable {
     static func < (lhs: TreeSegment, rhs: TreeSegment) -> Bool {
-        lhs.xSegment < rhs.xSegment
+        lhs.xSegment.isUnder(segment: rhs.xSegment)
     }
 }
 

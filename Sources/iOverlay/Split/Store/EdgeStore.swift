@@ -25,7 +25,7 @@ struct EdgeStore {
         
         guard edges.count > chunkStartLength else {
             self.ranges = []
-            self.subStores = [.list(EdgeSubList(edges: edges[...]))]
+            self.subStores = [.list(SubStoreList(edges: edges[...]))]
             return
         }
         
@@ -53,9 +53,9 @@ struct EdgeStore {
             }
             
             if j - i > chunkListMaxSize {
-                stores.append(.tree(EdgeSubTree(edges: edges[i..<j])))
+                stores.append(.tree(SubStoreTree(edges: edges[i..<j])))
             } else {
-                stores.append(.list(EdgeSubList(edges: edges[i..<j])))
+                stores.append(.list(SubStoreList(edges: edges[i..<j])))
             }
             
             i = j

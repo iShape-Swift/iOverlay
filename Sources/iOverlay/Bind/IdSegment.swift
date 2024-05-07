@@ -25,7 +25,7 @@ struct IdSegment {
 
 extension IdSegment: Comparable {
     static func < (lhs: IdSegment, rhs: IdSegment) -> Bool {
-        lhs.xSegment < rhs.xSegment
+        lhs.xSegment.isUnder(segment: rhs.xSegment)
     }
 }
 

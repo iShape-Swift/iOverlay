@@ -1,11 +1,11 @@
 //
-//  EdgeSubList.swift
+//  SubStoreList.swift
 //
 //
 //  Created by Nail Sharipov on 05.05.2024.
 //
 
-struct EdgeSubList {
+struct SubStoreList {
     
     private (set) var edges: [ShapeEdge]
     
@@ -33,9 +33,7 @@ struct EdgeSubList {
     @inlinable
     func findEqualOrNext(xSegment: XSegment) -> UInt32 {
         let result = index(target: xSegment)
-        if result.isExist {
-            return result.index
-        } else if result.index < edges.count {
+        if result.index < edges.count {
             return result.index
         } else {
             return .empty
@@ -48,10 +46,10 @@ struct EdgeSubList {
     }
     
     @inlinable
-    mutating func removeAndNext(_ rIndex: UInt32) -> UInt32 {
-        self.edges.remove(at: Int(rIndex))
-        if rIndex < self.edges.count {
-            return rIndex
+    mutating func removeAndNext(_ index: UInt32) -> UInt32 {
+        self.edges.remove(at: Int(index))
+        if index < self.edges.count {
+            return index
         } else {
             return .empty
         }
@@ -94,7 +92,7 @@ struct EdgeSubList {
             let mid = left + (right - left) / 2
             if edges[mid].xSegment == target {
                 return SearchResult(isExist: true, index: UInt32(mid))
-            } else if edges[mid].xSegment.isLess(target) {
+            } else if edges[mid].xSegment < target {
                 left = mid + 1
             } else {
                 right = mid

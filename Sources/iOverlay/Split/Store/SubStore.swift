@@ -7,8 +7,8 @@
 
 enum SubStore {
     
-    case list(EdgeSubList)
-    case tree(EdgeSubTree)
+    case list(SubStoreList)
+    case tree(SubStoreTree)
     
     @inlinable
     func first() -> UInt32 {
@@ -159,6 +159,6 @@ enum SubStore {
             return
         }
 
-        self = .tree(EdgeSubTree(edges: store.edges[...]))
+        self = .tree(SubStoreTree(edges: store.edges[...]))
     }
 }

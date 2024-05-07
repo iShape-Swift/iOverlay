@@ -40,6 +40,6 @@ extension ShapeEdge: Equatable {
 extension ShapeEdge: Comparable {
     @inline(__always)
     public static func < (lhs: ShapeEdge, rhs: ShapeEdge) -> Bool {
-        lhs.xSegment.isLess(rhs.xSegment)
+        lhs.xSegment < rhs.xSegment
     }
 }
