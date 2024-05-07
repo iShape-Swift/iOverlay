@@ -1,6 +1,6 @@
 //
-//  IndexSegment.swift
-//  
+//  XSegment+Remove.swift
+//
 //
 //  Created by Nail Sharipov on 06.03.2024.
 //

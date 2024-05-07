@@ -11,11 +11,32 @@ extension FixShape: Equatable {
 
 final class OverlayTests: XCTestCase {
     
+    private let solvers = [
+        Solver(
+            strategy: .list,
+            chunkStartLength: 8,
+            chunkListMaxSize: 16,
+            treeListThreshold: 1024
+        ),
+        Solver(
+            strategy: .tree,
+            chunkStartLength: 16,
+            chunkListMaxSize: 32,
+            treeListThreshold: 1024
+        ),
+        Solver(
+            strategy: .auto,
+            chunkStartLength: 2,
+            chunkListMaxSize: 4,
+            treeListThreshold: 1024
+        )
+    ]
+    
+    
     private func execute(index: Int) {
         let test = OverlayTestBank.load(index: index)
         let overlay = Overlay(subjectPaths: test.subjPaths, clipPaths: test.clipPaths)
-        
-        let solvers = [Solver.list, Solver.tree]
+
 //        let solvers = [Solver.tree]
         
         for solver in solvers {
@@ -572,6 +593,6 @@ final class OverlayTests: XCTestCase {
     }
     
     func test_debug() throws {
-        self.debugExecute(index: 83, overlayRule: .subject, solver: .list)
+        self.debugExecute(index: 110, overlayRule: .subject, solver: self.solvers[2])
     }
 }

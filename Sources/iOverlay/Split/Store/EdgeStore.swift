@@ -6,32 +6,36 @@
 //
 
 struct StoreIndex {
-    let tree: UInt32
+    let root: UInt32
     let node: UInt32
 }
 
 struct EdgeStore {
     
     private var ranges: [Int32]
-    private var trees: [EdgeSubTree]
-    private static let rangeLength: Int = 8
+    private var subStores: [SubStore]
+    private let chunkStartLength: Int
+    private let chunkListMaxSize: Int
     
     
-    init(edges: [ShapeEdge]) {
+    init(edges: [ShapeEdge], chunkStartLength: Int, chunkListMaxSize: Int) {
         // array must be sorted
-        guard edges.count > Self.rangeLength else {
+        self.chunkStartLength = chunkStartLength
+        self.chunkListMaxSize = chunkListMaxSize
+        
+        guard edges.count > chunkStartLength else {
             self.ranges = []
-            self.trees = [EdgeSubTree(edges: edges[...])]
+            self.subStores = [.list(EdgeSubList(edges: edges[...]))]
             return
         }
         
-        let n = edges.count / Self.rangeLength
+        let n = edges.count / chunkStartLength
         
         var ranges = [Int32]()
         ranges.reserveCapacity(n - 1)
         
-        var trees = [EdgeSubTree]()
-        trees.reserveCapacity(n)
+        var stores = [SubStore]()
+        stores.reserveCapacity(n)
 
         var i = 0
         while i < edges.count {
@@ -40,14 +44,20 @@ struct EdgeStore {
             while j < edges.count {
                 let xj = edges[j].xSegment.a.x
                 if x != xj {
-                    if j - i >= Self.rangeLength {
+                    if j - i >= chunkStartLength {
                         break
                     }
                     x = xj
                 }
                 j += 1
             }
-            trees.append(EdgeSubTree(edges: edges[i..<j]))
+            
+            if j - i > chunkListMaxSize {
+                stores.append(.tree(EdgeSubTree(edges: edges[i..<j])))
+            } else {
+                stores.append(.list(EdgeSubList(edges: edges[i..<j])))
+            }
+            
             i = j
             
             if i < edges.count {
@@ -56,111 +66,131 @@ struct EdgeStore {
         }
         
         self.ranges = ranges
-        self.trees = trees
+        self.subStores = stores
     }
     
+    @inlinable
     func first(index: UInt32) -> StoreIndex {
         let i0 = Int(index)
-        let i1 = trees.count
+        let i1 = subStores.count
         for i in i0..<i1 {
-            let firstIndex = trees[i].tree.firstByOrder()
+            let firstIndex = subStores[i].first()
             if firstIndex != .empty {
-                return StoreIndex(tree: UInt32(i), node: firstIndex)
+                return StoreIndex(root: UInt32(i), node: firstIndex)
             }
         }
         
-        return StoreIndex(tree: .empty, node: .empty)
+        return StoreIndex(root: .empty, node: .empty)
     }
     
+    @inlinable
     func edge(_ index: StoreIndex) -> ShapeEdge {
-        self.trees[Int(index.tree)].tree[index.node].value
+        subStores[Int(index.root)].edge(index.node)
     }
     
+    @inlinable
     func find(xSegment: XSegment) -> StoreIndex {
-        let tree = self.findTree(x: xSegment.a.x)
-        let node = self.trees[tree].find(xSegment: xSegment)
-        return StoreIndex(tree: UInt32(tree), node: node)
+        let root = self.findSubStore(x: xSegment.a.x)
+        let node = self.subStores[root].find(xSegment: xSegment)
+        return StoreIndex(root: UInt32(root), node: node)
     }
     
-    func findEqualOrNext(tree: UInt32, xSegment: XSegment) -> StoreIndex {
-        let node = self.trees[Int(tree)].findEqualOrNext(xSegment: xSegment)
+    @inlinable
+    func findEqualOrNext(root: UInt32, xSegment: XSegment) -> StoreIndex {
+        let node = self.subStores[Int(root)].findEqualOrNext(xSegment: xSegment)
         if node == .empty {
-            return self.first(index: tree + 1)
+            return self.first(index: root + 1)
         } else {
-            return StoreIndex(tree: tree, node: node)
+            return StoreIndex(root: root, node: node)
         }
     }
     
+    @inlinable
     mutating func removeAndNext(_ index: StoreIndex) -> StoreIndex {
-        let next = self.trees[Int(index.tree)].removeAndNext(index.node)
+        let next = self.subStores[Int(index.root)].removeAndNext(index.node)
         guard next == .empty else {
-            return StoreIndex(tree: index.tree, node: next)
+            return StoreIndex(root: index.root, node: next)
         }
         
-        return self.first(index: index.tree + 1)
+        return self.first(index: index.root + 1)
     }
     
-    mutating func next(_ index: StoreIndex) -> StoreIndex {
-        let next = self.trees[Int(index.tree)].tree.nextByOrder(index: index.node)
+    @inlinable
+    func next(_ index: StoreIndex) -> StoreIndex {
+        let next = self.subStores[Int(index.root)].next(index.node)
         guard next == .empty else {
-            return StoreIndex(tree: index.tree, node: next)
+            return StoreIndex(root: index.root, node: next)
         }
         
-        return self.first(index: index.tree + 1)
+        return self.first(index: index.root + 1)
     }
     
+    @inlinable
     func get(_ index: StoreIndex) -> ShapeEdge {
-        self.trees[Int(index.tree)].tree[index.node].value
+        self.subStores[Int(index.root)].get(index.node)
     }
     
+    @inlinable
     mutating func getAndRemove(_ index: StoreIndex) -> ShapeEdge {
-        self.trees[Int(index.tree)].getAndRemove(index.node)
+        self.subStores[Int(index.root)].getAndRemove(index.node)
     }
     
+    @inlinable
     mutating func remove(edge: ShapeEdge) {
-        let tree = self.findTree(x: edge.xSegment.a.x)
-        self.trees[Int(tree)].remove(edge: edge)
+        let root = self.findSubStore(x: edge.xSegment.a.x)
+        self.subStores[Int(root)].remove(edge: edge)
     }
     
+    @inlinable
     mutating func remove(index: StoreIndex) {
-        self.trees[Int(index.tree)].remove(index: index.node)
+        self.subStores[Int(index.root)].remove(index: index.node)
     }
     
+    @inlinable
     mutating func update(_ index: StoreIndex, count: ShapeCount) {
-        self.trees[Int(index.tree)].update(index: index.node, count: count)
+        self.subStores[Int(index.root)].update(index: index.node, count: count)
     }
     
-    mutating func addAndMerge(newEdge: ShapeEdge) -> StoreIndex {
-        let tree = self.findTree(x: newEdge.xSegment.a.x)
-        let node = self.trees[tree].merge(edge: newEdge)
-        return StoreIndex(tree: UInt32(tree), node: node)
+    @inlinable
+    mutating func addAndMerge(edge: ShapeEdge) -> StoreIndex {
+        let root = self.findSubStore(x: edge.xSegment.a.x)
+        self.subStores[root].increase(maxListSize: self.chunkListMaxSize)
+        
+        let node = self.subStores[root].merge(edge: edge)
+        return StoreIndex(root: UInt32(root), node: node)
     }
     
-    private func findTree(x: Int32) -> Int {
+    private func findSubStore(x: Int32) -> Int {
         guard !ranges.isEmpty else {
             return 0
         }
         return ranges.findIndex(target: x)
     }
     
+    @inlinable
     func segments() -> [Segment] {
         var result = [Segment]()
-        if trees.count > 1 {
-            result.reserveCapacity(trees.count * Self.rangeLength)
+        if subStores.count > 1 {
+            result.reserveCapacity(subStores.count * chunkStartLength)
         }
 
-        var sIndex = self.first(index: 0)
+        var subIndex = self.first(index: 0)
 
-        while sIndex.node != .empty {
-            let tree = trees[Int(sIndex.tree)].tree
-            var nIndex = tree.firstByOrder()
-            while nIndex != .empty {
-                let e = tree[nIndex].value
-                result.append(Segment(edge: e))
-                nIndex = tree.nextByOrder(index: nIndex)
+        while subIndex.node != .empty {
+            switch subStores[Int(subIndex.root)] {
+            case .list(let store):
+                for e in store.edges {
+                    result.append(Segment(edge: e))
+                }
+            case .tree(let store):
+                var next = store.tree.firstByOrder()
+                while next != .empty {
+                    let e = store.tree[next].value
+                    result.append(Segment(edge: e))
+                    next = store.tree.nextByOrder(index: next)
+                }
             }
-
-            sIndex = self.first(index: sIndex.tree + 1)
+            subIndex = self.first(index: subIndex.root + 1)
         }
 
         return result

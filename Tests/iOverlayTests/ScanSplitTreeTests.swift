@@ -173,9 +173,8 @@ final class IntervalTreeTests: XCTestCase {
         let a1 = Point(0,  3)
         let b1 = Point(8,  8)
         
-        let xs = XSegment(a: a1, b: b1)
         tree.insert(segment: XSegment(a: a0, b: b0))
-        let r1 = tree.intersectAndRemoveOther(this: xs)
+        let r1 = tree.intersectAndRemoveOther(this: XSegment(a: a1, b: b1))
         
         XCTAssertNil(r1)
         XCTAssertTrue(tree.count > 0)

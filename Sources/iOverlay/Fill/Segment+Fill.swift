@@ -22,7 +22,7 @@ private struct PGroup {
 extension Array where Element == Segment {
     
     mutating func fill(fillRule: FillRule, solver: Solver) {
-        let isList = solver == .list || solver == .auto && self.count < 1_000
+        let isList = solver.strategy == .list || solver.strategy == .auto && self.count < solver.treeListThreshold
         if isList {
             var store = ScanFillList(count: self.count)
             return self.solve(scanStore: &store, fillRule: fillRule)

@@ -28,3 +28,18 @@ public struct ShapeEdge {
         self.count = count
     }
 }
+
+extension ShapeEdge: Equatable {
+    
+    @inline(__always)
+    public static func == (lhs: ShapeEdge, rhs: ShapeEdge) -> Bool {
+        lhs.xSegment == rhs.xSegment
+    }
+}
+
+extension ShapeEdge: Comparable {
+    @inline(__always)
+    public static func < (lhs: ShapeEdge, rhs: ShapeEdge) -> Bool {
+        lhs.xSegment.isLess(rhs.xSegment)
+    }
+}

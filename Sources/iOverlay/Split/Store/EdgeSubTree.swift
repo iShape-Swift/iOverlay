@@ -7,31 +7,21 @@
 
 import iTree
 
-extension ShapeEdge: Equatable {
-    
-    @inline(__always)
-    public static func == (lhs: ShapeEdge, rhs: ShapeEdge) -> Bool {
-        lhs.xSegment == rhs.xSegment
-    }
-}
-
-extension ShapeEdge: Comparable {
-    @inline(__always)
-    public static func < (lhs: ShapeEdge, rhs: ShapeEdge) -> Bool {
-        lhs.xSegment.isLess(rhs.xSegment)
-    }
-}
-
 struct EdgeSubTree {
     
     private (set) var tree: RBTree<ShapeEdge>
-    
+
     @inlinable
     init(edges: ArraySlice<ShapeEdge>) {
         let n = edges.count
         assert(n > 0)
         tree = RBTree(empty: .zero, array: edges)
 
+    }
+
+    @inlinable
+    func first() -> UInt32 {
+        self.tree.firstByOrder()
     }
     
     @inlinable
@@ -57,14 +47,13 @@ struct EdgeSubTree {
     func findEqualOrNext(xSegment: XSegment) -> UInt32 {
         var pIndex = UInt32.empty
         var index = tree.root
-        var isLeft = false
         while index != .empty {
             let node = tree[index]
             if node.value.xSegment == xSegment {
                 return index
             }
             
-            isLeft = xSegment.isLess(node.value.xSegment)
+            let isLeft = xSegment.isLess(node.value.xSegment)
             if isLeft {
                 pIndex = index
                 index = node.left
@@ -75,6 +64,13 @@ struct EdgeSubTree {
         }
         
         return pIndex
+    }
+    
+    @inlinable
+    mutating func getAndRemove(_ index: UInt32) -> ShapeEdge {
+        let edge = self.tree[index].value
+        _ = self.tree.delete(index: index)
+        return edge
     }
     
     @inlinable
@@ -95,13 +91,6 @@ struct EdgeSubTree {
         }
         
         return result
-    }
-    
-    @inlinable
-    mutating func getAndRemove(_ index: UInt32) -> ShapeEdge {
-        let edge = self.tree[index].value
-        _ = self.tree.delete(index: index)
-        return edge
     }
     
     @inlinable
@@ -138,11 +127,10 @@ struct EdgeSubTree {
             }
             
             isLeft = edge.xSegment.isLess(node.value.xSegment)
+            pIndex = index
             if isLeft {
-                pIndex = index
                 index = node.left
             } else {
-                pIndex = index
                 index = node.right
             }
         }
