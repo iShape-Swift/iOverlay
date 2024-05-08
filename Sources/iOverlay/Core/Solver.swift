@@ -21,9 +21,9 @@ public enum Strategy {
 }
 
 public struct Solver {
-    public static let list = Solver(strategy: .list, chunkStartLength: 8, chunkListMaxSize: 64, treeListThreshold: 5000)
-    public static let tree = Solver(strategy: .tree, chunkStartLength: 8, chunkListMaxSize: 64, treeListThreshold: 5000)
-    public static let auto = Solver(strategy: .auto, chunkStartLength: 8, chunkListMaxSize: 64, treeListThreshold: 5000)
+    public static let list = Solver(strategy: .list, chunkStartLength: 8, chunkListMaxSize: 64, treeListThreshold: 1024)
+    public static let tree = Solver(strategy: .tree, chunkStartLength: 8, chunkListMaxSize: 64, treeListThreshold: 1024)
+    public static let auto = Solver(strategy: .auto, chunkStartLength: 8, chunkListMaxSize: 64, treeListThreshold: 1024)
     
     public let strategy: Strategy
     public let chunkStartLength: Int

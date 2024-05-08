@@ -11,6 +11,15 @@ enum SubStore {
     case tree(SubStoreTree)
     
     @inlinable
+    init(edges: ArraySlice<ShapeEdge>, chunkListMaxSize: Int) {
+        if edges.count > chunkListMaxSize {
+            self = .tree(SubStoreTree(edges: edges))
+        } else {
+            self = .list(SubStoreList(edges: edges))
+        }
+    }
+    
+    @inlinable
     func first() -> UInt32 {
         switch self {
         case .list(let store):

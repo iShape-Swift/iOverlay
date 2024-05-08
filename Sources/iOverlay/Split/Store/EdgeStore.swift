@@ -52,12 +52,7 @@ struct EdgeStore {
                 j += 1
             }
             
-            if j - i > chunkListMaxSize {
-                stores.append(.tree(SubStoreTree(edges: edges[i..<j])))
-            } else {
-                stores.append(.list(SubStoreList(edges: edges[i..<j])))
-            }
-            
+            stores.append(SubStore(edges: edges[i..<j], chunkListMaxSize: chunkListMaxSize))
             i = j
             
             if i < edges.count {
@@ -205,7 +200,7 @@ private extension Array where Element == Int32 {
         var right = self.count
         
         while left < right {
-            let mid = left + (right - left) / 2
+            let mid = left + ((right - left) >> 1)
             if self[mid] == target {
                 return mid
             } else if self[mid] < target {

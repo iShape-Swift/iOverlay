@@ -76,43 +76,39 @@ struct ScanCrossSolver {
             return nil
         }
         
-        let isEnd0 = target.a == other.a || target.a == other.b
-        let isEnd1 = target.b == other.a || target.b == other.b
+        let isAA = target.a == other.a
+        let isAB = target.a == other.b
+        let isBA = target.b == other.a
+        let isBB = target.b == other.b
         
-        let a0 = FixVec(target.a)
-        let b0 = FixVec(target.b)
+        let isEnd0 = isAA || isAB
+        let isEnd1 = isBA || isBB
 
-        let a1 = FixVec(other.a)
-        let b1 = FixVec(other.b)
-        
-        
-        let a0b0a1 = Triangle.clockDirection(p0: a0, p1: b0, p2: a1)
-        let a0b0b1 = Triangle.clockDirection(p0: a0, p1: b0, p2: b1)
+        let a0b0a1 = Triangle.clockDirection(p0: target.a, p1: target.b, p2: other.a)
+        let a0b0b1 = Triangle.clockDirection(p0: target.a, p1: target.b, p2: other.b)
 
-        let a1b1a0 = Triangle.clockDirection(p0: a1, p1: b1, p2: a0)
-        let a1b1b0 = Triangle.clockDirection(p0: a1, p1: b1, p2: b0)
-        
-        
-        let isCollinear = a0b0a1 == 0 && a0b0b1 == 0 && a1b1a0 == 0 && a1b1b0 == 0
+        let a1b1a0 = Triangle.clockDirection(p0: other.a, p1: other.b, p2: target.a)
+        let a1b1b0 = Triangle.clockDirection(p0: other.a, p1: other.b, p2: target.b)
 
-        if (isEnd0 || isEnd1) && isCollinear {
-            let dotProduct: Int64
-            if isEnd0 {
-                dotProduct = (a0 - b0).dotProduct(a0 - (a0 == a1 ? b1 : a1))
-            } else {
-                dotProduct = (b0 - a0).dotProduct(b0 - (b0 == a1 ? b1 : a1))
+        let isCollinear = a0b0a1 | a0b0b1 | a1b1a0 | a1b1b0 == 0
+
+        if isEnd0 || isEnd1 {
+            if isCollinear {
+                let dotProduct: Int64
+
+                if isEnd0 {
+                    dotProduct = target.a.subtract(target.b).dotProduct(target.a.subtract(isAA ? other.b : other.a))
+                } else {
+                    dotProduct = target.b.subtract(target.a).dotProduct(target.a.subtract(isBA ? other.b : other.a))
+                }
+                if dotProduct >= 0 {
+                    return .endOverlap
+                }
             }
-            if dotProduct < 0 {
-                // only one common end
-                return nil
-            } else {
-                return .endOverlap
-            }
+            
+            return nil
         } else if isCollinear {
             return .overlap
-        } else if isEnd0 || isEnd1 {
-            assert(!(isEnd0 && isEnd1))
-            return nil
         }
         
         let notSame0 = a0b0a1 != a0b0b1
@@ -122,7 +118,7 @@ struct ScanCrossSolver {
             return nil
         }
 
-        if a0b0a1 == 0 || a0b0b1 == 0 || a1b1a0 == 0 || a1b1b0 == 0 {
+        if a0b0a1 & a0b0b1 & a1b1a0 & a1b1b0 == 0 {
             // one end is on the other edge
             if a0b0a1 == 0 {
                 return .otherEndExact(other.a)
@@ -135,6 +131,12 @@ struct ScanCrossSolver {
             return .targetEndExact(target.b)
         }
         
+        let a0 = FixVec(target.a)
+        let b0 = FixVec(target.b)
+
+        let a1 = FixVec(other.a)
+        let b1 = FixVec(other.b)
+
         let p = Self.crossPoint(a0: a0, a1: b0, b0: a1, b1: b1)
         
         if Triangle.isLine(p0: a0, p1: p, p2: b0) && Triangle.isLine(p0: a1, p1: p, p2: b1) {
