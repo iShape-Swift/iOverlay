@@ -1,31 +1,23 @@
 //
-//  EdgeStore.swift
+//  StoreList.swift
 //
 //
-//  Created by Nail Sharipov on 26.04.2024.
+//  Created by Nail Sharipov on 10.05.2024.
 //
 
-struct StoreIndex {
-    let root: UInt32
-    let node: UInt32
-}
-
-struct EdgeStore {
+struct StoreList {
     
     private var ranges: [Int32]
-    private var subStores: [SubStore]
+    private var subStores: [SubStoreList]
     private let chunkStartLength: Int
-    private let chunkListMaxSize: Int
     
-    
-    init(edges: [ShapeEdge], chunkStartLength: Int, chunkListMaxSize: Int) {
+    init(edges: [ShapeEdge], chunkStartLength: Int) {
         // array must be sorted
         self.chunkStartLength = chunkStartLength
-        self.chunkListMaxSize = chunkListMaxSize
         
         guard edges.count > chunkStartLength else {
             self.ranges = []
-            self.subStores = [.list(SubStoreList(edges: edges[...]))]
+            self.subStores = [SubStoreList(edges: edges[...])]
             return
         }
         
@@ -34,7 +26,7 @@ struct EdgeStore {
         var ranges = [Int32]()
         ranges.reserveCapacity(n - 1)
         
-        var stores = [SubStore]()
+        var stores = [SubStoreList]()
         stores.reserveCapacity(n)
 
         var i = 0
@@ -52,7 +44,7 @@ struct EdgeStore {
                 j += 1
             }
             
-            stores.append(SubStore(edges: edges[i..<j], chunkListMaxSize: chunkListMaxSize))
+            stores.append(SubStoreList(edges: edges[i..<j]))
             i = j
             
             if i < edges.count {
@@ -62,6 +54,22 @@ struct EdgeStore {
         
         self.ranges = ranges
         self.subStores = stores
+    }
+    
+    func isLarge(chunkListMaxSize: Int) -> Bool {
+        for subStore in subStores {
+            if subStore.edges.count > chunkListMaxSize {
+                return true
+            }
+        }
+        
+        return false
+    }
+    
+    @inlinable
+    func convertToTree() -> StoreTree {
+        let subStores = self.subStores.map({ SubStoreTree(edges: $0.edges[...]) })
+        return StoreTree(ranges: ranges, subStores: subStores, chunkStartLength: chunkStartLength)
     }
     
     @inlinable
@@ -80,7 +88,7 @@ struct EdgeStore {
     
     @inlinable
     func edge(_ index: StoreIndex) -> ShapeEdge {
-        subStores[Int(index.root)].edge(index.node)
+        subStores[Int(index.root)].edges[Int(index.node)]
     }
     
     @inlinable
@@ -122,12 +130,17 @@ struct EdgeStore {
     
     @inlinable
     func get(_ index: StoreIndex) -> ShapeEdge {
-        self.subStores[Int(index.root)].get(index.node)
+        self.subStores[Int(index.root)].edges[Int(index.node)]
     }
     
     @inlinable
     mutating func getAndRemove(_ index: StoreIndex) -> ShapeEdge {
         self.subStores[Int(index.root)].getAndRemove(index.node)
+    }
+    
+    @inlinable
+    mutating func remove(_ index: StoreIndex) {
+        self.subStores[Int(index.root)].remove(index: index.node)
     }
     
     @inlinable
@@ -149,8 +162,6 @@ struct EdgeStore {
     @inlinable
     mutating func addAndMerge(edge: ShapeEdge) -> StoreIndex {
         let root = self.findSubStore(x: edge.xSegment.a.x)
-        self.subStores[root].increase(maxListSize: self.chunkListMaxSize)
-        
         let node = self.subStores[root].merge(edge: edge)
         return StoreIndex(root: UInt32(root), node: node)
     }
@@ -164,59 +175,18 @@ struct EdgeStore {
     
     @inlinable
     func segments() -> [Segment] {
+        let capacity = subStores.reduce(0, { $0 + $1.edges.count })
         var result = [Segment]()
-        if subStores.count > 1 {
-            result.reserveCapacity(subStores.count * chunkStartLength)
-        }
+        result.reserveCapacity(capacity)
 
-        var subIndex = self.first(index: 0)
-
-        while subIndex.node != .empty {
-            switch subStores[Int(subIndex.root)] {
-            case .list(let store):
-                for e in store.edges {
+        for subStore in self.subStores {
+            if !subStore.edges.isEmpty {
+                for e in subStore.edges {
                     result.append(Segment(edge: e))
-                }
-            case .tree(let store):
-                var next = store.tree.firstByOrder()
-                while next != .empty {
-                    let e = store.tree[next].value
-                    result.append(Segment(edge: e))
-                    next = store.tree.nextByOrder(index: next)
                 }
             }
-            subIndex = self.first(index: subIndex.root + 1)
         }
 
         return result
-    }
-    
-}
-
-private extension Array where Element == Int32 {
-    
-    func findIndex(target: Int32) -> Int {
-        var left = 0
-        var right = self.count
-        
-        while left < right {
-            let mid = left + ((right - left) >> 1)
-            if self[mid] == target {
-                return mid
-            } else if self[mid] < target {
-                left = mid + 1
-            } else {
-                right = mid
-            }
-        }
-        
-        return left
-    }
-}
-
-
-struct TestFindIndex {
-    static func findIndex(array: [Int32], target: Int32) -> Int {
-        array.findIndex(target: target)
     }
 }

@@ -204,9 +204,11 @@ public struct Overlay {
             buffer.append(prev)
         }
 
-        var segments = buffer.split(solver: solver, range: LineRange(min: yMin, max: yMax))
+        let result = SplitSolver.split(edges: buffer, solver: solver, range: LineRange(min: yMin, max: yMax))
+        var segments = result.0
+        let isList = result.1
 
-        segments.fill(fillRule: fillRule, solver: solver)
+        segments.fill(fillRule: fillRule, isList: isList)
 
         return segments
     }

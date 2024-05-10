@@ -21,8 +21,7 @@ private struct PGroup {
 
 extension Array where Element == Segment {
     
-    mutating func fill(fillRule: FillRule, solver: Solver) {
-        let isList = solver.strategy == .list || solver.strategy == .auto && self.count < solver.treeListThreshold
+    mutating func fill(fillRule: FillRule, isList: Bool) {
         if isList {
             var store = ScanFillList(count: self.count)
             return self.solve(scanStore: &store, fillRule: fillRule)

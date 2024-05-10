@@ -1,45 +1,23 @@
 //
-//  ShapeEdge+Split.swift
-//  
+//  SplitSolverTree.swift
 //
-//  Created by Nail Sharipov on 06.08.2023.
+//
+//  Created by Nail Sharipov on 09.05.2024.
 //
 
 import iFixFloat
-import iShape
 
-extension Array where Element == ShapeEdge {
+struct SplitSolverTree {
     
-    func split(solver: Solver, range: LineRange) -> [Segment] {
-        let isSmallRange = range.width < 128
-#if DEBUG
-        let isList = solver.strategy == .list || solver.strategy == .auto && (self.count < solver.treeListThreshold || isSmallRange)
-#else
-        let isList = solver.strategy == .list || solver.strategy == .auto && self.count < solver.treeListThreshold || isSmallRange
-#endif
-        
-        let store = EdgeStore(edges: self, chunkStartLength: solver.chunkStartLength, chunkListMaxSize: solver.chunkListMaxSize)
-        if isList {
-            var solver = SplitSolver(store: store, scanStore: ScanSplitList(count: self.count))
-            return solver.solve()
-        } else {
-            var solver = SplitSolver(store: store, scanStore: ScanSplitTree(range: range, count: self.count))
-            return solver.solve()
-        }
-    }
-}
-
-private struct SplitSolver<S: ScanSplitStore> {
+    private var scanStore: ScanSplitTree
+    var store: StoreTree
     
-    private var scanStore: S
-    private var store: EdgeStore
-    
-    init(store: EdgeStore, scanStore: S) {
+    init(store: StoreTree, scanStore: ScanSplitTree) {
         self.store = store
         self.scanStore = scanStore
     }
     
-    mutating func solve() -> [Segment] {
+    mutating func split() {
         
         var needToFix = true
         
@@ -184,8 +162,6 @@ private struct SplitSolver<S: ScanSplitStore> {
             
             scanStore.clear()
         } // while
-        
-        return store.segments()
     }
     
     private mutating func pureExact(point p: Point, thisEdge: ShapeEdge, other: StoreIndex) -> StoreIndex {
@@ -349,7 +325,7 @@ private struct SplitSolver<S: ScanSplitStore> {
         
         let scanEdge = store.getAndRemove(other)
         
-        let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
+        let scanLt = ShapeEdge(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
         
         _ = store.addAndMerge(edge: scanLt)
         let newThis = store.addAndMerge(edge: ShapeEdge(xSegment: thisEdge.xSegment, count: scanEdge.count)) // add scanEdge to this
@@ -368,7 +344,7 @@ private struct SplitSolver<S: ScanSplitStore> {
         let scanEdge = store.get(other)
         
         let merge = thisEdge.count.add(scanEdge.count)
-        let thisRt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b, count: thisEdge.count)
+        let thisRt = ShapeEdge(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b, count: thisEdge.count)
         
         store.update(other, count: merge)
         _ = store.addAndMerge(edge: thisRt)
@@ -389,9 +365,9 @@ private struct SplitSolver<S: ScanSplitStore> {
         let scanEdge = store.getAndRemove(other)
         store.remove(edge: thisEdge)
         
-        let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
-        let middle = ShapeEdge.createAndValidate(a: thisEdge.xSegment.a, b: scanEdge.xSegment.b, count: scanEdge.count.add(thisEdge.count))
-        let thisRt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b, count: thisEdge.count)
+        let scanLt = ShapeEdge(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
+        let middle = ShapeEdge(a: thisEdge.xSegment.a, b: scanEdge.xSegment.b, count: scanEdge.count.add(thisEdge.count))
+        let thisRt = ShapeEdge(a: scanEdge.xSegment.b, b: thisEdge.xSegment.b, count: thisEdge.count)
         
         _ = store.addAndMerge(edge: scanLt)
         _ = store.addAndMerge(edge: thisRt)
@@ -408,9 +384,9 @@ private struct SplitSolver<S: ScanSplitStore> {
         
         let scanEdge = store.get(other)
         
-        let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
+        let scanLt = ShapeEdge(a: scanEdge.xSegment.a, b: thisEdge.xSegment.a, count: scanEdge.count)
         let merge = thisEdge.count.add(scanEdge.count)
-        let scanRt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.b, b: scanEdge.xSegment.b, count: scanEdge.count)
+        let scanRt = ShapeEdge(a: thisEdge.xSegment.b, b: scanEdge.xSegment.b, count: scanEdge.count)
         
         store.update(this, count: merge)
         store.remove(index: other)
@@ -423,15 +399,5 @@ private struct SplitSolver<S: ScanSplitStore> {
         let newThis = store.find(xSegment: thisEdge.xSegment)
         
         return store.next(newThis)
-    }
-}
-
-private extension ShapeEdge {
-    static func createAndValidate(a: Point, b: Point, count: ShapeCount) -> ShapeEdge {
-        if a < b {
-            ShapeEdge(xSegment: XSegment(a: a, b: b), count: count)
-        } else {
-            ShapeEdge(xSegment: XSegment(a: b, b: a), count: count.invert())
-        }
     }
 }

@@ -20,6 +20,11 @@ private struct IntervalNode {
 }
 #endif
 
+struct CrossSegment {
+    let other: XSegment
+    let cross: CrossResult
+}
+
 extension IntervalNode {
     init(range: LineRange) {
         self.range = range
@@ -28,7 +33,7 @@ extension IntervalNode {
     }
 }
 
-struct ScanSplitTree: ScanSplitStore {
+struct ScanSplitTree {
 
     private let power: Int
     fileprivate var nodes: [IntervalNode]
@@ -405,6 +410,23 @@ private extension LineRange {
     
     var logTwo: Int {
         (max - min).logTwo
+    }
+}
+
+private extension Array where Element == XSegment {
+    
+    mutating func remove(segment: XSegment, scanPos: Point) {
+        var j = 0
+        while j < self.count {
+            let seg = self[j]
+
+            if seg.b < scanPos || segment == seg {
+                self.swapRemove(j)
+                continue
+            }
+
+            j += 1
+        }
     }
 }
 

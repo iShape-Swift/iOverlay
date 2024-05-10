@@ -41,6 +41,16 @@ struct SubStoreList {
     }
     
     @inlinable
+    func next(_ index: UInt32) -> UInt32 {
+        let next = index + 1
+        if next < edges.count {
+            return next
+        } else {
+            return .empty
+        }
+    }
+    
+    @inlinable
     mutating func getAndRemove(_ index: UInt32) -> ShapeEdge {
         self.edges.remove(at: Int(index))
     }
@@ -83,8 +93,7 @@ struct SubStoreList {
         return result.index
     }
     
-    @inlinable
-    func index(target: XSegment) -> SearchResult {
+    private func index(target: XSegment) -> SearchResult {
         var left = 0
         var right = edges.count
         
@@ -104,7 +113,7 @@ struct SubStoreList {
     
 }
 
-struct SearchResult {
+private struct SearchResult {
     let isExist: Bool
     let index: UInt32
 }
