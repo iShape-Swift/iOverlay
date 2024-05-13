@@ -63,13 +63,27 @@ struct StoreTree {
     
     @inlinable
     func first(index: UInt32) -> StoreIndex {
-        let i0 = Int(index)
-        let i1 = subStores.count
-        for i in i0..<i1 {
+        var i = Int(index)
+        while i < subStores.count {
             let firstIndex = subStores[i].first()
             if firstIndex != .empty {
                 return StoreIndex(root: UInt32(i), node: firstIndex)
             }
+            i += 1
+        }
+        
+        return StoreIndex(root: .empty, node: .empty)
+    }
+    
+    @inlinable
+    func last(index: UInt32) -> StoreIndex {
+        var i = Int(index)
+        while i >= 0 {
+            let lastIndex = subStores[i].last()
+            if lastIndex != .empty {
+                return StoreIndex(root: UInt32(i), node: lastIndex)
+            }
+            i -= 1
         }
         
         return StoreIndex(root: .empty, node: .empty)
@@ -103,7 +117,7 @@ struct StoreTree {
         guard next == .empty else {
             return StoreIndex(root: index.root, node: next)
         }
-        
+
         return self.first(index: index.root + 1)
     }
     
@@ -161,20 +175,17 @@ struct StoreTree {
     @inlinable
     func segments() -> [Segment] {
         var result = [Segment]()
-        if subStores.count > 1 {
-            result.reserveCapacity(subStores.count * chunkStartLength)
-        }
-
-        var subIndex = self.first(index: 0)
+        result.reserveCapacity(subStores.count * chunkStartLength)
 
         for subStore in self.subStores {
             var next = subStore.tree.firstByOrder()
             while next != .empty {
                 let e = subStore.tree[next].value
-                result.append(Segment(edge: e))
+                if !e.count.isEmpty {
+                    result.append(Segment(edge: e))
+                }
                 next = subStore.tree.nextByOrder(index: next)
             }
-            subIndex = self.first(index: subIndex.root + 1)
         }
 
         return result

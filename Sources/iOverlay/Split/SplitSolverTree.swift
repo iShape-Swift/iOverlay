@@ -172,12 +172,12 @@ struct SplitSolverTree {
         let thisLt = ShapeEdge(xSegment: XSegment(a: thisEdge.xSegment.a, b: p), count: thisEdge.count)
         let thisRt = ShapeEdge(xSegment: XSegment(a: p, b: thisEdge.xSegment.b), count: thisEdge.count)
         
-        assert(thisLt.xSegment.isLess(thisRt.xSegment))
+        assert(thisLt.xSegment < thisRt.xSegment)
 
         let scanLt = ShapeEdge(xSegment: XSegment(a: scanEdge.xSegment.a, b: p), count: scanEdge.count)
         let scanRt = ShapeEdge(xSegment: XSegment(a: p, b: scanEdge.xSegment.b), count: scanEdge.count)
         
-        assert(scanLt.xSegment.isLess(scanRt.xSegment))
+        assert(scanLt.xSegment < scanRt.xSegment)
         
         _ = store.addAndMerge(edge: scanLt)
         _ = store.addAndMerge(edge: scanRt)
@@ -204,12 +204,12 @@ struct SplitSolverTree {
         let thisLt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.a, b: p, count: thisEdge.count)
         let thisRt = ShapeEdge.createAndValidate(a: p, b: thisEdge.xSegment.b, count: thisEdge.count)
         
-        assert(thisLt.xSegment.isLess(thisRt.xSegment))
+        assert(thisLt.xSegment < thisRt.xSegment)
         
         let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: p, count: scanEdge.count)
         let scanRt = ShapeEdge.createAndValidate(a: p, b: scanEdge.xSegment.b, count: scanEdge.count)
         
-        assert(scanLt.xSegment.isLess(scanRt.xSegment))
+        assert(scanLt.xSegment < scanRt.xSegment)
         
         _ = store.addAndMerge(edge: scanLt)
         _ = store.addAndMerge(edge: scanRt)
@@ -238,7 +238,7 @@ struct SplitSolverTree {
         let thisLt = ShapeEdge(xSegment: XSegment(a: thisEdge.xSegment.a, b: p), count: thisEdge.count)
         let thisRt = ShapeEdge(xSegment: XSegment(a: p, b: thisEdge.xSegment.b), count: thisEdge.count)
         
-        assert(thisLt.xSegment.isLess(thisRt.xSegment))
+        assert(thisLt.xSegment < thisRt.xSegment)
         
         _ = store.addAndMerge(edge: thisRt)
         let ltThis = store.addAndMerge(edge: thisLt)
@@ -258,7 +258,7 @@ struct SplitSolverTree {
         let thisLt = ShapeEdge.createAndValidate(a: thisEdge.xSegment.a, b: p, count: thisEdge.count)
         let thisRt = ShapeEdge.createAndValidate(a: p, b: thisEdge.xSegment.b, count: thisEdge.count)
         
-        assert(thisLt.xSegment.isLess(thisRt.xSegment))
+        assert(thisLt.xSegment < thisRt.xSegment)
         
         _ = store.addAndMerge(edge: thisRt)
         let ltThis = store.addAndMerge(edge: thisLt)
@@ -279,7 +279,7 @@ struct SplitSolverTree {
         let scanLt = ShapeEdge(xSegment: XSegment(a: scanEdge.xSegment.a, b: p), count: scanEdge.count)
         let scanRt = ShapeEdge(xSegment: XSegment(a: p, b: scanEdge.xSegment.b), count: scanEdge.count)
         
-        assert(scanLt.xSegment.isLess(scanRt.xSegment))
+        assert(scanLt.xSegment < scanRt.xSegment)
         
         _ = store.addAndMerge(edge: scanLt)
         _ = store.addAndMerge(edge: scanRt)
@@ -287,7 +287,7 @@ struct SplitSolverTree {
         if thisEdge.xSegment.a.x < p.x {
             // this < p
             scanStore.insert(segment: scanLt.xSegment)
-        } else if scanRt.xSegment.isLess(thisEdge.xSegment) {
+        } else if scanRt.xSegment < thisEdge.xSegment {
             // scanRt < this
             scanStore.insert(segment: scanRt.xSegment)
         }
@@ -303,7 +303,7 @@ struct SplitSolverTree {
         let scanLt = ShapeEdge.createAndValidate(a: scanEdge.xSegment.a, b: p, count: scanEdge.count)
         let scanRt = ShapeEdge.createAndValidate(a: p, b: scanEdge.xSegment.b, count: scanEdge.count)
         
-        assert(scanLt.xSegment.isLess(scanRt.xSegment))
+        assert(scanLt.xSegment < scanRt.xSegment)
         
         _ = store.addAndMerge(edge: scanLt)
         _ = store.addAndMerge(edge: scanRt)
@@ -311,7 +311,7 @@ struct SplitSolverTree {
         if thisEdge.xSegment.a.x < p.x {
             // this < p
             scanStore.insert(segment: scanLt.xSegment)
-        } else if scanRt.xSegment.isLess(thisEdge.xSegment) {
+        } else if scanRt.xSegment < thisEdge.xSegment {
             // scanRt < this
             scanStore.insert(segment: scanRt.xSegment)
         }

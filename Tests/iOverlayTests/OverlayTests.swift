@@ -14,13 +14,33 @@ final class OverlayTests: XCTestCase {
     private let solvers = [
         Solver(
             strategy: .list,
-            chunkStartLength: 8,
-            chunkListMaxSize: 256
+            chunkStartLength: 1,
+            chunkListMaxSize: 2
+        ),
+        Solver(
+            strategy: .list,
+            chunkStartLength: 2,
+            chunkListMaxSize: 4
         ),
         Solver(
             strategy: .list,
             chunkStartLength: 8,
             chunkListMaxSize: 16
+        ),
+        Solver(
+            strategy: .list,
+            chunkStartLength: 16,
+            chunkListMaxSize: 256
+        ),
+        Solver(
+            strategy: .tree,
+            chunkStartLength: 1,
+            chunkListMaxSize: 2
+        ),
+        Solver(
+            strategy: .tree,
+            chunkStartLength: 2,
+            chunkListMaxSize: 4
         ),
         Solver(
             strategy: .tree,
@@ -29,13 +49,13 @@ final class OverlayTests: XCTestCase {
         ),
         Solver(
             strategy: .auto,
-            chunkStartLength: 2,
-            chunkListMaxSize: 4
+            chunkStartLength: 1,
+            chunkListMaxSize: 2
         ),
         Solver(
             strategy: .auto,
-            chunkStartLength: 1,
-            chunkListMaxSize: 2
+            chunkStartLength: 2,
+            chunkListMaxSize: 4
         )
     ]
     
@@ -598,6 +618,6 @@ final class OverlayTests: XCTestCase {
     }
     
     func test_debug() throws {
-        self.debugExecute(index: 2, overlayRule: .union, solver: self.solvers[0])
+        self.debugExecute(index: 99, overlayRule: .difference, solver: self.solvers[0])
     }
 }

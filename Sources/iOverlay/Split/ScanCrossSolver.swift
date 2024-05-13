@@ -22,7 +22,7 @@ struct ScanCrossSolver {
     
     static func isValid(scan: XSegment, this: XSegment) -> Bool {
         let isOutdated = scan.b < this.a
-        let isBehind = scan.isLess(this)
+        let isBehind = scan < this
         
         return !isOutdated && isBehind
     }

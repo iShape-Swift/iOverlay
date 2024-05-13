@@ -1,5 +1,5 @@
 //
-//  EdgeStore.swift
+//  StoreIndex.swift
 //
 //
 //  Created by Nail Sharipov on 26.04.2024.

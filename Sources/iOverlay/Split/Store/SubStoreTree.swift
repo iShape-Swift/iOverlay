@@ -25,6 +25,11 @@ struct SubStoreTree {
     }
     
     @inlinable
+    func last() -> UInt32 {
+        self.tree.lastByOrder()
+    }
+    
+    @inlinable
     func find(xSegment: XSegment) -> UInt32 {
         var index = tree.root
         
@@ -33,7 +38,7 @@ struct SubStoreTree {
             if node.value.xSegment == xSegment {
                 return index
             }
-            if xSegment.isLess(node.value.xSegment) {
+            if xSegment < node.value.xSegment {
                 index = node.left
             } else {
                 index = node.right
@@ -53,12 +58,11 @@ struct SubStoreTree {
                 return index
             }
             
-            let isLeft = xSegment.isLess(node.value.xSegment)
+            let isLeft = xSegment < node.value.xSegment
+            pIndex = index
             if isLeft {
-                pIndex = index
                 index = node.left
             } else {
-                pIndex = index
                 index = node.right
             }
         }
@@ -78,19 +82,20 @@ struct SubStoreTree {
         let xSegment = self.tree[rIndex].value.xSegment
         _ = self.tree.delete(index: rIndex)
 
+        var pIndex = UInt32.empty
         var index = tree.root
-        var result: UInt32 = .empty
         while index != .empty {
             let node = tree[index]
-            if node.value.xSegment.isLess(xSegment) {
-                result = index
-                index = node.right
-            } else {
+            let isLeft = xSegment < node.value.xSegment
+            pIndex = index
+            if isLeft {
                 index = node.left
+            } else {
+                index = node.right
             }
         }
         
-        return result
+        return pIndex
     }
     
     @inlinable
@@ -117,16 +122,11 @@ struct SubStoreTree {
             let node = tree[index]
             if node.value.xSegment == edge.xSegment {
                 let count = node.value.count.add(edge.count)
-                if count.isEmpty {
-                    _ = tree.delete(index: index)
-                    return .empty
-                } else {
-                    tree[index].value.count = count
-                    return index
-                }
+                tree[index].value.count = count
+                return index
             }
             
-            isLeft = edge.xSegment.isLess(node.value.xSegment)
+            isLeft = edge.xSegment < node.value.xSegment
             pIndex = index
             if isLeft {
                 index = node.left

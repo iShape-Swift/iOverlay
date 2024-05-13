@@ -56,7 +56,7 @@ struct StoreList {
         self.subStores = stores
     }
     
-    func isLarge(chunkListMaxSize: Int) -> Bool {
+    func isTreeConversionRequired(chunkListMaxSize: Int) -> Bool {
         for subStore in subStores {
             if subStore.edges.count > chunkListMaxSize {
                 return true

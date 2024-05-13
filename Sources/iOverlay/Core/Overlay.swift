@@ -183,7 +183,7 @@ public struct Overlay {
     }
     
     private func prepareSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
-        let sortedList = edges.sorted(by: { $0.xSegment.isLess($1.xSegment) })
+        let sortedList = edges.sorted(by: { $0.xSegment < $1.xSegment })
         var buffer = [ShapeEdge]()
         buffer.reserveCapacity(sortedList.count)
         
@@ -285,7 +285,7 @@ private extension Array where Element == Segment {
         }
         
         if hasEmpty {
-            self.sort(by: { $0.seg.isLess($1.seg) })
+            self.sort(by: { $0.seg < $1.seg })
         }
     }
     

@@ -1,5 +1,5 @@
 //
-//  EdgeStore+Split.swift
+//  SplitSolverList.swift
 //
 //
 //  Created by Nail Sharipov on 09.05.2024.

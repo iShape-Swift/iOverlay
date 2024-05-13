@@ -27,6 +27,14 @@ public struct ShapeEdge {
         self.xSegment = xSegment
         self.count = count
     }
+    
+    static func createAndValidate(a: Point, b: Point, count: ShapeCount) -> ShapeEdge {
+        if a < b {
+            ShapeEdge(xSegment: XSegment(a: a, b: b), count: count)
+        } else {
+            ShapeEdge(xSegment: XSegment(a: b, b: a), count: count.invert())
+        }
+    }
 }
 
 extension ShapeEdge: Equatable {

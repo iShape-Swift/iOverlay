@@ -180,4 +180,21 @@ final class IntervalTreeTests: XCTestCase {
         XCTAssertTrue(tree.count > 0)
     }
     
+    
+    func test_08() throws {
+        let s0 = XSegment(a: Point(-28, -28), b: Point(-20, 0))
+        let s1 = XSegment(a: Point(-21, 1), b: Point(-15, -13))
+
+        var tree = ScanSplitTree(range: LineRange(min: -28, max: 28), count: 16)
+        tree.insert(segment: s0)
+        
+        let r0 = tree.intersectAndRemoveOther(this: s1)
+        
+        let r1 = ScanCrossSolver.cross(target: s0, other: s1)
+        
+        
+        XCTAssertNotNil(r0)
+        XCTAssertNotNil(r1)
+    }
+    
 }

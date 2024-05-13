@@ -322,8 +322,57 @@ struct ScanSplitTree {
             return nil
         }
 
-        let iLt = self.findNode(index: i - s, value: range.min, scale: s)
-        let iRt = self.findNode(index: i + s, value: range.max, scale: s)
+        // find most left index
+        
+        var j = i - s
+        var sj = s
+        while sj > 1 {
+            if let cross = self.cross(index: j, this: this) {
+                return cross
+            }
+            
+            let middle = nodes[j].range.middle
+            
+            if range.min == middle {
+                break
+            }
+            
+            sj >>= 1
+            
+            if range.min < middle {
+                j -= sj
+            } else {
+                j += sj
+            }
+        }
+        
+        // find most right index
+        
+        let iLt = j
+        
+        j = i + s
+        sj = s
+        while sj > 1 {
+            if let cross = self.cross(index: j, this: this) {
+                return cross
+            }
+            
+            let middle = nodes[j].range.middle
+            
+            if range.max == middle {
+                break
+            }
+            
+            sj >>= 1
+            
+            if range.max < middle {
+                j -= sj
+            } else {
+                j += sj
+            }
+        }
+
+        let iRt = j
         
         i = iLt
         
@@ -371,7 +420,7 @@ struct ScanSplitTree {
         return nil
     }
     
-    private func findNode(index: Int, value: Int32, scale: Int) -> Int {
+    private func findLeftNode(index: Int, value: Int32, scale: Int) -> Int {
         var s = scale
         var i = index
         while s > 1 {
