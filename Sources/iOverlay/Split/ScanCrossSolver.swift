@@ -27,7 +27,8 @@ struct ScanCrossSolver {
         return !isOutdated && isBehind
     }
     
-    static func debugCross(target: XSegment, other: XSegment) -> CrossResult? {
+    
+    static func testX(target: XSegment, other: XSegment) -> Bool {
         let testX =
         // a > all other
         target.a.x > other.a.x && target.a.x > other.b.x &&
@@ -37,6 +38,26 @@ struct ScanCrossSolver {
         target.a.x < other.a.x && target.a.x < other.b.x &&
         // b < all other
         target.b.x < other.a.x && target.b.x < other.b.x
+        
+        return testX
+    }
+    
+    static func testY(target: XSegment, other: XSegment) -> Bool {
+        let testY =
+        // a > all other
+        target.a.y > other.a.y && target.a.y > other.b.y &&
+        // b > all other
+        target.b.y > other.a.y && target.b.y > other.b.y ||
+        // a < all other
+        target.a.y < other.a.y && target.a.y < other.b.y &&
+        // b < all other
+        target.b.y < other.a.y && target.b.y < other.b.y
+        
+        return testY
+    }
+    
+    static func debugCross(target: XSegment, other: XSegment) -> CrossResult? {
+        let testX = Self.testX(target: target, other: other)
         
         guard !testX else {
             return nil
@@ -48,138 +69,110 @@ struct ScanCrossSolver {
     static func cross(target: XSegment, other: XSegment) -> CrossResult? {
         // by this time segments already at intersection range by x
 #if DEBUG
-        let testX =
-        // a > all other
-        target.a.x > other.a.x && target.a.x > other.b.x &&
-        // b > all other
-        target.b.x > other.a.x && target.b.x > other.b.x ||
-        // a < all other
-        target.a.x < other.a.x && target.a.x < other.b.x &&
-        // b < all other
-        target.b.x < other.a.x && target.b.x < other.b.x
-        
-        assert(!testX)
+        assert(!Self.testX(target: target, other: other))
 #endif
-        
-        
-        let testY =
-        // a > all other
-        target.a.y > other.a.y && target.a.y > other.b.y &&
-        // b > all other
-        target.b.y > other.a.y && target.b.y > other.b.y ||
-        // a < all other
-        target.a.y < other.a.y && target.a.y < other.b.y &&
-        // b < all other
-        target.b.y < other.a.y && target.b.y < other.b.y
-        
-        guard !testY else {
+
+        guard !Self.testY(target: target, other: other) else {
             return nil
         }
-        
-        let isAA = target.a == other.a
-        let isAB = target.a == other.b
-        let isBA = target.b == other.a
-        let isBB = target.b == other.b
-        
-        let isEnd0 = isAA || isAB
-        let isEnd1 = isBA || isBB
 
         let a0b0a1 = Triangle.clockDirection(p0: target.a, p1: target.b, p2: other.a)
         let a0b0b1 = Triangle.clockDirection(p0: target.a, p1: target.b, p2: other.b)
 
         let a1b1a0 = Triangle.clockDirection(p0: other.a, p1: other.b, p2: target.a)
         let a1b1b0 = Triangle.clockDirection(p0: other.a, p1: other.b, p2: target.b)
+        
+        let s = (1 & (a0b0a1 + 1)) + (1 & (a0b0b1 + 1)) + (1 & (a1b1a0 + 1)) + (1 & (a1b1b0 + 1))
 
-        let isCollinear = a0b0a1 | a0b0b1 | a1b1a0 | a1b1b0 == 0
+        let isNotCross = a0b0a1 == a0b0b1 || a1b1a0 == a1b1b0
 
-        if isEnd0 || isEnd1 {
-            if isCollinear {
-                let dotProduct: Int64
+        if s == 2 || (isNotCross && s != 4) {
+            return nil
+        }
 
-                if isEnd0 {
-                    dotProduct = target.a.subtract(target.b).dotProduct(target.a.subtract(isAA ? other.b : other.a))
+        if s != 0 {
+            // special case
+            if s == 4 {
+                // collinear
+
+                let aa = target.a == other.a
+                let ab = target.a == other.b
+                let ba = target.b == other.a
+                let bb = target.b == other.b
+
+                let isEnd0 = aa || ab
+                let isEnd1 = ba || bb
+
+                if isEnd0 || isEnd1 {
+                    let p = aa || ba ? other.b : other.a
+                    let v0 = target.a.subtract(p)
+                    let v1 = isEnd0 ? target.a.subtract(target.b) : target.b.subtract(target.a)
+                    let dotProduct = v1.dotProduct(v0)
+                    if dotProduct >= 0 {
+                        return .endOverlap
+                    } else {
+                        // end to end connection
+                        return nil
+                    }
                 } else {
-                    dotProduct = target.b.subtract(target.a).dotProduct(target.a.subtract(isBA ? other.b : other.a))
+                    return .overlap
                 }
-                if dotProduct >= 0 {
-                    return .endOverlap
+            } else {
+                if a0b0a1 == 0 {
+                    return .otherEndExact(other.a)
+                } else if a0b0b1 == 0 {
+                    return .otherEndExact(other.b)
+                } else if a1b1a0 == 0 {
+                    return .targetEndExact(target.a)
+                } else {
+                    return .targetEndExact(target.b)
                 }
             }
-            
-            return nil
-        } else if isCollinear {
-            return .overlap
-        }
-        
-        let notSame0 = a0b0a1 != a0b0b1
-        let notSame1 = a1b1a0 != a1b1b0
-        
-        guard notSame0 && notSame1 else {
-            return nil
         }
 
-        if a0b0a1 & a0b0b1 & a1b1a0 & a1b1b0 == 0 {
-            // one end is on the other edge
-            if a0b0a1 == 0 {
-                return .otherEndExact(other.a)
-            } else if a0b0b1 == 0 {
-                return .otherEndExact(other.b)
-            } else if a1b1a0 == 0 {
-                return .targetEndExact(target.a)
-            }
-            
-            return .targetEndExact(target.b)
-        }
+        let p = Self.crossPoint(target: target, other: other)
         
-        let a0 = FixVec(target.a)
-        let b0 = FixVec(target.b)
-
-        let a1 = FixVec(other.a)
-        let b1 = FixVec(other.b)
-
-        let p = Self.crossPoint(a0: a0, a1: b0, b0: a1, b1: b1)
-        
-        if Triangle.isLine(p0: a0, p1: p, p2: b0) && Triangle.isLine(p0: a1, p1: p, p2: b1) {
-            return .pureExact(Point(p))
+        if Triangle.isLine(p0: target.a, p1: p, p2: target.b) && Triangle.isLine(p0: other.a, p1: p, p2: other.b) {
+            return .pureExact(p)
         }
         
         // still can be common ends because of rounding
         // snap to nearest end with r (1^2 + 1^2 == 2)
 
-        let ra0 = a0.sqrDistance(p)
-        let rb0 = b0.sqrDistance(p)
+        let ra0 = target.a.sqrDistance(p)
+        let rb0 = target.b.sqrDistance(p)
         
-        let ra1 = a1.sqrDistance(p)
-        let rb1 = b1.sqrDistance(p)
+        let ra1 = other.a.sqrDistance(p)
+        let rb1 = other.b.sqrDistance(p)
         
         if ra0 <= 2 || ra1 <= 2 || rb0 <= 2 || rb1 <= 2 {
             let r0 = min(ra0, rb0)
             let r1 = min(ra1, rb1)
             
             if r0 <= r1 {
-                let p = ra0 < rb0 ? a0 : b0
+                let p = ra0 < rb0 ? target.a : target.b
                 
                 // ignore if it's a clean point
-                if Triangle.isNotLine(p0: a1, p1: p, p2: b1) {
-                    return .targetEndRound(Point(p))
+                if Triangle.isNotLine(p0: other.a, p1: p, p2: other.b) {
+                    return .targetEndRound(p)
                 }
             } else {
-                let p = ra1 < rb1 ? a1 : b1
+                let p = ra1 < rb1 ? other.a : other.b
                 
                 // ignore if it's a clean point
-                if Triangle.isNotLine(p0: a0, p1: p, p2: b0) {
-                    return .otherEndRound(Point(p))
+                if Triangle.isNotLine(p0: target.a, p1: p, p2: target.b) {
+                    return .otherEndRound(p)
                 }
             }
         }
 
-        return .pureRound(Point(p))
+        return .pureRound(p)
     }
     
-    private static func crossPoint(a0: FixVec, a1: FixVec, b0: FixVec, b1: FixVec) -> FixVec {
-        /// edges are not parralel
-        /// FixVec(Int64, Int64) where abs(x) and abs(y) < 2^30
-        /// So the result must be also be in range of 2^30
+    private static func crossPoint(target: XSegment, other: XSegment) -> Point {
+        /// edges are not parallel
+        /// any abs(x) and abs(y) < 2^30
+        /// The result must be  < 2^30
         
         /// Classic aproach:
         
@@ -206,18 +199,21 @@ struct ScanCrossSolver {
         
         /// offset approach
         /// move all picture by -a0. Point a0 will be equal (0, 0)
+
+        let a0x = Int64(target.a.x)
+        let a0y = Int64(target.a.y)
         
         // move a0.x to 0
         // move all by a0.x
-        let a1x = a1.x - a0.x
-        let b0x = b0.x - a0.x
-        let b1x = b1.x - a0.x
+        let a1x = Int64(target.b.x) - a0x
+        let b0x = Int64(other.a.x) - a0x
+        let b1x = Int64(other.b.x) - a0x
         
         // move a0.y to 0
         // move all by a0.y
-        let a1y = a1.y - a0.y
-        let b0y = b0.y - a0.y
-        let b1y = b1.y - a0.y
+        let a1y = Int64(target.b.y) - a0y
+        let b0y = Int64(other.a.y) - a0y
+        let b1y = Int64(other.b.y) - a0y
         
         let dyB = b0y - b1y
         let dxB = b0x - b1x
@@ -228,7 +224,7 @@ struct ScanCrossSolver {
         let x0: Int64
         let y0: Int64
         
-        // a1y and a1x cannot be zero simultaneously, because we will get edge a0<>a1 zero length and it is impossible
+        // a1y and a1x can not be zero simultaneously, because we will get edge a0<>a1 zero length and it is impossible
         
         if a1x == 0 {
             // dxB is not zero because it will be parallel case and it's impossible
@@ -239,42 +235,80 @@ struct ScanCrossSolver {
             y0 = 0
             x0 = -xyB / dyB
         } else {
-            // TODO switch to 128 bit math
-            // multiply denominator and discriminant by same value to increase precision
+            // divider
+            let div = a1y * dxB - a1x * dyB
             
-            let xym = xyB.leadingZeroBitCountIgnoreSign
+            // calculate result sign
+            let s = div.signum() * xyB.signum()
+            let sx = a1x.signum() * s
+            let sy = a1y.signum() * s
             
-            // x
-            let xd = a1y * dxB
-            let xdm = xd.leadingZeroBitCountIgnoreSign
+            // use custom u128 bit math with rounding
+            let uxyB = UInt64(abs(xyB))
+            let udiv = UInt64(abs(div))
+
+            let kx = UInt128.multiply(UInt64(abs(a1x)), uxyB)
+            let ky = UInt128.multiply(UInt64(abs(a1y)), uxyB)
             
-            let xm = min(30, min(xym, xdm))
-            let divX = (xd << xm) / a1x - (dyB << xm)
+            let ux = kx.divideWithRounding(by: udiv)
+            let uy = ky.divideWithRounding(by: udiv)
             
-            x0 = (xyB << xm) / divX
-            
-            // y
-            
-            let yd = a1x * dyB
-            let ydm = yd.leadingZeroBitCountIgnoreSign
-            
-            let ym = min(30, min(xym, ydm))
-            let divY = (dxB << ym) - (yd << ym) / a1y
-            
-            y0 = (xyB << ym) / divY
+            // get i64 bit result
+            x0 = sx * Int64(ux)
+            y0 = sy * Int64(uy)
         }
         
-        let x = x0 + a0.x
-        let y = y0 + a0.y
+        let x = Int32(x0 + a0x)
+        let y = Int32(y0 + a0y)
         
-        return FixVec(x, y)
+        return Point(x, y)
     }
 
 }
 
-private extension Int64 {
+
+private extension UInt128 {
     
-    var leadingZeroBitCountIgnoreSign: Int {
-        abs(self).leadingZeroBitCount - 1
+    private static let lastBitIndex = UInt64.bitWidth - 1
+    
+    func divideWithRounding(by divisor: UInt64) -> UInt64 {
+        guard high != 0 else {
+            let result = low / divisor
+            let remainder = low - result * divisor
+            if remainder >= (divisor + 1) >> 1 {
+                return result + 1
+            } else {
+                return result
+            }
+        }
+        
+        
+        let dn = divisor.leadingZeroBitCount
+        let normDivisor = divisor << dn
+        var normDividendHigh = high << dn | low >> (UInt64.bitWidth - dn)
+        var normDividendLow = low << dn
+        
+        var quotient: UInt64 = 0
+        let one: UInt64 = 1 << Self.lastBitIndex
+        
+        for _ in 0..<UInt64.bitWidth {
+            let bit = (normDividendHigh & one) != 0
+            normDividendHigh = (normDividendHigh << 1) | (normDividendLow >> Self.lastBitIndex)
+            normDividendLow <<= 1
+            quotient <<= 1
+            if normDividendHigh >= normDivisor || bit {
+                normDividendHigh = normDividendHigh &- normDivisor
+                quotient |= 1
+            }
+        }
+        
+        // Check remainder for rounding
+        let remainder = (normDividendHigh << (UInt64.bitWidth - dn)) | (normDividendLow >> dn)
+        if remainder >= (divisor + 1) >> 1 {
+            quotient += 1
+        }
+        
+        return quotient
     }
+    
 }
