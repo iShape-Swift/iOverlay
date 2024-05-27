@@ -130,6 +130,41 @@ struct ScanCrossSolver {
             }
         }
 
+        return Self.simpleCross(target: target, other: other)
+    }
+    
+    static func preCross(target: XSegment, other: XSegment) -> CrossResult? {
+        // by this time segments already at intersection range by x
+
+        let a0b0a1 = Triangle.clockDirection(p0: target.a, p1: target.b, p2: other.a)
+        let a0b0b1 = Triangle.clockDirection(p0: target.a, p1: target.b, p2: other.b)
+
+        let a1b1a0 = Triangle.clockDirection(p0: other.a, p1: other.b, p2: target.a)
+        let a1b1b0 = Triangle.clockDirection(p0: other.a, p1: other.b, p2: target.b)
+        
+        let s = (1 & (a0b0a1 + 1)) + (1 & (a0b0b1 + 1)) + (1 & (a1b1a0 + 1)) + (1 & (a1b1b0 + 1))
+        let isCross = a0b0a1 != a0b0b1 && a1b1a0 != a1b1b0
+        
+        guard (s == 0 || s == 1) && isCross else {
+            return nil
+        }
+
+        if s != 0 {
+            if a0b0a1 == 0 {
+                return .otherEndExact(other.a)
+            } else if a0b0b1 == 0 {
+                return .otherEndExact(other.b)
+            } else if a1b1a0 == 0 {
+                return .targetEndExact(target.a)
+            } else {
+                return .targetEndExact(target.b)
+            }
+        }
+        
+        return Self.simpleCross(target: target, other: other)
+    }
+    
+    private static func simpleCross(target: XSegment, other: XSegment) -> CrossResult {
         let p = Self.crossPoint(target: target, other: other)
         
         if Triangle.isLine(p0: target.a, p1: p, p2: target.b) && Triangle.isLine(p0: other.a, p1: p, p2: other.b) {

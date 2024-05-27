@@ -56,6 +56,9 @@ final class OverlayTests: XCTestCase {
             strategy: .auto,
             chunkStartLength: 2,
             chunkListMaxSize: 4
+        ),
+        Solver(
+            strategy: .auto
         )
     ]
     
@@ -618,6 +621,6 @@ final class OverlayTests: XCTestCase {
     }
     
     func test_debug() throws {
-        self.debugExecute(index: 5, overlayRule: .difference, solver: self.solvers[0])
+        self.debugExecute(index: 114, overlayRule: .union, solver: .auto)
     }
 }

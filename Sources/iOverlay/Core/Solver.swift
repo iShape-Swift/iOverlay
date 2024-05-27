@@ -21,11 +21,20 @@ public enum Strategy {
 }
 
 public struct Solver {
-    public static let list = Solver(strategy: .list, chunkStartLength: 8, chunkListMaxSize: 256)
-    public static let tree = Solver(strategy: .tree, chunkStartLength: 8, chunkListMaxSize: 256)
-    public static let auto = Solver(strategy: .auto, chunkStartLength: 8, chunkListMaxSize: 256)
+    public static let list = Solver(strategy: .list)
+    public static let tree = Solver(strategy: .tree)
+    public static let auto = Solver(strategy: .auto)
     
     public let strategy: Strategy
     public let chunkStartLength: Int
     public let chunkListMaxSize: Int
+    public let preSplitMaxCount: Int
+    
+    init(strategy: Strategy, chunkStartLength: Int = 8, chunkListMaxSize: Int = 256, preSplitMaxCount: Int = 3) {
+        self.strategy = strategy
+        self.chunkStartLength = chunkStartLength
+        self.chunkListMaxSize = chunkListMaxSize
+        self.preSplitMaxCount = preSplitMaxCount
+    }
+    
 }

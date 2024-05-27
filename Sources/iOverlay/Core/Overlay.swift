@@ -204,10 +204,24 @@ public struct Overlay {
             buffer.append(prev)
         }
 
-        let result = SplitSolver.split(edges: buffer, solver: solver, range: LineRange(min: yMin, max: yMax))
-        var segments = result.0
-        let isList = result.1
-
+        var segments: [Segment]
+        let isList: Bool
+        if solver.strategy == .auto {
+            let needToFix = PreSplitSolver.split(solver: solver, edges: &buffer)
+            if needToFix {
+                let result = SplitSolver.split(edges: buffer, solver: solver, range: LineRange(min: yMin, max: yMax))
+                segments = result.0
+                isList = result.1
+            } else {
+                segments = buffer.map({ Segment(edge: $0) })
+                isList = segments.count.log2Sqrt < solver.chunkListMaxSize
+            }
+        } else {
+            let result = SplitSolver.split(edges: buffer, solver: solver, range: LineRange(min: yMin, max: yMax))
+            segments = result.0
+            isList = result.1
+        }
+        
         segments.fill(fillRule: fillRule, isList: isList)
 
         return segments
