@@ -1,36 +1,16 @@
 //
-//  PreSplitSolver.swift
+//  SimplePreSplitSolver.swift
+//  
 //
-//
-//  Created by Nail Sharipov on 24.05.2024.
+//  Created by Nail Sharipov on 27.05.2024.
 //
 
 import iFixFloat
 
-private struct MarkResult {
-    let needToFix: Bool
-    let extraSpace: Int
-    let marks: [Mark]
-}
+struct SimplePreSplitSolver {
 
-private struct Mark {
-    let index: Int
-    let length: Int64
-    let point: Point
-}
-
-struct PreSplitSolver {
-    
-    static func split(solver: Solver, edges: inout [ShapeEdge]) -> Bool {
-        if edges.count < solver.chunkListMaxSize {
-            return Self.simple(maxRepeatCount: solver.preSplitMaxCount, edges: &edges)
-        }
-        
-        return true
-    }
-    
-    static private func simple(maxRepeatCount: Int, edges: inout [ShapeEdge]) -> Bool {
-        var marks = [Mark]()
+    static func split(maxRepeatCount: Int, edges: inout [ShapeEdge]) -> Bool {
+        var marks = [LineMark]()
         var needToFix = true
 
         var splitCount = 0
@@ -70,41 +50,41 @@ struct PreSplitSolver {
                         let li = ei.a.sqrDistance(p)
                         let lj = ej.a.sqrDistance(p)
                         
-                        marks.append(Mark(index: i, length: li, point: p))
-                        marks.append(Mark(index: j, length: lj, point: p))
+                        marks.append(LineMark(index: i, length: li, point: p))
+                        marks.append(LineMark(index: j, length: lj, point: p))
                     case .pureRound(let p):
                         extraSpace += 3
                         
                         let li = ei.a.sqrDistance(p)
                         let lj = ej.a.sqrDistance(p)
                         
-                        marks.append(Mark(index: i, length: li, point: p))
-                        marks.append(Mark(index: j, length: lj, point: p))
+                        marks.append(LineMark(index: i, length: li, point: p))
+                        marks.append(LineMark(index: j, length: lj, point: p))
                         needToFix = true
                     case .targetEndExact(let p):
                         extraSpace += 1
                         
                         let lj = ej.a.sqrDistance(p)
-                        marks.append(Mark(index: j, length: lj, point: p))
+                        marks.append(LineMark(index: j, length: lj, point: p))
                         
                     case .targetEndRound(let p):
                         extraSpace += 1
                         
                         let lj = ej.a.sqrDistance(p)
-                        marks.append(Mark(index: j, length: lj, point: p))
+                        marks.append(LineMark(index: j, length: lj, point: p))
                         needToFix = true
                     case .otherEndExact(let p):
                         extraSpace += 1
                         
                         let li = ei.a.sqrDistance(p)
                         
-                        marks.append(Mark(index: i, length: li, point: p))
+                        marks.append(LineMark(index: i, length: li, point: p))
                     case .otherEndRound(let p):
                         extraSpace += 1
                         
                         let li = ei.a.sqrDistance(p)
                         
-                        marks.append(Mark(index: i, length: li, point: p))
+                        marks.append(LineMark(index: i, length: li, point: p))
                         needToFix = true
                     default:
                         assertionFailure("Can not be here")
