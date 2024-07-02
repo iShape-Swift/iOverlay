@@ -70,7 +70,7 @@ final class OverlayTests: XCTestCase {
         for solver in solvers {
             let graph = overlay.buildGraph(fillRule: test.fillRule, solver: solver)
             
-            let clip = graph.extractShapes(overlayRule: .inverseDifference)
+            let clip = graph.extractShapes(overlayRule: .clip)
             let subject = graph.extractShapes(overlayRule: .subject)
             let difference = graph.extractShapes(overlayRule: .difference)
             let inverseDifference = graph.extractShapes(overlayRule: .inverseDifference)

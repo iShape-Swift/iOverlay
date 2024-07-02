@@ -208,17 +208,15 @@ extension OverlayTest: Encodable {
 
 extension FillRule: Encodable {
     public func encode(to encoder: any Encoder) throws {
-        func encode(to encoder: Encoder) throws {
-            var container = encoder.singleValueContainer()
-             switch self {
-             case .evenOdd:
-                 try container.encode(0)
-             case .nonZero:
-                 try container.encode(1)
-             }
+        var container = encoder.singleValueContainer()
+        switch self {
+        case .evenOdd:
+            try container.encode(0)
+        case .nonZero:
+            try container.encode(1)
         }
+        
     }
 }
-
 
 #endif
