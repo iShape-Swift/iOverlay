@@ -19,7 +19,14 @@ public extension OverlayGraph {
     ///   - minArea: The minimum area a shape must have to be included in the return value. This parameter helps in filtering out insignificant shapes or noise. Defaults to 0, which includes all shapes regardless of size.
     ///
     /// - Returns: An array of `FixShape`.
-    func extractShapes(overlayRule: OverlayRule, minArea: Int64 = 0) -> [Shape] {
+    /// # Shape Representation
+    /// The output is a `[[[Point]]]`, where:
+    /// - The outer`[Shape]` represents a set of shapes.
+    /// - Each shape `[Path]` represents a collection of paths, where the first path is the outer boundary, and all subsequent paths are holes in this boundary.
+    /// - Each path `[Point]` represents a collection of points, where every two consecutive points (cyclically) make up the boundary edge of the polygon.
+    ///
+    /// Note: Outer boundary paths have a clockwise order, and holes have a counterclockwise order.
+    func extractShapes(overlayRule: OverlayRule, minArea: Int64 = 0) -> Shapes {
         var visited = self.links.filter(overlayRule: overlayRule)
 
         var holes = [Path]()

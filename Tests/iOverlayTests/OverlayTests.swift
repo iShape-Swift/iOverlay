@@ -70,25 +70,36 @@ final class OverlayTests: XCTestCase {
         for solver in solvers {
             let graph = overlay.buildGraph(fillRule: test.fillRule, solver: solver)
             
-            let clip = graph.extractShapes(overlayRule: .clip)
+            let clip = graph.extractShapes(overlayRule: .inverseDifference)
             let subject = graph.extractShapes(overlayRule: .subject)
             let difference = graph.extractShapes(overlayRule: .difference)
+            let inverseDifference = graph.extractShapes(overlayRule: .inverseDifference)
             let intersect = graph.extractShapes(overlayRule: .intersect)
             let union = graph.extractShapes(overlayRule: .union)
             let xor = graph.extractShapes(overlayRule: .xor)
             
-//            self.printTest(test, clip: clip, subject: subject, difference: difference, intersect: intersect, union: union, xor: xor)
+//            self.printTest(test, clip: clip, subject: subject, difference: difference, inverseDifference: inverseDifference, intersect: intersect, union: union, xor: xor)
             
             XCTAssertTrue(self.test(result: clip, bank: test.clip))
             XCTAssertTrue(self.test(result: subject, bank: test.subject))
             XCTAssertTrue(self.test(result: difference, bank: test.difference))
+            XCTAssertTrue(self.test(result: inverseDifference, bank: test.inverseDifference))
             XCTAssertTrue(self.test(result: intersect, bank: test.intersect))
             XCTAssertTrue(self.test(result: union, bank: test.union))
             XCTAssertTrue(self.test(result: xor, bank: test.xor))
         }
     }
     
-    private func printTest(_ test: OverlayTest, clip: [Shape], subject: [Shape], difference: [Shape], intersect: [Shape], union: [Shape], xor: [Shape]) {
+    private func printTest(
+        _ test: OverlayTest,
+        clip: [Shape],
+        subject: [Shape],
+        difference: [Shape],
+        inverseDifference: [Shape],
+        intersect: [Shape],
+        union: [Shape],
+        xor: [Shape]
+    ) {
         let aTest = OverlayTest(
             fillRule: test.fillRule,
             subjPaths: test.subjPaths,
@@ -96,6 +107,7 @@ final class OverlayTests: XCTestCase {
             clip: [clip],
             subject: [subject],
             difference: [difference],
+            inverseDifference: [inverseDifference],
             intersect: [intersect],
             union: [union],
             xor: [xor]
@@ -621,6 +633,6 @@ final class OverlayTests: XCTestCase {
     }
     
     func test_debug() throws {
-        self.debugExecute(index: 114, overlayRule: .union, solver: .auto)
+        self.debugExecute(index: 2, overlayRule: .xor, solver: .auto)
     }
 }

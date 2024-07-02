@@ -19,6 +19,7 @@ struct OverlayTest: Decodable {
     let clip: [[Shape]]
     let subject: [[Shape]]
     let difference: [[Shape]]
+    let inverseDifference: [[Shape]]
     let intersect: [[Shape]]
     let union: [[Shape]]
     let xor: [[Shape]]
@@ -30,6 +31,7 @@ struct OverlayTest: Decodable {
         case clip
         case subject
         case difference
+        case inverseDifference
         case intersect
         case union
         case xor
@@ -57,6 +59,7 @@ struct OverlayTest: Decodable {
         clip = try container.decode([[Shape]].self, forKey: .clip)
         subject = try container.decode([[Shape]].self, forKey: .subject)
         difference = try container.decode([[Shape]].self, forKey: .difference)
+        inverseDifference = try container.decode([[Shape]].self, forKey: .inverseDifference)
         intersect = try container.decode([[Shape]].self, forKey: .intersect)
         union = try container.decode([[Shape]].self, forKey: .union)
         xor = try container.decode([[Shape]].self, forKey: .xor)
@@ -185,6 +188,7 @@ extension OverlayTest: Encodable {
         clip: [[Shape]],
         subject: [[Shape]],
         difference: [[Shape]],
+        inverseDifference: [[Shape]],
         intersect: [[Shape]],
         union: [[Shape]],
         xor: [[Shape]]
@@ -195,6 +199,7 @@ extension OverlayTest: Encodable {
         self.clip = clip
         self.subject = subject
         self.difference = difference
+        self.inverseDifference = inverseDifference
         self.intersect = intersect
         self.union = union
         self.xor = xor

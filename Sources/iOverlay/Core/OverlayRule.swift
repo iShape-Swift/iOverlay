@@ -13,6 +13,7 @@
 /// - `intersect`: Finds the common area between the subject and clip shapes, effectively identifying where they overlap.
 /// - `union`: Combines the area of both subject and clip shapes into a single unified shape.
 /// - `difference`: Subtracts the area of the clip shape from the subject shape, removing the clip shape's area from the subject.
+/// - `inverseDifference`: Subtracts the area of the subject shape from the clip shape, removing the subject shape's area from the clip.
 /// - `xor`: Produces a shape consisting of areas unique to each shape, excluding any parts where the subject and clip overlap.
 public enum OverlayRule {
     
@@ -21,6 +22,7 @@ public enum OverlayRule {
     case intersect
     case union
     case difference
+    case inverseDifference
     case xor
     
 }
@@ -39,6 +41,8 @@ extension OverlayRule {
             return fill & SegmentFill.bothBottom == 0
         case .difference:
             return fill & SegmentFill.bothTop == SegmentFill.subjTop
+        case .inverseDifference:
+            return fill & SegmentFill.bothTop == SegmentFill.clipTop
         case .xor:
             let isSubject = fill & SegmentFill.bothTop == SegmentFill.subjTop
             let isClip = fill & SegmentFill.bothTop == SegmentFill.clipTop

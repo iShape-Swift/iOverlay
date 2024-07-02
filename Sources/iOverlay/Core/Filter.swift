@@ -22,6 +22,8 @@ extension Array where Element == OverlayLink {
             return filterUnion()
         case .difference:
             return filterDifference()
+        case .inverseDifference:
+            return filterInverseDifference()
         case .xor:
             return filterXOR()
         }
@@ -110,6 +112,26 @@ extension Array where Element == OverlayLink {
             let botOnlySubject = fill & .bothBottom == .subjBottom
             
             skip[i] = !(topOnlySubject || botOnlySubject) || subjectInner
+        }
+        
+        return skip
+    }
+    
+    private func filterInverseDifference() -> [Bool] {
+        let n = self.count
+        var skip = [Bool](repeating: false, count: n)
+        
+        for i in 0..<n {
+            let fill = self[i].fill
+            
+            // One side must belong only clip
+            // Can not be clip inner edge
+            
+            let clipInner = fill == .clipBoth
+            let topOnlyClip = fill & .bothTop == .clipTop
+            let botOnlyClip = fill & .bothBottom == .clipBottom
+            
+            skip[i] = !(topOnlyClip || botOnlyClip) || clipInner
         }
         
         return skip
