@@ -100,6 +100,16 @@ let xor = graph.extractShapes(overlayRule: OverlayRule.xor)
 let subject = graph.extractShapes(overlayRule: OverlayRule.subject)
 ```
 
+### Shapes result
+
+The output of the `extractShapes` function is a `[[[CGPoint]]]`, where:
+
+- The outer `[CGShape]` represents a set of shapes.
+- Each shape `[CGPath]` represents a collection of paths, where the first path is the outer boundary, and all subsequent paths are holes in this boundary.
+- Each path `[CGPoint]` is a sequence of points, forming a closed path.
+
+**Note**: Outer boundary paths have a clockwise order, and holes have a counterclockwise order.
+
 ### Union
 <p align="left">
 <img src="https://github.com/iShape-Swift/iOverlay/blob/main/Readme/union.svg" width="250"/>
