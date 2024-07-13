@@ -73,7 +73,8 @@ public struct CGOverlay {
         let subjRect = CGRect(shape: self.subjPaths)
         let clipRect = CGRect(shape: self.clipPaths)
         
-        let unionRect = CGRect(rect0: subjRect, rect1: clipRect)
+        let unionRect = CGRect(rect0: subjRect, rect1: clipRect) ?? CGRect(x: -1, y: -1, width: 2, height: 2)
+        
         let adapter = PointAdapter(rect: unionRect)
         
         let iSubj = self.subjPaths.toShape(adapter: adapter)
