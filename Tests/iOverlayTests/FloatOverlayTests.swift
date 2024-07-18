@@ -254,4 +254,83 @@ final class FloatOverlayTests: XCTestCase {
             }
         }
     }
+    
+    func test_empty_0() throws {
+        let unionShapes = CGOverlay().buildGraph().extractShapes(overlayRule: OverlayRule.union)
+        
+        XCTAssertEqual(unionShapes.count, 0)
+    }
+    
+    func test_empty_1() throws {
+        var overlay = CGOverlay()
+
+        overlay.add(path: [
+            CGPoint(x: 0, y: 0),
+            CGPoint(x: 0, y: 1),
+            CGPoint(x: 1, y: 1),
+            CGPoint(x: 1, y: 0)
+        ], type: ShapeType.subject)
+
+
+        // make overlay graph
+        let graph = overlay.buildGraph()
+
+        // get union shapes
+        let unionShapes = graph.extractShapes(overlayRule: OverlayRule.union)
+        
+        XCTAssertEqual(unionShapes.count, 1)
+        XCTAssertEqual(unionShapes[0].count, 1)
+        XCTAssertEqual(unionShapes[0][0].count, 4)
+    }
+    
+    func test_empty_2() throws {
+        var overlay = CGOverlay()
+
+        overlay.add(path: [
+            CGPoint(x: 0, y: 0),
+            CGPoint(x: 0, y: 1),
+            CGPoint(x: 1, y: 1),
+            CGPoint(x: 1, y: 0)
+        ], type: ShapeType.subject)
+        
+        overlay.add(path: [
+            CGPoint(x: 1000, y: 0)
+        ], type: ShapeType.clip)
+
+        // make overlay graph
+        let graph = overlay.buildGraph()
+
+        // get union shapes
+        let unionShapes = graph.extractShapes(overlayRule: OverlayRule.union)
+        
+        XCTAssertEqual(unionShapes.count, 1)
+        XCTAssertEqual(unionShapes[0].count, 1)
+        XCTAssertEqual(unionShapes[0][0].count, 4)
+    }
+    
+    func test_empty_3() throws {
+        var overlay = CGOverlay()
+
+        overlay.add(path: [
+            CGPoint(x: 0, y: 0),
+            CGPoint(x: 0, y: 1),
+            CGPoint(x: 1, y: 1),
+            CGPoint(x: 1, y: 0)
+        ], type: ShapeType.subject)
+        
+        overlay.add(path: [
+            CGPoint(x: 1000, y: 0),
+            CGPoint(x: 1000, y: 10)
+        ], type: ShapeType.clip)
+
+        // make overlay graph
+        let graph = overlay.buildGraph()
+
+        // get union shapes
+        let unionShapes = graph.extractShapes(overlayRule: OverlayRule.union)
+        
+        XCTAssertEqual(unionShapes.count, 1)
+        XCTAssertEqual(unionShapes[0].count, 1)
+        XCTAssertEqual(unionShapes[0][0].count, 4)
+    }
 }

@@ -27,15 +27,16 @@ public struct CGOverlayGraph {
     ///   - overlayRule: The rule determining how shapes are extracted from the overlay.
     ///   - minArea: The minimum area a shape must have to be included in the return value. This parameter helps in filtering out insignificant shapes or noise. Defaults to 0, which includes all shapes regardless of size.
     ///
-    /// - Returns: An array of `CGShapes`.
+    /// - Returns: An array of `[CGShape]`.
+    ///
     /// # Shape Representation
     /// The output is a `[[[CGPoint]]]`, where:
-    /// - The outer`[CGShape]` represents a set of shapes.
-    /// - Each shape `[[CGPoint]]` represents a collection of paths, where the first path is the outer boundary, and all subsequent paths are holes in this boundary.
-    /// - Each path `[CGPoint]` represents a collection of points, where every two consecutive points (cyclically) make up the boundary edge of the polygon.
+    /// - The outer `[CGShape]` represents a set of shapes.
+    /// - Each shape `[CGPath]` represents a collection of paths, where the first path is the outer boundary, and all subsequent paths are holes in this boundary.
+    /// - Each path `[CGPoint]` is a sequence of points, forming a closed path.
     ///
     /// Note: Outer boundary paths have a clockwise order, and holes have a counterclockwise order.
-    public func extractShapes(overlayRule: OverlayRule, minArea: CGFloat = 0) -> CGShapes {
+    public func extractShapes(overlayRule: OverlayRule, minArea: CGFloat = 0) -> [CGShape] {
         let sqrScale = adapter.dirScale * adapter.dirScale
         let iArea = Int64(sqrScale * minArea)
         let shapes = graph.extractShapes(overlayRule: overlayRule, minArea: iArea)
