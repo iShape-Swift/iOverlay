@@ -1,15 +1,16 @@
 {
-  "xor" : [
+  "subject" : [
     [
 
     ]
   ],
+  "fillRule" : 0,
   "intersect" : [
     [
 
     ]
   ],
-  "subject" : [
+  "inverseDifference" : [
     [
 
     ]
@@ -19,18 +20,17 @@
 
     ]
   ],
-  "union" : [
-    [
-
-    ]
-  ],
   "difference" : [
     [
 
     ]
   ],
-  "fillRule" : 0,
-  "inverseDifference" : [
+  "union" : [
+    [
+
+    ]
+  ],
+  "xor" : [
     [
 
     ]

@@ -21,20 +21,24 @@ public enum Strategy {
 }
 
 public struct Solver {
+
     public static let list = Solver(strategy: .list)
     public static let tree = Solver(strategy: .tree)
     public static let auto = Solver(strategy: .auto)
     
     public let strategy: Strategy
-    public let chunkStartLength: Int
-    public let chunkListMaxSize: Int
-    public let preSplitMaxCount: Int
+    private static let maxListCount: Int = 1024
     
-    init(strategy: Strategy, chunkStartLength: Int = 8, chunkListMaxSize: Int = 256, preSplitMaxCount: Int = 3) {
+    init(strategy: Strategy) {
         self.strategy = strategy
-        self.chunkStartLength = chunkStartLength
-        self.chunkListMaxSize = chunkListMaxSize
-        self.preSplitMaxCount = preSplitMaxCount
+    }
+    
+    func isList(range: Int64, count: Int) -> Bool {
+        guard self.strategy == .auto else {
+            return self.strategy == .list
+        }
+        
+        return count < Self.maxListCount && range > SpaceLayout.minRangeLength
     }
     
 }

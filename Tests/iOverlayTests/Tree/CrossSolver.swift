@@ -20,7 +20,7 @@ struct RandomEdge {
     let b: Point
 }
 
-struct CrossSolver {
+struct DebugCrossSolver {
  
     static func isCross(e0: RandomEdge, e1: RandomEdge) -> CrossType {
         let a0 = FixVec(e0.a)

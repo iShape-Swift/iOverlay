@@ -7,54 +7,9 @@ import iShape
 final class RanTests: XCTestCase {
     
     private let solvers = [
-        Solver(
-            strategy: .list,
-            chunkStartLength: 1,
-            chunkListMaxSize: 2
-        ),
-        Solver(
-            strategy: .list,
-            chunkStartLength: 2,
-            chunkListMaxSize: 4
-        ),
-        Solver(
-            strategy: .list,
-            chunkStartLength: 8,
-            chunkListMaxSize: 16
-        ),
-        Solver(
-            strategy: .list,
-            chunkStartLength: 16,
-            chunkListMaxSize: 256
-        ),
-        Solver(
-            strategy: .tree,
-            chunkStartLength: 1,
-            chunkListMaxSize: 2
-        ),
-        Solver(
-            strategy: .tree,
-            chunkStartLength: 2,
-            chunkListMaxSize: 4
-        ),
-        Solver(
-            strategy: .tree,
-            chunkStartLength: 16,
-            chunkListMaxSize: 32
-        ),
-        Solver(
-            strategy: .auto,
-            chunkStartLength: 1,
-            chunkListMaxSize: 2
-        ),
-        Solver(
-            strategy: .auto,
-            chunkStartLength: 2,
-            chunkListMaxSize: 4
-        ),
-        Solver(
-            strategy: .auto
-        )
+        Solver.list,
+        Solver.tree,
+        Solver.auto
     ]
     
     func test_00() throws {

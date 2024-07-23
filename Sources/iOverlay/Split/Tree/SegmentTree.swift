@@ -1,5 +1,5 @@
 //
-//  ScanSplitTree.swift
+//  SegmentTree.swift
 //  
 //
 //  Created by Nail Sharipov on 06.03.2024.
@@ -8,17 +8,10 @@
 import iFixFloat
 import iTree
 
-#if DEBUG
 struct IntervalNode {
     let range: LineRange
-    var list: [XSegment]
+    var fragments: [Fragment]
 }
-#else
-private struct IntervalNode {
-    let range: LineRange
-    var list: [XSegment]
-}
-#endif
 
 struct CrossSegment {
     let other: XSegment
@@ -28,12 +21,18 @@ struct CrossSegment {
 extension IntervalNode {
     init(range: LineRange) {
         self.range = range
-        self.list = [XSegment]()
-        self.list.reserveCapacity(4)
+        self.fragments = [Fragment]()
+        self.fragments.reserveCapacity(4)
     }
 }
 
-struct ScanSplitTree {
+extension IntRect {
+    var yRange: LineRange {
+        LineRange(min: self.minY, max: self.maxY)
+    }
+}
+
+struct SegmentTree {
 
     private let power: Int
     fileprivate var nodes: [IntervalNode]
@@ -59,6 +58,7 @@ struct ScanSplitTree {
             i += 2
             a0 = a
         }
+        
         nodes[i] = IntervalNode(range: LineRange(min: a0, max: range.max))
         
         for j in 2...power {
@@ -81,22 +81,15 @@ struct ScanSplitTree {
         return nodes
     }
     
-    init(range: LineRange, count: Int) {
-        let maxPowerRange = range.logTwo
-        let maxPowerCount = Int32(count).logTwo >> 1
-        self.power = max(2, min(12, min(maxPowerRange, maxPowerCount)))
-        nodes = Self.createNodes(range: range, power: power)
-    }
-    
     init(range: LineRange, power: Int) {
         self.power = power
         self.nodes = Self.createNodes(range: range, power: power)
     }
     
-    mutating func insert(segment: XSegment) {
+    mutating func insert(fragment: Fragment) {
         var s = 1 << power
         var i = s - 1
-        let range = segment.yRange
+        let range = fragment.rect.yRange
         
         var earlyOut = false
         
@@ -114,7 +107,7 @@ struct ScanSplitTree {
         }
         // at this moment segment is in the middle of node[i]
         if !earlyOut || self.nodes[i].range == range {
-            nodes[i].list.append(segment)
+            nodes[i].fragments.append(fragment)
             return
         }
         
@@ -124,7 +117,7 @@ struct ScanSplitTree {
         let sm = s
         
         if range.min == nodes[iLt].range.min {
-            nodes[iLt].list.append(segment)
+            nodes[iLt].fragments.append(fragment)
         } else {
             earlyOut = false
             let e = range.min
@@ -139,7 +132,7 @@ struct ScanSplitTree {
                 let rt = i + s
                 
                 if e <= middle {
-                    nodes[rt].list.append(segment)
+                    nodes[rt].fragments.append(fragment)
                     if e == middle {
                         // no more append is possible
                         earlyOut = true
@@ -154,12 +147,12 @@ struct ScanSplitTree {
             // add to leaf anyway
             if !earlyOut {
                 // we down to a leaf, add it anyway
-                nodes[i].list.append(segment)
+                nodes[i].fragments.append(fragment)
             }
         }
 
         if range.max == nodes[iRt].range.max {
-            nodes[iRt].list.append(segment)
+            nodes[iRt].fragments.append(fragment)
         } else {
             earlyOut = false
             let e = range.max
@@ -174,7 +167,7 @@ struct ScanSplitTree {
                 let rt = i + s
 
                 if e >= middle {
-                    nodes[lt].list.append(segment)
+                    nodes[lt].fragments.append(fragment)
                     if e == middle {
                         // no more append is possible
                         earlyOut = true
@@ -188,122 +181,22 @@ struct ScanSplitTree {
                     
             if !earlyOut {
                 // we down to a leaf, add it anyway
-                nodes[i].list.append(segment)
+                nodes[i].fragments.append(fragment)
             }
         }
     }
     
-    mutating private func remove(segment: XSegment, scanPos: Point) {
-        // same logic as for insert but now we remove
-        
+    mutating func intersect(this: Fragment, marks: inout [LineMark]) -> Bool {
         var s = 1 << power
         var i = s - 1
-        let range = segment.yRange
+        let range = this.rect.yRange
         
         var earlyOut = false
-        
-        while s > 1 {
-            let middle = self.nodes[i].range.middle
-            s >>= 1
-            if range.max <= middle {
-                i -= s
-            } else if range.min >= middle {
-                i += s
-            } else {
-                earlyOut = true
-                break
-            }
-        }
-        
-        // at this moment segment is in the middle of node[i]
-        if !earlyOut || self.nodes[i].range == range {
-            nodes[i].list.remove(segment: segment, scanPos: scanPos)
-            return
-        }
-        
-        let iLt = i - s
-        let iRt = i + s
-        
-        let sm = s
-        
-        if range.min == nodes[iLt].range.min {
-            nodes[iLt].list.remove(segment: segment, scanPos: scanPos)
-        } else {
-            earlyOut = false
-            let e = range.min
-            i = iLt
-
-            while s > 1 {
-                let middle = nodes[i].range.middle
-
-                s >>= 1
-                
-                let lt = i - s
-                let rt = i + s
-                
-                i = lt
-                
-                if e <= middle {
-                    nodes[rt].list.remove(segment: segment, scanPos: scanPos)
-                    if e == middle {
-                        earlyOut = true
-                        break
-                    }
-                    i = lt
-                } else {
-                    i = rt
-                }
-            }
-            
-            if !earlyOut {
-                nodes[i].list.remove(segment: segment, scanPos: scanPos)
-            }
-        }
-        
-        if range.max == nodes[iRt].range.max {
-            nodes[iRt].list.remove(segment: segment, scanPos: scanPos)
-        } else {
-            earlyOut = false
-            let e = range.max
-            s = sm
-            i = iRt
-            
-            while s > 1 {
-                let middle = nodes[i].range.middle
-                
-                s >>= 1
-                let lt = i - s
-                let rt = i + s
-
-                if e >= middle {
-                    nodes[lt].list.remove(segment: segment, scanPos: scanPos)
-                    if e == middle {
-                        earlyOut = true
-                        break
-                    }
-                    i = rt
-                } else {
-                    i = lt
-                }
-            }
-                    
-            if !earlyOut {
-                nodes[i].list.remove(segment: segment, scanPos: scanPos)
-            }
-        }
-    }
-    
-    mutating func intersectAndRemoveOther(this: XSegment) -> CrossSegment? {
-        var s = 1 << power
-        var i = s - 1
-        let range = this.yRange
-        
-        var earlyOut = false
+        var anyRound = false
         
         while s > 0 {
-            if let cross = self.cross(index: i, this: this) {
-                return cross
-            }
+            let isRound = self.crossNode(index: i, this: this, marks: &marks)
+            anyRound = isRound || anyRound
             s >>= 1
             
             let middle = self.nodes[i].range.middle
@@ -319,7 +212,7 @@ struct ScanSplitTree {
 
         if !earlyOut {
             // no need more search
-            return nil
+            return anyRound
         }
 
         // find most left index
@@ -327,9 +220,8 @@ struct ScanSplitTree {
         var j = i - s
         var sj = s
         while sj > 1 {
-            if let cross = self.cross(index: j, this: this) {
-                return cross
-            }
+            let isRound = self.crossNode(index: j, this: this, marks: &marks)
+            anyRound = isRound || anyRound
             
             let middle = nodes[j].range.middle
             
@@ -353,9 +245,8 @@ struct ScanSplitTree {
         j = i + s
         sj = s
         while sj > 1 {
-            if let cross = self.cross(index: j, this: this) {
-                return cross
-            }
+            let isRound = self.crossNode(index: j, this: this, marks: &marks)
+            anyRound = isRound || anyRound
             
             let middle = nodes[j].range.middle
             
@@ -377,88 +268,61 @@ struct ScanSplitTree {
         i = iLt
         
         while i <= iRt {
-            if let cross = self.cross(index: i, this: this) {
-                return cross
-            }
+            let isRound = self.crossNode(index: i, this: this, marks: &marks)
+            anyRound = isRound || anyRound
             i += 1
         }
         
-        return nil
+        return anyRound
     }
     
     mutating func clear() {
         for i in 0..<nodes.count {
-            nodes[i].list.removeAll(keepingCapacity: true)
+            nodes[i].fragments.removeAll(keepingCapacity: true)
         }
     }
     
-    private mutating func cross(index: Int, this: XSegment) -> CrossSegment? {
-        // normally scan list contain segments before this segment,
-        // but sometimes after rollback it can contain segments behind this segment
-        // in that case we remove segments (they will be added automatically later)
+    private mutating func crossNode(index: Int, this: Fragment, marks: inout [LineMark]) -> Bool {
+        
+        let swipeLine = this.rect.minX
+        var anyRound = false
         
         var j = 0
-        
-        while j < self.nodes[index].list.count {
-            let scan = self.nodes[index].list[j]
+        while j < self.nodes[index].fragments.count {
+            let scan = self.nodes[index].fragments[j]
             
-            let isValid = ScanCrossSolver.isValid(scan: scan, this: this)
+            guard scan.rect.maxX >= swipeLine else {
+                // remove item if it outside
+                self.nodes[index].fragments.swapRemove(j)
+                continue
+            }
+
+            j += 1
             
-            if !isValid {
-                self.nodes[index].list.swapRemove(j)
+            guard scan.rect.isIntersectBorderInclude(this.rect) else {
                 continue
             }
             
-            // order is important! this * scan
-            if let cross = ScanCrossSolver.cross(target: this, other: scan) {
-                self.remove(segment: scan, scanPos: this.a)
-                return CrossSegment(other: scan, cross: cross)
-            }
-            j += 1
+            let isRound = SplitSolver.cross(
+                i: this.index,
+                j: scan.index,
+                ei: this.xSegment,
+                ej: scan.xSegment,
+                marks: &marks
+            )
+            
+            anyRound = isRound || anyRound
         }
         
-        return nil
-    }
-    
-    private func findLeftNode(index: Int, value: Int32, scale: Int) -> Int {
-        var s = scale
-        var i = index
-        while s > 1 {
-            let middle = nodes[i].range.middle
-            
-            if value == middle {
-                return i
-            }
-            
-            s >>= 1
-            
-            if value < middle {
-                i -= s
-            } else {
-                i += s
-            }
-        }
-        
-        return i
+        return anyRound
     }
     
 }
-
-private extension Int32 {
-    var logTwo: Int {
-        Int32.bitWidth - self.leadingZeroBitCount
-    }
-}
-
 
 private extension LineRange {
 
     var middle: Int32 {
         (self.max + self.min) >> 1
-    }
-    
-    var logTwo: Int {
-        (max - min).logTwo
     }
 }
 
@@ -481,9 +345,9 @@ private extension Array where Element == XSegment {
 
 
 #if DEBUG
-extension ScanSplitTree {
+extension SegmentTree {
     static func testInitNodes(range: LineRange, power: Int) -> [IntervalNode] {
-        ScanSplitTree.createNodes(range: range, power: power)
+        SegmentTree.createNodes(range: range, power: power)
     }
     
     func node(index: Int) -> IntervalNode {
@@ -493,7 +357,7 @@ extension ScanSplitTree {
     var count: Int {
         var s = 0
         for node in self.nodes {
-            s += node.list.count
+            s += node.fragments.count
         }
         return s
     }

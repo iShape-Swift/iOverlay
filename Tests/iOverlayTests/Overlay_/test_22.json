@@ -1,15 +1,38 @@
 {
+  "fillRule" : 0,
   "difference" : [
     [
 
     ]
   ],
-  "subject" : [
+  "inverseDifference" : [
     [
 
     ]
   ],
   "xor" : [
+    [
+
+    ]
+  ],
+  "clipPaths" : [
+    [
+      [
+        -10240,
+        -10238
+      ],
+      [
+        10240,
+        10241
+      ]
+    ]
+  ],
+  "union" : [
+    [
+
+    ]
+  ],
+  "subject" : [
     [
 
     ]
@@ -31,32 +54,9 @@
       ]
     ]
   ],
-  "fillRule" : 0,
-  "inverseDifference" : [
-    [
-
-    ]
-  ],
   "clip" : [
     [
 
-    ]
-  ],
-  "union" : [
-    [
-
-    ]
-  ],
-  "clipPaths" : [
-    [
-      [
-        -10240,
-        -10238
-      ],
-      [
-        10240,
-        10241
-      ]
     ]
   ]
 }

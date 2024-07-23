@@ -11,28 +11,17 @@
       ]
     ]
   ],
-  "union" : [
-    [
-
-    ]
-  ],
   "subject" : [
     [
 
     ]
   ],
-  "fillRule" : 0,
-  "xor" : [
+  "union" : [
     [
 
     ]
   ],
   "difference" : [
-    [
-
-    ]
-  ],
-  "intersect" : [
     [
 
     ]
@@ -55,6 +44,17 @@
     ]
   ],
   "clip" : [
+    [
+
+    ]
+  ],
+  "intersect" : [
+    [
+
+    ]
+  ],
+  "fillRule" : 0,
+  "xor" : [
     [
 
     ]

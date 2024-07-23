@@ -1,5 +1,5 @@
 //
-//  ScanCrossSolver.swift
+//  CrossSolver.swift
 //
 //
 //  Created by Nail Sharipov on 30.03.2024.
@@ -7,133 +7,21 @@
 
 import iFixFloat
 
-public enum CrossResult {
-    case pureExact(Point)
-    case pureRound(Point)
-    case endOverlap
-    case overlap
-    case targetEndExact(Point)
-    case targetEndRound(Point)
-    case otherEndExact(Point)
-    case otherEndRound(Point)
+struct CrossResult {
+    let point: Point
+    let type: CrossType
+    let isRound: Bool
 }
 
-struct ScanCrossSolver {
-    
-    static func isValid(scan: XSegment, this: XSegment) -> Bool {
-        let isOutdated = scan.b < this.a
-        let isBehind = scan < this
-        
-        return !isOutdated && isBehind
-    }
-    
-    
-    static func testX(target: XSegment, other: XSegment) -> Bool {
-        let testX =
-        // a > all other
-        target.a.x > other.a.x && target.a.x > other.b.x &&
-        // b > all other
-        target.b.x > other.a.x && target.b.x > other.b.x ||
-        // a < all other
-        target.a.x < other.a.x && target.a.x < other.b.x &&
-        // b < all other
-        target.b.x < other.a.x && target.b.x < other.b.x
-        
-        return testX
-    }
-    
-    static func testY(target: XSegment, other: XSegment) -> Bool {
-        let testY =
-        // a > all other
-        target.a.y > other.a.y && target.a.y > other.b.y &&
-        // b > all other
-        target.b.y > other.a.y && target.b.y > other.b.y ||
-        // a < all other
-        target.a.y < other.a.y && target.a.y < other.b.y &&
-        // b < all other
-        target.b.y < other.a.y && target.b.y < other.b.y
-        
-        return testY
-    }
-    
-    static func debugCross(target: XSegment, other: XSegment) -> CrossResult? {
-        let testX = Self.testX(target: target, other: other)
-        
-        guard !testX else {
-            return nil
-        }
-        
-        return self.cross(target: target, other: other)
-    }
-    
+enum CrossType {
+    case pure
+    case targetEnd
+    case otherEnd
+}
+
+struct CrossSolver {
+
     static func cross(target: XSegment, other: XSegment) -> CrossResult? {
-        // by this time segments already at intersection range by x
-#if DEBUG
-        assert(!Self.testX(target: target, other: other))
-#endif
-
-        guard !Self.testY(target: target, other: other) else {
-            return nil
-        }
-
-        let a0b0a1 = Triangle.clockDirection(p0: target.a, p1: target.b, p2: other.a)
-        let a0b0b1 = Triangle.clockDirection(p0: target.a, p1: target.b, p2: other.b)
-
-        let a1b1a0 = Triangle.clockDirection(p0: other.a, p1: other.b, p2: target.a)
-        let a1b1b0 = Triangle.clockDirection(p0: other.a, p1: other.b, p2: target.b)
-        
-        let s = (1 & (a0b0a1 + 1)) + (1 & (a0b0b1 + 1)) + (1 & (a1b1a0 + 1)) + (1 & (a1b1b0 + 1))
-
-        let isNotCross = a0b0a1 == a0b0b1 || a1b1a0 == a1b1b0
-
-        if s == 2 || (isNotCross && s != 4) {
-            return nil
-        }
-
-        if s != 0 {
-            // special case
-            if s == 4 {
-                // collinear
-
-                let aa = target.a == other.a
-                let ab = target.a == other.b
-                let ba = target.b == other.a
-                let bb = target.b == other.b
-
-                let isEnd0 = aa || ab
-                let isEnd1 = ba || bb
-
-                if isEnd0 || isEnd1 {
-                    let p = aa || ba ? other.b : other.a
-                    let v0 = target.a.subtract(p)
-                    let v1 = isEnd0 ? target.a.subtract(target.b) : target.b.subtract(target.a)
-                    let dotProduct = v1.dotProduct(v0)
-                    if dotProduct >= 0 {
-                        return .endOverlap
-                    } else {
-                        // end to end connection
-                        return nil
-                    }
-                } else {
-                    return .overlap
-                }
-            } else {
-                if a0b0a1 == 0 {
-                    return .otherEndExact(other.a)
-                } else if a0b0b1 == 0 {
-                    return .otherEndExact(other.b)
-                } else if a1b1a0 == 0 {
-                    return .targetEndExact(target.a)
-                } else {
-                    return .targetEndExact(target.b)
-                }
-            }
-        }
-
-        return Self.simpleCross(target: target, other: other)
-    }
-    
-    static func preCross(target: XSegment, other: XSegment) -> CrossResult? {
         // by this time segments already at intersection range by x
 
         let a0b0a1 = Triangle.clockDirection(p0: target.a, p1: target.b, p2: other.a)
@@ -150,15 +38,23 @@ struct ScanCrossSolver {
         }
 
         if s != 0 {
+            let point: Point
+            let type: CrossType
             if a0b0a1 == 0 {
-                return .otherEndExact(other.a)
+                point = other.a
+                type = .otherEnd
             } else if a0b0b1 == 0 {
-                return .otherEndExact(other.b)
+                point = other.b
+                type = .otherEnd
             } else if a1b1a0 == 0 {
-                return .targetEndExact(target.a)
+                point = target.a
+                type = .targetEnd
             } else {
-                return .targetEndExact(target.b)
+                point = target.b
+                type = .targetEnd
             }
+            
+            return CrossResult(point: point, type: type, isRound: false)
         }
         
         return Self.simpleCross(target: target, other: other)
@@ -168,7 +64,7 @@ struct ScanCrossSolver {
         let p = Self.crossPoint(target: target, other: other)
         
         if Triangle.isLine(p0: target.a, p1: p, p2: target.b) && Triangle.isLine(p0: other.a, p1: p, p2: other.b) {
-            return .pureExact(p)
+            return CrossResult(point: p, type: .pure, isRound: false)
         }
         
         // still can be common ends because of rounding
@@ -189,19 +85,19 @@ struct ScanCrossSolver {
                 
                 // ignore if it's a clean point
                 if Triangle.isNotLine(p0: other.a, p1: p, p2: other.b) {
-                    return .targetEndRound(p)
+                    return CrossResult(point: p, type: .targetEnd, isRound: true)
                 }
             } else {
                 let p = ra1 < rb1 ? other.a : other.b
                 
                 // ignore if it's a clean point
                 if Triangle.isNotLine(p0: target.a, p1: p, p2: target.b) {
-                    return .otherEndRound(p)
+                    return CrossResult(point: p, type: .otherEnd, isRound: true)
                 }
             }
         }
 
-        return .pureRound(p)
+        return CrossResult(point: p, type: .pure, isRound: true)
     }
     
     private static func crossPoint(target: XSegment, other: XSegment) -> Point {

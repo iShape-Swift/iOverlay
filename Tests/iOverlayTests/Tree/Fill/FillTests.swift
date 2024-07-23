@@ -96,7 +96,7 @@ final class FillTests: XCTestCase {
     }
 
     private func randomEdges(range: Range<Int32>, length: Range<Int32>, count: Int) -> [CountSegment] {
-        let list = CrossSolver.randomSegments(range: range, length: length, count: count)
+        let list = DebugCrossSolver.randomSegments(range: range, length: length, count: count)
         var result = [CountSegment]()
         result.reserveCapacity(list.count)
         

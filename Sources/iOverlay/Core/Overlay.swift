@@ -27,8 +27,6 @@ public enum ShapeType {
 /// This struct is crucial for preparing and uploading geometry data required by boolean operations. It serves as a container for edge data derived from shapes and paths, supporting various initializations and modifications.
 public struct Overlay {
 
-    private var yMin: Int32 = .max
-    private var yMax: Int32 = .min
     public internal (set) var edges: [ShapeEdge]
     
     
@@ -135,12 +133,10 @@ public struct Overlay {
     ///   - path: A reference to a `Path` instance to be added.
     ///   - type: Specifies the role of the added path in the overlay operation, either as `Subject` or `Clip`.
     public mutating func add(path: Path, type: ShapeType) {
-        guard let result = path.removedDegenerates().createEdges(type: type) else {
+        guard let pathEdges = path.removedDegenerates().createEdges(type: type) else {
             return
         }
-        yMin = Swift.min(yMin, result.yMin)
-        yMax = Swift.max(yMax, result.yMax)
-        edges.append(contentsOf: result.edges)
+        edges.append(contentsOf: pathEdges)
     }
 
     
@@ -182,50 +178,6 @@ public struct Overlay {
         return vectors
     }
     
-    private func prepareSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
-        let sortedList = edges.sorted(by: { $0.xSegment < $1.xSegment })
-        var buffer = [ShapeEdge]()
-        buffer.reserveCapacity(sortedList.count)
-        
-        var prev = ShapeEdge(a: .zero, b: .zero, count: .init(subj: 0, clip: 0))
-        
-        for next in sortedList {
-            if prev.xSegment == next.xSegment {
-                prev.count = prev.count.add(next.count)
-            } else {
-                if !prev.count.isEmpty {
-                    buffer.append(prev)
-                }
-                prev = next
-            }
-        }
-
-        if !prev.count.isEmpty {
-            buffer.append(prev)
-        }
-
-        var segments: [Segment]
-        let isList: Bool
-        if solver.strategy == .auto {
-            let needToFix = PreSplitSolver.split(solver: solver, edges: &buffer)
-            if needToFix {
-                let result = SplitSolver.split(edges: buffer, solver: solver, range: LineRange(min: yMin, max: yMax))
-                segments = result.0
-                isList = result.1
-            } else {
-                segments = buffer.map({ Segment(edge: $0) })
-                isList = segments.count.log2Sqrt < solver.chunkListMaxSize
-            }
-        } else {
-            let result = SplitSolver.split(edges: buffer, solver: solver, range: LineRange(min: yMin, max: yMax))
-            segments = result.0
-            isList = result.1
-        }
-        
-        segments.fill(fillRule: fillRule, isList: isList)
-
-        return segments
-    }
     
     
     /// Constructs an `OverlayGraph` from the added paths or shapes using the specified fill rule. This graph is the foundation for executing boolean operations, allowing for the analysis and manipulation of the geometric data. The `OverlayGraph` created by this method represents a preprocessed state of the input shapes, optimized for the application of boolean operations based on the provided fill rule.
@@ -236,50 +188,59 @@ public struct Overlay {
     public func buildGraph(fillRule: FillRule = .nonZero, solver: Solver = .auto) -> OverlayGraph {
         OverlayGraph(segments: self.buildSegments(fillRule: fillRule, solver: solver))
     }
+    
+    private func prepareSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
+        var sortedEdges = edges.sorted(by: { $0.xSegment < $1.xSegment })
+        
+        let result = sortedEdges.determineLineRangeAndUnionRequirement()
+        
+        if result.1 {
+            sortedEdges = sortedEdges.union()
+        }
 
-}
+        let isList = SplitSolver(solver: solver, range: result.0).split(edges: &sortedEdges)
+        
+        var segments = sortedEdges.map({ Segment(edge: $0) })
+        
+        segments.fill(fillRule: fillRule, isList: isList)
 
-private struct EdgeResult {
-    let edges: [ShapeEdge]
-    let yMin: Int32
-    let yMax: Int32
+        return segments
+    }
 }
 
 private extension Path {
     
-    func createEdges(type: ShapeType) -> EdgeResult? {
+    func createEdges(type: ShapeType) -> [ShapeEdge]? {
         let n = count
         guard n > 2 else {
             return nil
         }
         
-        var edges = [ShapeEdge](repeating: .zero, count: n)
+        var edges = [ShapeEdge]()
+        edges.reserveCapacity(n)
         
         let i0 = n - 1
         var p0 = self[i0]
         
-        var yMin = p0.y
-        var yMax = p0.y
-        
         for i in 0..<n {
             let p1 = self[i]
-
-            yMin = Swift.min(yMin, p1.y)
-            yMax = Swift.max(yMax, p1.y)
             
             let value: Int32 = p0 < p1 ? 1 : -1
             
+            let edge: ShapeEdge
             switch type {
             case .subject:
-                edges[i] = ShapeEdge(a: p0, b: p1, count: ShapeCount(subj: value, clip: 0))
+                edge = ShapeEdge(a: p0, b: p1, count: ShapeCount(subj: value, clip: 0))
             case .clip:
-                edges[i] = ShapeEdge(a: p0, b: p1, count: ShapeCount(subj: 0, clip: value))
+                edge = ShapeEdge(a: p0, b: p1, count: ShapeCount(subj: 0, clip: value))
             }
+            
+            edges.append(edge)
             
             p0 = p1
         }
         
-        return EdgeResult(edges: edges, yMin: Int32(yMin), yMax: Int32(yMax))
+        return edges
     }
 }
 
@@ -310,4 +271,53 @@ private extension Array where Element == Segment {
             self.removeLast()
         }
     }
+}
+
+private extension Array where Element == ShapeEdge {
+ 
+    func union() -> [ShapeEdge] {
+        var buffer = [ShapeEdge]()
+        buffer.reserveCapacity(self.count)
+        
+        var prev = ShapeEdge(a: .zero, b: .zero, count: .init(subj: 0, clip: 0))
+        
+        for next in self {
+            if prev.xSegment == next.xSegment {
+                prev.count = prev.count.add(next.count)
+            } else {
+                if !prev.count.isEmpty {
+                    buffer.append(prev)
+                }
+                prev = next
+            }
+        }
+
+        if !prev.count.isEmpty {
+            buffer.append(prev)
+        }
+        
+        return buffer
+    }
+    
+    func determineLineRangeAndUnionRequirement() -> (LineRange, Bool) {
+        var prev = ShapeEdge(a: .zero, b: .zero, count: .init(subj: 0, clip: 0))
+        var unionRequired: Bool = false
+        
+        var minY: Int32 = self[0].xSegment.a.y
+        var maxY: Int32 = minY
+        
+        for next in self {
+            if prev.xSegment == next.xSegment {
+                unionRequired = true
+            }
+            
+            minY = Swift.min(minY, next.xSegment.a.y)
+            maxY = Swift.max(maxY, next.xSegment.a.y)
+            minY = Swift.min(minY, next.xSegment.b.y)
+            maxY = Swift.max(maxY, next.xSegment.b.y)
+        }
+        
+        return (LineRange(min: minY, max: maxY), unionRequired)
+    }
+    
 }
