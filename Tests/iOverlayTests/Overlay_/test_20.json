@@ -1,15 +1,17 @@
 {
-  "difference" : [
+  "subjPaths" : [
     [
-
+      [
+        -10240,
+        -10240
+      ],
+      [
+        10240,
+        10240
+      ]
     ]
   ],
-  "xor" : [
-    [
-
-    ]
-  ],
-  "clip" : [
+  "inverseDifference" : [
     [
 
     ]
@@ -19,7 +21,7 @@
 
     ]
   ],
-  "inverseDifference" : [
+  "xor" : [
     [
 
     ]
@@ -37,7 +39,17 @@
     ]
   ],
   "fillRule" : 0,
+  "clip" : [
+    [
+
+    ]
+  ],
   "intersect" : [
+    [
+
+    ]
+  ],
+  "difference" : [
     [
 
     ]
@@ -45,18 +57,6 @@
   "union" : [
     [
 
-    ]
-  ],
-  "subjPaths" : [
-    [
-      [
-        -10240,
-        -10240
-      ],
-      [
-        10240,
-        10240
-      ]
     ]
   ]
 }

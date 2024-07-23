@@ -49,7 +49,7 @@ extension SpaceLayout {
         let isFragmetationRequired = dx > self.minSize && dy > self.minSize
         
         if !isFragmetationRequired {
-            return
+            return buffer.append(Fragment(index: index, xSegment: xSegment))
         }
 
         let k = (dy << UInt32.bitWidth) / dx
@@ -110,6 +110,25 @@ extension SpaceLayout {
         }
         buffer.append(Fragment(index: index, rect: rect, xSegment: xSegment))
     }
+    
+    private func isFragmentationRequired(xSegment: XSegment) -> Bool {
+        let dx = UInt64(Int64(xSegment.b.x) - Int64(xSegment.a.x))
+        let dy = UInt64(abs(Int64(xSegment.b.x) - Int64(xSegment.a.x)))
+        
+        return dx > self.minSize && dy > self.minSize
+    }
+    
+    func isFragmentationRequired(edges: [ShapeEdge]) -> Bool {
+        var i = 0
+        for edge in edges {
+            if self.isFragmentationRequired(xSegment: edge.xSegment) {
+                i += 1
+            }
+        }
+        // must be at least 20%
+        return i * 20 > edges.count
+    }
+    
 }
 
 private extension Int32 {

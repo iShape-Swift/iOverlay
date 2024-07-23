@@ -1,9 +1,4 @@
 {
-  "subject" : [
-    [
-
-    ]
-  ],
   "subjPaths" : [
     [
       [
@@ -16,12 +11,12 @@
       ]
     ]
   ],
-  "union" : [
+  "difference" : [
     [
 
     ]
   ],
-  "clip" : [
+  "inverseDifference" : [
     [
 
     ]
@@ -36,7 +31,13 @@
 
     ]
   ],
-  "difference" : [
+  "fillRule" : 0,
+  "clip" : [
+    [
+
+    ]
+  ],
+  "subject" : [
     [
 
     ]
@@ -53,8 +54,7 @@
       ]
     ]
   ],
-  "fillRule" : 0,
-  "inverseDifference" : [
+  "union" : [
     [
 
     ]
