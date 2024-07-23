@@ -96,9 +96,9 @@ struct SegmentTree {
         while s > 1 {
             let middle = self.nodes[i].range.middle
             s >>= 1
-            if range.max <= middle {
+            if range.max < middle {
                 i -= s
-            } else if range.min >= middle {
+            } else if range.min > middle {
                 i += s
             } else {
                 earlyOut = true

@@ -588,6 +588,6 @@ final class OverlayTests: XCTestCase {
     }
     
     func test_debug() throws {
-        self.debugExecute(index: 2, overlayRule: .xor, solver: .auto)
+        self.debugExecute(index: 9, overlayRule: .difference, solver: .list)
     }
 }

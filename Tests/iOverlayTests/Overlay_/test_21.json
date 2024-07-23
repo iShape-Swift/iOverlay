@@ -4,13 +4,19 @@
 
     ]
   ],
-  "fillRule" : 0,
-  "intersect" : [
+  "subjPaths" : [
     [
-
+      [
+        -10240,
+        -10240
+      ],
+      [
+        10240,
+        10240
+      ]
     ]
   ],
-  "inverseDifference" : [
+  "union" : [
     [
 
     ]
@@ -20,17 +26,17 @@
 
     ]
   ],
-  "difference" : [
-    [
-
-    ]
-  ],
-  "union" : [
+  "intersect" : [
     [
 
     ]
   ],
   "xor" : [
+    [
+
+    ]
+  ],
+  "difference" : [
     [
 
     ]
@@ -47,16 +53,10 @@
       ]
     ]
   ],
-  "subjPaths" : [
+  "fillRule" : 0,
+  "inverseDifference" : [
     [
-      [
-        -10240,
-        -10240
-      ],
-      [
-        10240,
-        10240
-      ]
+
     ]
   ]
 }

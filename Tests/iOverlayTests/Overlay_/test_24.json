@@ -1,20 +1,11 @@
 {
+  "fillRule" : 0,
   "subject" : [
     [
 
     ]
   ],
-  "union" : [
-    [
-
-    ]
-  ],
-  "xor" : [
-    [
-
-    ]
-  ],
-  "difference" : [
+  "intersect" : [
     [
 
     ]
@@ -24,7 +15,11 @@
 
     ]
   ],
-  "fillRule" : 0,
+  "difference" : [
+    [
+
+    ]
+  ],
   "clipPaths" : [
     [
       [
@@ -35,11 +30,6 @@
         20480,
         20480
       ]
-    ]
-  ],
-  "intersect" : [
-    [
-
     ]
   ],
   "subjPaths" : [
@@ -55,6 +45,16 @@
     ]
   ],
   "inverseDifference" : [
+    [
+
+    ]
+  ],
+  "xor" : [
+    [
+
+    ]
+  ],
+  "union" : [
     [
 
     ]

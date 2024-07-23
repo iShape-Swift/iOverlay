@@ -18,8 +18,7 @@ struct SpaceLayout {
     init(range: LineRange, count: Int) {
         let maxPowerRange = range.logTwo - 1
         let maxPowerCount = Int32(count).logTwo >> 1
-        self.power = min(12, min(maxPowerRange, maxPowerCount))
-        assert(self.power >= 2)
+        self.power = max(2, min(12, min(maxPowerRange, maxPowerCount)))
         self.minSize = UInt64(range.width >> self.power)
     }
    

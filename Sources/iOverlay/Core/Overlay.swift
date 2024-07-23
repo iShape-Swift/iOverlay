@@ -315,6 +315,8 @@ private extension Array where Element == ShapeEdge {
             maxY = Swift.max(maxY, next.xSegment.a.y)
             minY = Swift.min(minY, next.xSegment.b.y)
             maxY = Swift.max(maxY, next.xSegment.b.y)
+            
+            prev = next
         }
         
         return (LineRange(min: minY, max: maxY), unionRequired)
