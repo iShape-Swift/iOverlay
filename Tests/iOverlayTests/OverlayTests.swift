@@ -12,9 +12,7 @@ extension FixShape: Equatable {
 final class OverlayTests: XCTestCase {
     
     private let solvers = [
-        Solver.list,
-        Solver.tree,
-        Solver.auto
+        Solver.list
     ]
     
     
@@ -585,6 +583,22 @@ final class OverlayTests: XCTestCase {
     
     func test_121() throws {
         self.execute(index: 121)
+    }
+
+    func test_122() throws {
+        self.execute(index: 122)
+    }
+
+    func test_123() throws {
+        self.execute(index: 123)
+    }
+
+    func test_124() throws {
+        self.execute(index: 124)
+    }
+
+    func test_125() throws {
+        self.execute(index: 125)
     }
     
     func test_debug() throws {

@@ -191,16 +191,10 @@ public struct Overlay {
     
     private func prepareSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
         var sortedEdges = edges.sorted(by: { $0.xSegment < $1.xSegment })
-        
-        let result = sortedEdges.determineLineRangeAndUnionRequirement()
-        
-        if result.1 {
-            sortedEdges = sortedEdges.union()
-        }
 
-        let isList = SplitSolver(solver: solver, range: result.0).split(edges: &sortedEdges)
+        let isList = SplitSolver(solver: solver, range: sortedEdges.lineRange()).split(edges: &sortedEdges)
         
-        var segments = sortedEdges.map({ Segment(edge: $0) })
+        var segments = sortedEdges.segments()
         
         segments.fill(fillRule: fillRule, isList: isList)
 
@@ -247,19 +241,19 @@ private extension Path {
 private extension Array where Element == Segment {
     
     mutating func filter() {
-        var hasEmpty = false
+        var modified = false
         var i = 0
         while i < self.count {
             let fill = self[i].fill
             if fill == 0 || fill == .subjBoth || fill == .clipBoth {
-                hasEmpty = true
+                modified = true
                 self.swapRemove(i)
             } else {
                 i += 1
             }
         }
         
-        if hasEmpty {
+        if modified {
             self.sort(by: { $0.seg < $1.seg })
         }
     }
@@ -274,10 +268,10 @@ private extension Array where Element == Segment {
 }
 
 private extension Array where Element == ShapeEdge {
- 
-    func union() -> [ShapeEdge] {
-        var buffer = [ShapeEdge]()
-        buffer.reserveCapacity(self.count)
+    
+    func segments() -> [Segment] {
+        var segments = [Segment]()
+        segments.reserveCapacity(self.count)
         
         var prev = ShapeEdge(a: .zero, b: .zero, count: .init(subj: 0, clip: 0))
         
@@ -286,40 +280,30 @@ private extension Array where Element == ShapeEdge {
                 prev.count = prev.count.add(next.count)
             } else {
                 if !prev.count.isEmpty {
-                    buffer.append(prev)
+                    segments.append(Segment(edge: prev))
                 }
                 prev = next
             }
         }
 
         if !prev.count.isEmpty {
-            buffer.append(prev)
+            segments.append(Segment(edge: prev))
         }
         
-        return buffer
+        return segments
     }
     
-    func determineLineRangeAndUnionRequirement() -> (LineRange, Bool) {
-        var prev = ShapeEdge(a: .zero, b: .zero, count: .init(subj: 0, clip: 0))
-        var unionRequired: Bool = false
-        
+    func lineRange() -> LineRange {
         var minY: Int32 = self[0].xSegment.a.y
         var maxY: Int32 = minY
         
-        for next in self {
-            if prev.xSegment == next.xSegment {
-                unionRequired = true
-            }
-            
-            minY = Swift.min(minY, next.xSegment.a.y)
-            maxY = Swift.max(maxY, next.xSegment.a.y)
-            minY = Swift.min(minY, next.xSegment.b.y)
-            maxY = Swift.max(maxY, next.xSegment.b.y)
-            
-            prev = next
+        for edge in self {
+            minY = Swift.min(minY, edge.xSegment.a.y)
+            maxY = Swift.max(maxY, edge.xSegment.a.y)
+            minY = Swift.min(minY, edge.xSegment.b.y)
+            maxY = Swift.max(maxY, edge.xSegment.b.y)
         }
         
-        return (LineRange(min: minY, max: maxY), unionRequired)
+        return LineRange(min: minY, max: maxY)
     }
-    
 }

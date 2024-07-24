@@ -87,12 +87,12 @@ struct SplitSolver {
         }
         
         edges.sort(by: { $0.xSegment < $1.xSegment })
+        
         edges.merge()
     }
 }
 
 private extension [ShapeEdge] {
-    
     mutating func merge() {
         var i = 0
         while i < self.count {
@@ -105,16 +105,11 @@ private extension [ShapeEdge] {
                 isModified = true
             }
             
-            if isModified || count.isEmpty {
-                if count.isEmpty {
-                    self.remove(at: i)
-                } else {
-                    self[i].count = count
-                    i += 1
-                }
-            } else {
-                i += 1
+            if isModified {
+                self[i].count = count
             }
+            
+            i += 1
         }
     }
 }
