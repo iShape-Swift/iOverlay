@@ -192,7 +192,7 @@ public struct Overlay {
     private func prepareSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
         var sortedEdges = edges.sorted(by: { $0.xSegment < $1.xSegment })
 
-        let isList = SplitSolver(solver: solver, range: sortedEdges.lineRange()).split(edges: &sortedEdges)
+        let isList = SplitSolver(solver: solver, range: sortedEdges.yRange()).split(edges: &sortedEdges)
         
         var segments = sortedEdges.segments()
         
@@ -293,7 +293,7 @@ private extension Array where Element == ShapeEdge {
         return segments
     }
     
-    func lineRange() -> LineRange {
+    func yRange() -> LineRange {
         var minY: Int32 = self[0].xSegment.a.y
         var maxY: Int32 = minY
         

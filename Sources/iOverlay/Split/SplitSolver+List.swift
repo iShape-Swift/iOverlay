@@ -59,15 +59,10 @@ private extension XSegment {
     }
     
     private static func testX(target: XSegment, other: XSegment) -> Bool {
+         // MARK: a < b by design
         let testX =
-        // a > all other
-        target.a.x > other.a.x && target.a.x > other.b.x &&
-        // b > all other
-        target.b.x > other.a.x && target.b.x > other.b.x ||
-        // a < all other
-        target.a.x < other.a.x && target.a.x < other.b.x &&
-        // b < all other
-        target.b.x < other.a.x && target.b.x < other.b.x
+        target.a.x > other.a.x && target.a.x > other.b.x ||
+        other.a.x > target.a.x && other.a.x > target.b.x
         
         return testX
     }

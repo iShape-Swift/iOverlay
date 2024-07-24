@@ -19,7 +19,7 @@ final class SpaceLayoutTests: XCTestCase {
         var buffer = [Fragment]()
         let xSegment = XSegment(a: Point(0, 0), b: Point(3, 5))
         
-        layout.fragmentate(
+        layout.breakIntoFragments(
             index: 0,
             xSegment: xSegment,
             buffer: &buffer
@@ -35,7 +35,7 @@ final class SpaceLayoutTests: XCTestCase {
         var buffer = [Fragment]()
         let xSegment = XSegment(a: Point(0, 0), b: Point(3, 6))
         
-        layout.fragmentate(
+        layout.breakIntoFragments(
             index: 0,
             xSegment: xSegment,
             buffer: &buffer
@@ -51,7 +51,7 @@ final class SpaceLayoutTests: XCTestCase {
         var buffer = [Fragment]()
         let xSegment = XSegment(a: Point(0, 0), b: Point(5, 3))
         
-        layout.fragmentate(
+        layout.breakIntoFragments(
             index: 0,
             xSegment: xSegment,
             buffer: &buffer
@@ -67,7 +67,7 @@ final class SpaceLayoutTests: XCTestCase {
         var buffer = [Fragment]()
         let xSegment = XSegment(a: Point(0, 0), b: Point(6, 3))
         
-        layout.fragmentate(
+        layout.breakIntoFragments(
             index: 0,
             xSegment: xSegment,
             buffer: &buffer
@@ -83,7 +83,7 @@ final class SpaceLayoutTests: XCTestCase {
         var buffer = [Fragment]()
         let xSegment = XSegment(a: Point(-1, -1), b: Point(6, -5))
         
-        layout.fragmentate(
+        layout.breakIntoFragments(
             index: 0,
             xSegment: xSegment,
             buffer: &buffer
@@ -139,7 +139,7 @@ final class SpaceLayoutTests: XCTestCase {
                         let xSegment = XSegment(a: a, b: b)
                         
                         buffer.removeAll(keepingCapacity: true)
-                        layout.fragmentate(index: 0, xSegment: xSegment, buffer: &buffer)
+                        layout.breakIntoFragments(index: 0, xSegment: xSegment, buffer: &buffer)
                         
                         if !buffer.isEmpty {
                             validate(xSegment: xSegment, buffer: buffer)

@@ -12,7 +12,9 @@ extension FixShape: Equatable {
 final class OverlayTests: XCTestCase {
     
     private let solvers = [
-        Solver.list
+        Solver.list,
+        Solver.tree,
+        Solver.auto
     ]
     
     

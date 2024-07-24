@@ -94,19 +94,22 @@ struct SplitSolver {
 
 private extension [ShapeEdge] {
     mutating func merge() {
-        var i = 0
+        guard var prev = self.first else {
+            return
+        }
+        var isModified = false
+        var i = 1
         while i < self.count {
-            let ei = self[i]
-            var count = ei.count
-            var isModified = false
-            while i + 1 < self.count && ei.xSegment == self[i + 1].xSegment {
-                let c = self.remove(at: i + 1).count
-                count = count.add(c)
+            if prev.xSegment == self[i].xSegment {
+                let c = self.remove(at: i).count
+                prev.count = prev.count.add(c)
                 isModified = true
-            }
-            
-            if isModified {
-                self[i].count = count
+                
+                continue
+            } else if isModified {
+                isModified = false
+                self[i - 1].count = prev.count
+                prev = self[i]
             }
             
             i += 1

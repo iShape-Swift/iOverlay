@@ -64,7 +64,7 @@ extension SplitSolver {
             fragments.removeAll(keepingCapacity: true)
             
             for i in 0..<edges.count {
-                layout.fragmentate(index: i, xSegment: edges[i].xSegment, buffer: &fragments)
+                layout.breakIntoFragments(index: i, xSegment: edges[i].xSegment, buffer: &fragments)
             }
             
             guard 100 * fragments.count > 110 * edges.count else {

@@ -17,8 +17,8 @@ struct SpaceLayout {
     
     init(range: LineRange, count: Int) {
         let maxPowerRange = range.logTwo - 1
-        let maxPowerCount = Int32(count).logTwo >> 1
-        self.power = max(2, min(12, min(maxPowerRange, maxPowerCount)))
+        let maxPowerCount = Int64(count).logTwo >> 1
+        self.power = max(Self.minPower, min(12, min(maxPowerRange, maxPowerCount)))
         self.minSize = UInt64(range.width >> self.power)
     }
    
@@ -26,7 +26,7 @@ struct SpaceLayout {
 
 extension SpaceLayout {
     
-    func fragmentate(index: Int, xSegment: XSegment, buffer: inout [Fragment]) {
+    func breakIntoFragments(index: Int, xSegment: XSegment, buffer: inout [Fragment]) {
         let minX = xSegment.a.x
         let maxX = xSegment.b.x
         
@@ -46,10 +46,11 @@ extension SpaceLayout {
         let dx = UInt64(Int64(maxX) - Int64(minX))
         let dy = UInt64(Int64(maxY) - Int64(minY))
         
-        let isFragmetationRequired = dx > self.minSize && dy > self.minSize
+        let isFragmentationRequired = dx > self.minSize && dy > self.minSize
         
-        if !isFragmetationRequired {
-            return buffer.append(Fragment(index: index, xSegment: xSegment))
+        guard isFragmentationRequired else {
+            buffer.append(Fragment(index: index, xSegment: xSegment))
+            return
         }
 
         let k = (dy << UInt32.bitWidth) / dx
@@ -131,7 +132,7 @@ extension SpaceLayout {
     
 }
 
-private extension Int32 {
+private extension Int64 {
     var logTwo: Int {
         Int32.bitWidth - self.leadingZeroBitCount
     }
@@ -139,7 +140,7 @@ private extension Int32 {
 
 private extension LineRange {
     var logTwo: Int {
-        (max - min).logTwo
+        self.width.logTwo
     }
 }
 

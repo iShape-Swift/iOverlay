@@ -13,11 +13,6 @@ struct IntervalNode {
     var fragments: [Fragment]
 }
 
-struct CrossSegment {
-    let other: XSegment
-    let cross: CrossResult
-}
-
 extension IntervalNode {
     init(range: LineRange) {
         self.range = range
@@ -325,24 +320,6 @@ private extension LineRange {
         (self.max + self.min) >> 1
     }
 }
-
-private extension Array where Element == XSegment {
-    
-    mutating func remove(segment: XSegment, scanPos: Point) {
-        var j = 0
-        while j < self.count {
-            let seg = self[j]
-
-            if seg.b < scanPos || segment == seg {
-                self.swapRemove(j)
-                continue
-            }
-
-            j += 1
-        }
-    }
-}
-
 
 #if DEBUG
 extension SegmentTree {
