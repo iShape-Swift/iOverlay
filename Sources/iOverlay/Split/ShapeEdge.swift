@@ -51,3 +51,44 @@ extension ShapeEdge: Comparable {
         lhs.xSegment < rhs.xSegment
     }
 }
+
+extension Array where Element == ShapeEdge {
+    mutating func mergeIfNeeded() {
+        guard self.count > 1 else {
+            return
+        }
+
+        var i = 1
+        while i < self.count {
+            if self[i - 1].xSegment == self[i].xSegment {
+                break
+            }
+            i += 1
+        }
+
+        guard i < self.count else {
+            return
+        }
+
+        var j = i - 1
+        var prev = self[j]
+
+        while i < self.count {
+            if prev.xSegment == self[i].xSegment {
+                prev.count = prev.count.add(self[i].count)
+            } else {
+                self[j] = prev
+                j += 1
+                prev = self[i]
+            }
+            i += 1
+        }
+        
+        self[j] = prev
+        j += 1
+
+        if j < self.count {
+            self.removeLast(self.count - j)
+        }
+    }
+}

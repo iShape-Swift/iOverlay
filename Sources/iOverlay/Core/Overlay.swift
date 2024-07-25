@@ -191,7 +191,9 @@ public struct Overlay {
     
     private func prepareSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
         var sortedEdges = edges.sorted(by: { $0.xSegment < $1.xSegment })
-
+        
+        sortedEdges.mergeIfNeeded()
+        
         let isList = SplitSolver(solver: solver, range: sortedEdges.yRange()).split(edges: &sortedEdges)
         
         var segments = sortedEdges.segments()

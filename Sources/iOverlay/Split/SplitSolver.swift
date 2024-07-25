@@ -88,31 +88,6 @@ struct SplitSolver {
         
         edges.sort(by: { $0.xSegment < $1.xSegment })
         
-        edges.merge()
-    }
-}
-
-private extension [ShapeEdge] {
-    mutating func merge() {
-        guard var prev = self.first else {
-            return
-        }
-        var isModified = false
-        var i = 1
-        while i < self.count {
-            if prev.xSegment == self[i].xSegment {
-                let c = self.remove(at: i).count
-                prev.count = prev.count.add(c)
-                isModified = true
-                
-                continue
-            } else if isModified {
-                isModified = false
-                self[i - 1].count = prev.count
-                prev = self[i]
-            }
-            
-            i += 1
-        }
+        edges.mergeIfNeeded()
     }
 }

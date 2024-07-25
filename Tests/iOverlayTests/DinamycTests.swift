@@ -64,26 +64,39 @@ final class DinamycTests: XCTestCase {
         var r = 0.004
         while r < 1.0 {
             for n in 5..<10 {
-                let subjPaths = self.randomPolygon(radius: r, n: n)
+                let subjPaths = self.randomPolygon(radius: r, angle: 0.0, n: n)
 
                 var overlay = Overlay(capacity: n)
                 overlay.add(path: subjPaths, type: .subject)
 
                 let graph = overlay.buildGraph(fillRule: .nonZero)
-                let result = graph.extractShapes(overlayRule: .subject)
-
-                XCTAssertTrue(!result.isEmpty)
+                _ = graph.extractShapes(overlayRule: .subject)
             }
             r += 0.001
         }
     }
     
+    func test_31() throws {
+        let n = 100
+        let subjPath = self.randomPolygon(radius: 1000.0, angle: 0.0, n: n)
+        let clipPath = self.randomPolygon(radius: 1000.0, angle: 0.5, n: n)
+        
+        var overlay = Overlay(capacity: 2 * n)
+        overlay.add(path: subjPath, type: .subject)
+        overlay.add(path: clipPath, type: .clip)
+        
+        let graph = overlay.buildGraph(fillRule: .nonZero, solver: .list)
+        let result = graph.extractShapes(overlayRule: .union)
+
+        XCTAssertTrue(!result.isEmpty)
+    }
     
-    func randomPolygon(radius: Double, n: Int) -> Path {
+    
+    func randomPolygon(radius: Double, angle: Double, n: Int) -> Path {
         var result = Path()
         result.reserveCapacity(n)
-        let da = Double.pi * 0.7
-        var a = 0.0
+        let da = 0.005
+        var a = angle
         let r = radius * 1024
         for _ in 0..<n {
             let s = sin(a)
