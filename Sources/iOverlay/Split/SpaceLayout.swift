@@ -10,16 +10,20 @@ import iFixFloat
 struct SpaceLayout {
 
     private static let minPower = 2
+    private static let maxPower = 12
     static let minRangeLength = 1 << minPower
-    
+    private let scale: Int
     let power: Int
     let minSize: UInt64
     
     init(range: LineRange, count: Int) {
         let maxPowerRange = range.logTwo - 1
         let maxPowerCount = Int64(count).logTwo >> 1
-        self.power = max(Self.minPower, min(12, min(maxPowerRange, maxPowerCount)))
+        let originalPower = min(maxPowerRange, maxPowerCount)
+        self.power = max(Self.minPower, min(Self.maxPower, originalPower))
         self.minSize = UInt64(range.width >> self.power)
+        let m = Int64(self.minSize).logTwo
+        self.scale = UInt32.bitWidth - m
     }
    
 }
@@ -53,13 +57,13 @@ extension SpaceLayout {
             return
         }
 
-        let k = (dy << UInt32.bitWidth) / dx
+        let k = (dy << self.scale) / dx
         
         let s: UInt64
         if dx < dy {
-            s = self.minSize << UInt32.bitWidth
+            s = self.minSize << self.scale
         } else {
-            s = (self.minSize << UInt32.bitWidth) * dx / dy
+            s = (self.minSize << self.scale) * dx / dy
         }
         
         var x0: UInt64 = 0
@@ -67,7 +71,7 @@ extension SpaceLayout {
         var ix0 = minX
         var iy0 = isUp ? minY : maxY
         
-        let xLast = (dx << UInt32.bitWidth) - s
+        let xLast = (dx << self.scale) - s
         
         guard x0 < xLast else {
             return
@@ -75,10 +79,10 @@ extension SpaceLayout {
         
         while x0 < xLast {
             let x1 = x0 + s
-            let x = x1 >> UInt32.bitWidth
+            let x = x1 >> self.scale
             
             let y1 = x * k
-            let y = y1 >> UInt32.bitWidth
+            let y = y1 >> self.scale
 
             let isSameLine = x * dy == y * dx
             let extra: Int32 = isSameLine ? 0 : 1
@@ -134,7 +138,7 @@ extension SpaceLayout {
 
 private extension Int64 {
     var logTwo: Int {
-        Int32.bitWidth - self.leadingZeroBitCount
+        Int64.bitWidth - self.leadingZeroBitCount
     }
 }
 
