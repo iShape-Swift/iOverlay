@@ -84,6 +84,7 @@ struct SplitSolver {
         while i < marks.count {
             let i0 = i
             let index = marks[i].index
+            i += 1
             while i < marks.count && marks[i].index == index {
                 i += 1
             }
