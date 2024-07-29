@@ -7,11 +7,35 @@
 
 import iFixFloat
 
-struct OverlapResult {
-    let isTargetA: Bool
-    let isTargetB: Bool
-    let isOtherA: Bool
-    let isOtherB: Bool
+typealias OverlayMask = UInt8
+
+extension OverlayMask {
+    static let targetA: UInt8       = 0b0001
+    static let targetB: UInt8       = 0b0010
+    static let otherA: UInt8        = 0b0100
+    static let otherB: UInt8        = 0b1000
+
+    var isTargetA: Bool {
+        self & Self.targetA == Self.targetA
+    }
+    
+    var isTargetB: Bool {
+        self & Self.targetB == Self.targetB
+    }
+
+    var isOtherA: Bool {
+        self & Self.otherA == Self.otherA
+    }
+    
+    var isOtherB: Bool {
+        self & Self.otherB == Self.otherB
+    }
+
+    init(isTargetA: Bool, isTargetB: Bool, isOtherA: Bool, isOtherB: Bool) {
+        let target: UInt8 = (isTargetA ? Self.targetA : 0) | (isTargetB ? Self.targetB : 0)
+        let other: UInt8 = (isOtherA ? Self.otherA : 0) | (isOtherB ? Self.otherB : 0)
+        self = target | other
+    }
 }
 
 struct CrossResult {
@@ -76,7 +100,9 @@ struct CrossSolver {
         return CrossResult(point: point, type: type, isRound: false)
     }
     
-    static func overlap(target: XSegment, other: XSegment) -> OverlapResult {
+    static func overlay(target: XSegment, other: XSegment) -> OverlayMask {
+        /// Mark: target and other are collinear
+        
         let a0 = FixVec(target.a)
         let b0 = FixVec(target.b)
         let a1 = FixVec(other.a)
@@ -100,7 +126,7 @@ struct CrossSolver {
         let isOtherA = aa1 == -ab1 && aa1 != 0
         let isOtherB = ba1 == -bb1 && ba1 != 0
         
-        return OverlapResult(isTargetA: isTargetA, isTargetB: isTargetB, isOtherA: isOtherA, isOtherB: isOtherB)
+        return OverlayMask(isTargetA: isTargetA, isTargetB: isTargetB, isOtherA: isOtherA, isOtherB: isOtherB)
     }
     
     private static func middleCross(target: XSegment, other: XSegment) -> CrossResult {

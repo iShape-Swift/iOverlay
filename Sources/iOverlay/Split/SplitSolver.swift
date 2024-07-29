@@ -47,20 +47,25 @@ struct SplitSolver {
             
             marks.append(LineMark(index: i, length: li, point: cross.point))
         case .overlap:
-            let overlapResult = CrossSolver.overlap(target: ei, other: ej)
-            if overlapResult.isTargetA {
+            let mask = CrossSolver.overlay(target: ei, other: ej)
+            guard mask != 0 else { return false }
+            
+            if mask.isTargetA {
                 let lj = ej.a.sqrDistance(ei.a)
                 marks.append(LineMark(index: j, length: lj, point: ei.a))
             }
-            if overlapResult.isTargetB {
+            
+            if mask.isTargetB {
                 let lj = ej.a.sqrDistance(ei.b)
                 marks.append(LineMark(index: j, length: lj, point: ei.b))
             }
-            if overlapResult.isOtherA {
+            
+            if mask.isOtherA {
                 let li = ei.a.sqrDistance(ej.a)
                 marks.append(LineMark(index: i, length: li, point: ej.a))
             }
-            if overlapResult.isOtherB {
+            
+            if mask.isOtherB {
                 let li = ei.a.sqrDistance(ej.b)
                 marks.append(LineMark(index: i, length: li, point: ej.b))
             }
