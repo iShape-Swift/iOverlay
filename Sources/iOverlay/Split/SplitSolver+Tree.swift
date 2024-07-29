@@ -45,7 +45,7 @@ extension SplitSolver {
 
             tree.clear()
             
-            SplitSolver.apply(needToFix: needToFix, marks: &marks, edges: &edges)
+            SplitSolver.apply(marks: &marks, edges: &edges)
         }
     }
 
@@ -87,7 +87,7 @@ extension SplitSolver {
 
             tree.clear()
             
-            SplitSolver.apply(needToFix: needToFix, marks: &marks, edges: &edges)
+            SplitSolver.apply(marks: &marks, edges: &edges)
         }
     }
 }

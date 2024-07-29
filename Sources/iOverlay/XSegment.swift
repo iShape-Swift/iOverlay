@@ -21,6 +21,11 @@ public struct XSegment {
             LineRange(min: b.y, max: a.y)
         }
     }
+
+    @inline(__always)
+    var boundary: IntRect {
+        IntRect(xSegment: self)
+    }
     
     @inline(__always)
     var isVertical: Bool {
@@ -83,5 +88,28 @@ extension XSegment: Equatable {
     @inline(__always)
     public static func == (lhs: XSegment, rhs: XSegment) -> Bool {
         lhs.a == rhs.a && lhs.b == rhs.b
+    }
+}
+
+extension IntRect {
+    
+    init(xSegment: XSegment) {
+        let minY: Int32
+        let maxY: Int32
+        
+        if xSegment.a.y < xSegment.b.y {
+            minY = xSegment.a.y
+            maxY = xSegment.b.y
+        } else {
+            minY = xSegment.b.y
+            maxY = xSegment.a.y
+        }
+        
+        self.init(
+            minX: xSegment.a.x,
+            maxX: xSegment.b.x,
+            minY: minY,
+            maxY: maxY
+        )
     }
 }

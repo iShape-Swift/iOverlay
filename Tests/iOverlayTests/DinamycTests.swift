@@ -91,13 +91,27 @@ final class DinamycTests: XCTestCase {
         XCTAssertTrue(!result.isEmpty)
     }
     
+    func test_32() throws {
+        let n = 6
+        let subjPath = self.randomPolygon(radius: 100.0, angle: 0.0, n: n, da: 1.00001 * .pi)
+        let clipPath = self.randomPolygon(radius: 100.0, angle: 0.5 * .pi, n: n, da: 1.00001 * .pi)
+        
+        var overlay = Overlay(capacity: 2 * n)
+        overlay.add(path: subjPath, type: .subject)
+        overlay.add(path: clipPath, type: .clip)
+        
+        let graph = overlay.buildGraph(fillRule: .nonZero, solver: .list)
+        let result = graph.extractShapes(overlayRule: .clip)
+
+        XCTAssertTrue(!result.isEmpty)
+    }
     
-    func randomPolygon(radius: Double, angle: Double, n: Int) -> Path {
+    
+    func randomPolygon(radius: Double, angle: Double, n: Int, da: Double = 0.005) -> Path {
         var result = Path()
         result.reserveCapacity(n)
-        let da = 0.005
         var a = angle
-        let r = radius * 1024
+        let r = radius * 1024.0
         for _ in 0..<n {
             let s = sin(a)
             let c = cos(a)

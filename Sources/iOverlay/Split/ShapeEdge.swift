@@ -54,26 +54,27 @@ extension ShapeEdge: Comparable {
 
 extension Array where Element == ShapeEdge {
     mutating func mergeIfNeeded() {
-        guard self.count > 1 else {
+        let n = self.count
+        guard n > 1 else {
             return
         }
 
         var i = 1
-        while i < self.count {
+        while i < n {
             if self[i - 1].xSegment == self[i].xSegment {
                 break
             }
             i += 1
         }
 
-        guard i < self.count else {
+        guard i < n else {
             return
         }
 
         var j = i - 1
         var prev = self[j]
 
-        while i < self.count {
+        while i < n {
             if prev.xSegment == self[i].xSegment {
                 prev.count = prev.count.add(self[i].count)
             } else {
@@ -87,8 +88,8 @@ extension Array where Element == ShapeEdge {
         self[j] = prev
         j += 1
 
-        if j < self.count {
-            self.removeLast(self.count - j)
+        if j < n {
+            self.removeLast(n - j)
         }
     }
 }

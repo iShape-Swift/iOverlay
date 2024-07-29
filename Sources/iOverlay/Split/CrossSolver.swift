@@ -7,6 +7,13 @@
 
 import iFixFloat
 
+struct OverlapResult {
+    let isTargetA: Bool
+    let isTargetB: Bool
+    let isOtherA: Bool
+    let isOtherB: Bool
+}
+
 struct CrossResult {
     let point: Point
     let type: CrossType
@@ -17,11 +24,13 @@ enum CrossType {
     case pure
     case targetEnd
     case otherEnd
+    case overlap
 }
 
 struct CrossSolver {
 
     static func cross(target: XSegment, other: XSegment) -> CrossResult? {
+
         // by this time segments already at intersection range by x
 
         let a0b0a1 = Triangle.clockDirection(p0: target.a, p1: target.b, p2: other.a)
@@ -31,36 +40,70 @@ struct CrossSolver {
         let a1b1b0 = Triangle.clockDirection(p0: other.a, p1: other.b, p2: target.b)
         
         let s = (1 & (a0b0a1 + 1)) + (1 & (a0b0b1 + 1)) + (1 & (a1b1a0 + 1)) + (1 & (a1b1b0 + 1))
+        
+        guard s != 4 else {
+            return CrossResult(point: .zero, type: .overlap, isRound: false)
+        }
+
         let isCross = a0b0a1 != a0b0b1 && a1b1a0 != a1b1b0
         
         guard (s == 0 || s == 1) && isCross else {
             return nil
         }
-
-        if s != 0 {
-            let point: Point
-            let type: CrossType
-            if a0b0a1 == 0 {
-                point = other.a
-                type = .otherEnd
-            } else if a0b0b1 == 0 {
-                point = other.b
-                type = .otherEnd
-            } else if a1b1a0 == 0 {
-                point = target.a
-                type = .targetEnd
-            } else {
-                point = target.b
-                type = .targetEnd
-            }
-            
-            return CrossResult(point: point, type: type, isRound: false)
+        
+        if s == 0 {
+            return Self.middleCross(target: target, other: other)
         }
         
-        return Self.simpleCross(target: target, other: other)
+        // end cross
+        
+        let point: Point
+        let type: CrossType
+        if a0b0a1 == 0 {
+            point = other.a
+            type = .otherEnd
+        } else if a0b0b1 == 0 {
+            point = other.b
+            type = .otherEnd
+        } else if a1b1a0 == 0 {
+            point = target.a
+            type = .targetEnd
+        } else {
+            point = target.b
+            type = .targetEnd
+        }
+        
+        return CrossResult(point: point, type: type, isRound: false)
     }
     
-    private static func simpleCross(target: XSegment, other: XSegment) -> CrossResult {
+    static func overlap(target: XSegment, other: XSegment) -> OverlapResult {
+        let a0 = FixVec(target.a)
+        let b0 = FixVec(target.b)
+        let a1 = FixVec(other.a)
+        let b1 = FixVec(other.b)
+        
+        let v1 = b1 - a1
+
+        let aa0 = (a0 - a1).dotProduct(v1).signum()
+        let ab0 = (a0 - b1).dotProduct(v1).signum()
+        let ba0 = (b0 - a1).dotProduct(v1).signum()
+        let bb0 = (b0 - b1).dotProduct(v1).signum()
+
+        let aa1 = -aa0
+        let ab1 = -ba0
+        let ba1 = -ab0
+        let bb1 = -bb0
+        
+        let isTargetA = aa0 == -ab0 && aa0 != 0
+        let isTargetB = ba0 == -bb0 && ba0 != 0
+
+        let isOtherA = aa1 == -ab1 && aa1 != 0
+        let isOtherB = ba1 == -bb1 && ba1 != 0
+        
+        return OverlapResult(isTargetA: isTargetA, isTargetB: isTargetB, isOtherA: isOtherA, isOtherB: isOtherB)
+    }
+    
+    private static func middleCross(target: XSegment, other: XSegment) -> CrossResult {
         let p = Self.crossPoint(target: target, other: other)
         
         if Triangle.isLine(p0: target.a, p1: p, p2: target.b) && Triangle.isLine(p0: other.a, p1: p, p2: other.b) {
@@ -69,7 +112,7 @@ struct CrossSolver {
         
         // still can be common ends because of rounding
         // snap to nearest end with r (1^2 + 1^2 == 2)
-
+        
         let ra0 = target.a.sqrDistance(p)
         let rb0 = target.b.sqrDistance(p)
         
@@ -96,6 +139,7 @@ struct CrossSolver {
                 }
             }
         }
+        
 
         return CrossResult(point: p, type: .pure, isRound: true)
     }

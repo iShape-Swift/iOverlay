@@ -5,6 +5,8 @@
 //  Created by Nail Sharipov on 23.07.2024.
 //
 
+import iFixFloat
+
 extension SplitSolver {
     
     func listSplit(edges: inout [ShapeEdge]) -> Bool {
@@ -20,13 +22,14 @@ extension SplitSolver {
             
             for i in 0..<n - 1 {
                 let ei = edges[i].xSegment
+                let ri = ei.boundary
                 for j in i + 1..<n {
                     let ej = edges[j].xSegment
                     if ei.b.x < ej.a.x {
                         break
                     }
                     
-                    if ei.isBoundaryNotCross(ej) {
+                    guard ej.boundary.isIntersectBorderInclude(ri) else {
                         continue
                     }
                     
@@ -39,7 +42,7 @@ extension SplitSolver {
                 return true
             }
             
-            Self.apply(needToFix: needToFix, marks: &marks, edges: &edges)
+            Self.apply(marks: &marks, edges: &edges)
             
             if !solver.isList(range: range.width, count: edges.count) {
                 // finish with tree solver if edges is become large
@@ -50,35 +53,4 @@ extension SplitSolver {
         
         return true
     }
-}
-
-private extension XSegment {
-    
-    func isBoundaryNotCross(_ other: XSegment) -> Bool {
-        Self.testY(target: self, other: other) || Self.testX(target: self, other: other)
-    }
-    
-    private static func testX(target: XSegment, other: XSegment) -> Bool {
-         // MARK: a < b by design
-        let testX =
-        target.a.x > other.a.x && target.a.x > other.b.x ||
-        other.a.x > target.a.x && other.a.x > target.b.x
-        
-        return testX
-    }
-    
-    private static func testY(target: XSegment, other: XSegment) -> Bool {
-        let testY =
-        // a > all other
-        target.a.y > other.a.y && target.a.y > other.b.y &&
-        // b > all other
-        target.b.y > other.a.y && target.b.y > other.b.y ||
-        // a < all other
-        target.a.y < other.a.y && target.a.y < other.b.y &&
-        // b < all other
-        target.b.y < other.a.y && target.b.y < other.b.y
-        
-        return testY
-    }
-
 }
