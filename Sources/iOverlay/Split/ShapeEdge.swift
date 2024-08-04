@@ -67,7 +67,7 @@ extension Array where Element == ShapeEdge {
             i += 1
         }
 
-        guard i < n else {
+        guard i != n else {
             return
         }
 
@@ -78,15 +78,19 @@ extension Array where Element == ShapeEdge {
             if prev.xSegment == self[i].xSegment {
                 prev.count = prev.count.add(self[i].count)
             } else {
-                self[j] = prev
-                j += 1
+                if !prev.count.isEmpty {
+                    self[j] = prev
+                    j += 1
+                }
                 prev = self[i]
             }
             i += 1
         }
         
-        self[j] = prev
-        j += 1
+        if !prev.count.isEmpty {
+            self[j] = prev
+            j += 1
+        }
 
         if j < n {
             self.removeLast(n - j)

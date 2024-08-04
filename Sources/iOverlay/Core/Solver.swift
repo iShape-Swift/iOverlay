@@ -33,12 +33,15 @@ public struct Solver {
         self.strategy = strategy
     }
     
-    func isList(range: Int64, count: Int) -> Bool {
-        guard self.strategy == .auto else {
-            return self.strategy == .list
+    func isList(edges: [ShapeEdge]) -> Bool {
+        switch self.strategy {
+        case .list:
+            return true
+        case .tree:
+            return false
+        case .auto:
+            return edges.count < Self.maxListCount
         }
-        
-        return count < Self.maxListCount && range > SpaceLayout.minRangeLength
     }
     
 }

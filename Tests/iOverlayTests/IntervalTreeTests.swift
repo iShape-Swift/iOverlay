@@ -188,7 +188,7 @@ final class IntervalTreeTests: XCTestCase {
         let s1 = XSegment(a: Point(-21, 1), b: Point(-15, -13))
 
         let range = LineRange(min: -28, max: 28)
-        let layout = SpaceLayout(range: range, count: 16)
+        let layout = SpaceLayout(height: Int(range.width), count: 16)
         var tree = SegmentTree(range: range, power: layout.power)
         tree.insert(fragment: Fragment(index: 0, xSegment: s0))
 

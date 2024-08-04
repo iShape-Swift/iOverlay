@@ -11,21 +11,20 @@ struct SpaceLayout {
 
     private static let minPower = 2
     private static let maxPower = 12
-    static let minRangeLength = 1 << minPower
+    static let minHeight = 1 << minPower
     private let scale: Int
     let power: Int
     let minSize: UInt64
     
-    init(range: LineRange, count: Int) {
-        let maxPowerRange = range.logTwo - 1
-        let maxPowerCount = Int64(count).logTwo >> 1
+    init(height: Int, count: Int) {
+        let maxPowerRange = height.logTwo - 1
+        let maxPowerCount = count.logTwo >> 1
         let originalPower = min(maxPowerRange, maxPowerCount)
         self.power = max(Self.minPower, min(Self.maxPower, originalPower))
-        self.minSize = UInt64(range.width >> self.power)
-        let m = Int64(self.minSize).logTwo
+        self.minSize = UInt64(height >> self.power)
+        let m = Int(self.minSize).logTwo
         self.scale = UInt32.bitWidth - m
     }
-   
 }
 
 extension SpaceLayout {
@@ -134,18 +133,6 @@ extension SpaceLayout {
         return i * 20 > edges.count
     }
     
-}
-
-private extension Int64 {
-    var logTwo: Int {
-        Int64.bitWidth - self.leadingZeroBitCount
-    }
-}
-
-private extension LineRange {
-    var logTwo: Int {
-        self.width.logTwo
-    }
 }
 
 private extension Int64 {

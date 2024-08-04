@@ -298,13 +298,26 @@ struct SegmentTree {
                 continue
             }
             
-            let isRound = SplitSolver.cross(
-                i: this.index,
-                j: scan.index,
-                ei: this.xSegment,
-                ej: scan.xSegment,
-                marks: &marks
-            )
+            // MARK: the intersection, ensuring the right order for deterministic results
+            
+            let isRound: Bool
+            if this.xSegment < scan.xSegment {
+                isRound = SplitSolver.cross(
+                    i: this.index,
+                    j: scan.index,
+                    ei: this.xSegment,
+                    ej: scan.xSegment,
+                    marks: &marks
+                )
+            } else {
+                isRound = SplitSolver.cross(
+                    i: scan.index,
+                    j: this.index,
+                    ei: scan.xSegment,
+                    ej: this.xSegment,
+                    marks: &marks
+                )
+            }
             
             anyRound = isRound || anyRound
         }

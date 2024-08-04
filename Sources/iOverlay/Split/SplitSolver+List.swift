@@ -20,6 +20,10 @@ extension SplitSolver {
             
             let n = edges.count
             
+            guard n > 2 else {
+                return true
+            }
+            
             for i in 0..<n - 1 {
                 let ei = edges[i].xSegment
                 let ri = ei.boundary
@@ -44,9 +48,10 @@ extension SplitSolver {
             
             Self.apply(marks: &marks, edges: &edges)
             
-            if !solver.isList(range: range.width, count: edges.count) {
+            guard n > 0 else { return true }
+            
+            if !solver.isList(edges: edges) {
                 // finish with tree solver if edges is become large
-                
                 return self.treeSplit(edges: &edges)
             }
         }

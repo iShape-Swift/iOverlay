@@ -14,7 +14,7 @@ import iTree
 final class SpaceLayoutTests: XCTestCase {
     
     func test_00() throws {
-        let layout = SpaceLayout(range: LineRange(min: 0, max: 7), count: 8)
+        let layout = SpaceLayout(height: Int(LineRange(min: 0, max: 7).width), count: 8)
         
         var buffer = [Fragment]()
         let xSegment = XSegment(a: Point(0, 0), b: Point(3, 5))
@@ -30,7 +30,7 @@ final class SpaceLayoutTests: XCTestCase {
     }
     
     func test_01() throws {
-        let layout = SpaceLayout(range: LineRange(min: 0, max: 7), count: 8)
+        let layout = SpaceLayout(height: Int(LineRange(min: 0, max: 7).width), count: 8)
         
         var buffer = [Fragment]()
         let xSegment = XSegment(a: Point(0, 0), b: Point(3, 6))
@@ -46,7 +46,7 @@ final class SpaceLayoutTests: XCTestCase {
     }
     
     func test_02() throws {
-        let layout = SpaceLayout(range: LineRange(min: 0, max: 7), count: 8)
+        let layout = SpaceLayout(height: Int(LineRange(min: 0, max: 7).width), count: 8)
         
         var buffer = [Fragment]()
         let xSegment = XSegment(a: Point(0, 0), b: Point(5, 3))
@@ -62,7 +62,7 @@ final class SpaceLayoutTests: XCTestCase {
     }
     
     func test_03() throws {
-        let layout = SpaceLayout(range: LineRange(min: 0, max: 7), count: 8)
+        let layout = SpaceLayout(height: Int(LineRange(min: 0, max: 7).width), count: 8)
         
         var buffer = [Fragment]()
         let xSegment = XSegment(a: Point(0, 0), b: Point(6, 3))
@@ -78,7 +78,7 @@ final class SpaceLayoutTests: XCTestCase {
     }
     
     func test_04() throws {
-        let layout = SpaceLayout(range: LineRange(min: -10, max: 0), count: 8)
+        let layout = SpaceLayout(height: Int(LineRange(min: -10, max: 0).width), count: 8)
         
         var buffer = [Fragment]()
         let xSegment = XSegment(a: Point(-1, -1), b: Point(6, -5))
@@ -94,7 +94,7 @@ final class SpaceLayoutTests: XCTestCase {
     }
     
     func test_05() {
-        let layout = SpaceLayout(range: LineRange(min: -10, max: 0), count: 128)
+        let layout = SpaceLayout(height: Int(LineRange(min: -10, max: 0).width), count: 128)
         XCTAssert(layout.minSize > 0)
     }
     
@@ -111,7 +111,7 @@ final class SpaceLayoutTests: XCTestCase {
                 let yRange = minY..<maxY
                 var count = 8
                 while count < 1000_000 {
-                    let layout = SpaceLayout(range: LineRange(min: minY, max: maxY), count: count)
+                    let layout = SpaceLayout(height: Int(LineRange(min: minY, max: maxY).width), count: count)
                     
                     assert(layout.minSize > 0)
 

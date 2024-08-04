@@ -194,7 +194,7 @@ public struct Overlay {
         
         sortedEdges.mergeIfNeeded()
         
-        let isList = SplitSolver(solver: solver, range: sortedEdges.yRange()).split(edges: &sortedEdges)
+        let isList = SplitSolver(solver: solver).split(edges: &sortedEdges)
         
         var segments = sortedEdges.segments()
         
@@ -293,19 +293,5 @@ private extension Array where Element == ShapeEdge {
         }
         
         return segments
-    }
-    
-    func yRange() -> LineRange {
-        var minY: Int32 = self[0].xSegment.a.y
-        var maxY: Int32 = minY
-        
-        for edge in self {
-            minY = Swift.min(minY, edge.xSegment.a.y)
-            maxY = Swift.max(maxY, edge.xSegment.a.y)
-            minY = Swift.min(minY, edge.xSegment.b.y)
-            maxY = Swift.max(maxY, edge.xSegment.b.y)
-        }
-        
-        return LineRange(min: minY, max: maxY)
     }
 }

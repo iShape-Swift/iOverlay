@@ -10,17 +10,13 @@ import iFixFloat
 struct SplitSolver {
 
     let solver: Solver
-    let range: LineRange
     
-    init(solver: Solver, range: LineRange) {
+    init(solver: Solver) {
         self.solver = solver
-        self.range = range
     }
     
     func split(edges: inout [ShapeEdge]) -> Bool {
-        let isList = solver.isList(range: range.width, count: edges.count)
-        
-        if isList {
+        if solver.isList(edges: edges) {
             return self.listSplit(edges: &edges)
         } else {
             return self.treeSplit(edges: &edges)
@@ -113,7 +109,7 @@ struct SplitSolver {
 
         edges[index] = ShapeEdge.createAndValidate(a: e0.xSegment.a, b: p, count: e0.count)
 
-        var j = marks.startIndex
+        var j = marks.startIndex + 1
         while j < marks.endIndex {
             let mj = marks[j]
             if l != mj.length || p != mj.point {
