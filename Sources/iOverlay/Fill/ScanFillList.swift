@@ -18,15 +18,15 @@ struct ScanFillList: ScanFillStore {
     }
     
     @inline(__always)
-    mutating func insert(segment: CountSegment, stop: Int32) {
+    mutating func insert(segment: CountSegment) {
         buffer.append(segment)
     }
     
-    mutating func underAndNearest(point p: Point, stop: Int32) -> ShapeCount? {
+    mutating func underAndNearest(point p: Point) -> ShapeCount? {
         var i = 0
         var result: CountSegment? = nil
         while i < self.buffer.count {
-            if self.buffer[i].xSegment.b.x <= stop {
+            if self.buffer[i].xSegment.b.x <= p.x {
                 self.buffer.swapRemove(i)
             } else {
                 let segment = self.buffer[i].xSegment

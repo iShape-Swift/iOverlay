@@ -16,7 +16,8 @@ struct ScanFillTree: ScanFillStore {
         self.tree = RBTree(empty: CountSegment(count: .init(subj: 0, clip: 0), xSegment: .init(a: .zero, b: .zero)), capacity: count.log2Sqrt)
     }
     
-    mutating func insert(segment: CountSegment, stop: Int32) {
+    mutating func insert(segment: CountSegment) {
+        let stop = segment.xSegment.a.x
         var index = tree.root
         var pIndex = UInt32.empty
         var isLeft = false
@@ -66,12 +67,12 @@ struct ScanFillTree: ScanFillStore {
         }
     }
     
-    mutating func underAndNearest(point p: Point, stop: Int32) -> ShapeCount? {
+    mutating func underAndNearest(point p: Point) -> ShapeCount? {
         var index = tree.root
         var result: UInt32 = .empty
         while index != .empty {
             let node = tree[index]
-            if node.value.xSegment.b.x <= stop {
+            if node.value.xSegment.b.x <= p.x {
                 _ = tree.delete(index: index)
                 if node.parent != .empty {
                     index = node.parent

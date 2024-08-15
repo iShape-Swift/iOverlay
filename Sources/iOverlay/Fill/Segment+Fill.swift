@@ -9,14 +9,17 @@ import iFixFloat
 import iShape
 import iTree
 
-private struct YGroup {
-    let i: Int
-    let y: Int32
+private struct Handler {
+    let id: Int
+    let b: Point
 }
 
-private struct PGroup {
-    let i: Int
-    let p: Point
+protocol ScanFillStore {
+ 
+    mutating func insert(segment: CountSegment)
+
+    mutating func underAndNearest(point p: Point) -> ShapeCount?
+
 }
 
 extension Array where Element == Segment {
@@ -32,60 +35,37 @@ extension Array where Element == Segment {
     }
     
     private mutating func solve<S: ScanFillStore>(scanStore: inout S, fillRule: FillRule) {
-        var xBuf = [YGroup]()
-        var pBuf = [PGroup]()
+        var buf = [Handler]()
+        buf.reserveCapacity(4)
         
         let n = self.count
         var i = 0
         
         while i < n {
-            let x = self[i].seg.a.x
+            let p = self[i].seg.a
+            buf.append(Handler(id: i, b: self[i].seg.b))
+            i += 1
 
-            xBuf.removeAll(keepingCapacity: true)
-            
-            // find all new segments with same a.x
-            while i < n && self[i].seg.a.x == x {
-                xBuf.append(YGroup(i: i, y: self[i].seg.a.y))
+            while i < n && self[i].seg.a == p {
+                buf.append(Handler(id: i, b: self[i].seg.b))
                 i += 1
             }
             
-            if xBuf.count > 1 {
-                xBuf.sort(by: { $0.y < $1.y })
+            buf.sort(by: { Triangle.isClockwise(p0: p, p1: $1.b, p2: $0.b) })
+
+            var sumCount = scanStore.underAndNearest(point: p) ?? ShapeCount(subj: 0, clip: 0)
+            
+            for se in buf {
+                let seg = self[se.id].seg
+                if seg.isVertical {
+                    _ = self[se.id].addAndFill(sumCount: sumCount, fillRule: fillRule)
+                } else {
+                    sumCount = self[se.id].addAndFill(sumCount: sumCount, fillRule: fillRule)
+                    scanStore.insert(segment: CountSegment(count: sumCount, xSegment: seg))
+                }
             }
             
-            var j = 0
-            while j < xBuf.count {
-                
-                let y = xBuf[j].y
-                
-                pBuf.removeAll(keepingCapacity: true)
-                
-                // group new segments by same y (all segments in eBuf must have same a)
-                while j < xBuf.count && xBuf[j].y == y {
-                    let handler = xBuf[j]
-                    pBuf.append(PGroup(i: handler.i, p: self[handler.i].seg.b))
-                    j += 1
-                }
-                
-                let p = Point(x, y)
-                
-                if pBuf.count > 1 {
-                    pBuf.sortByAngle(center: p)
-                }
-                
-                var sumCount = scanStore.underAndNearest(point: p, stop: x) ?? ShapeCount(subj: 0, clip: 0)
-
-                // add new to scan
-                
-                for se in pBuf {
-                    if self[se.i].seg.isVertical {
-                        _ = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
-                    } else {
-                        sumCount = self[se.i].addAndFill(sumCount: sumCount, fillRule: fillRule)
-                        scanStore.insert(segment: CountSegment(count: sumCount, xSegment: self[se.i].seg), stop: x)
-                    }
-                }
-            }
+            buf.removeAll(keepingCapacity: true)
         }
     }
 }
@@ -125,17 +105,6 @@ private extension Segment {
         let clipBottom = isClipBottom ? SegmentFill.clipBottom : 0
         
         fill = subjTop | subjBottom | clipTop | clipBottom
-    }
-    
-}
-
-private extension Array where Element == PGroup {
-    
-    mutating func sortByAngle(center: Point) {
-        let c = FixVec(center)
-        self.sort(by: {
-            Triangle.isClockwise(p0: c, p1: FixVec($1.p), p2: FixVec($0.p))
-        })
     }
     
 }

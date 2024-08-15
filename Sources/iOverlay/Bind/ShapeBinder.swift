@@ -8,6 +8,11 @@
 import iFixFloat
 import iTree
 
+protocol ScanBindStore {
+    mutating func insert(segment: IdSegment, stop: Int32)
+    mutating func underAndNearest(point p: Point, stop: Int32) -> Int
+}
+
 struct HoleSolution {
     let parentForChild: [Int]
     let childrenCountForParent: [Int]

@@ -22,16 +22,15 @@ struct FillSolver<Scan: ScanFillStore> {
             
             while i < items.count && items[i].xSegment.a.x <= p.x {
                 if !items[i].xSegment.isVertical && items[i].xSegment.b.x > p.x {
-                    scanList.insert(segment: items[i], stop: p.x)
+                    scanList.insert(segment: items[i])
                 }
                 i += 1
             }
             
-            let index = scanList.underAndNearest(point: p, stop: p.x)?.subj ?? .min
+            let index = scanList.underAndNearest(point: p)?.subj ?? .min
             result.append(index)
         }
         
         return result
     }
-    
 }

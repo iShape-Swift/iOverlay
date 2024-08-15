@@ -30,79 +30,56 @@ extension Array where Element == OverlayLink {
     }
     
     private func filterSubject() -> [Bool] {
-        let n = self.count
-        var skip = [Bool](repeating: false, count: n)
-        
-        for i in 0..<n {
-            let fill = self[i].fill
-            
-            // Skip edge if it it inside or not belong to subject
+        self.map({
+            let fill = $0.fill
+
+            // Skip edge if it inside or not belong subject
 
             let subj = fill & .subjBoth
-            skip[i] = subj == 0 || subj == .subjBoth
-        }
-        
-        return skip
+            return subj == 0 || subj == .subjBoth
+        })
     }
     
     private func filterClip() -> [Bool] {
-        let n = self.count
-        var skip = [Bool](repeating: false, count: n)
-        
-        for i in 0..<n {
-            let fill = self[i].fill
+        self.map({
+            let fill = $0.fill
             
             // Skip edge if it it inside or not belong clip
             
             let clip = fill & .clipBoth
-            skip[i] = clip == 0 || clip == .clipBoth
-        }
-        
-        return skip
+            return clip == 0 || clip == .clipBoth
+        })
     }
     
     private func filterIntersect() -> [Bool] {
-        let n = self.count
-        var skip = [Bool](repeating: false, count: n)
+        self.map({
+            let fill = $0.fill
         
-        for i in 0..<n {
-            let fill = self[i].fill
-            
             // One side must belong to both but not two side at once
             
             let isTop = fill & .bothTop == .bothTop
             let isBot = fill & .bothBottom == .bothBottom
 
-            skip[i] = !(isTop || isBot) || isTop && isBot
-        }
-        
-        return skip
+            return !(isTop || isBot) || isTop && isBot
+        })
     }
     
     private func filterUnion() -> [Bool] {
-        let n = self.count
-        var skip = [Bool](repeating: false, count: n)
-        
-        for i in 0..<n {
-            let fill = self[i].fill
+        self.map({
+            let fill = $0.fill
 
             // One side must be empty
             
             let isTopEmpty = fill & .bothTop == 0
             let isBotEmpty = fill & .bothBottom == 0
             
-            skip[i] = !(isTopEmpty || isBotEmpty)
-        }
-        
-        return skip
+            return !(isTopEmpty || isBotEmpty)
+        })
     }
     
     private func filterDifference() -> [Bool] {
-        let n = self.count
-        var skip = [Bool](repeating: false, count: n)
-        
-        for i in 0..<n {
-            let fill = self[i].fill
+        self.map({
+            let fill = $0.fill
             
             // One side must belong only subject
             // Can not be subject inner edge
@@ -111,18 +88,13 @@ extension Array where Element == OverlayLink {
             let topOnlySubject = fill & .bothTop == .subjTop
             let botOnlySubject = fill & .bothBottom == .subjBottom
             
-            skip[i] = !(topOnlySubject || botOnlySubject) || subjectInner
-        }
-        
-        return skip
+            return !(topOnlySubject || botOnlySubject) || subjectInner
+        })
     }
     
     private func filterInverseDifference() -> [Bool] {
-        let n = self.count
-        var skip = [Bool](repeating: false, count: n)
-        
-        for i in 0..<n {
-            let fill = self[i].fill
+        self.map({
+            let fill = $0.fill
             
             // One side must belong only clip
             // Can not be clip inner edge
@@ -131,18 +103,13 @@ extension Array where Element == OverlayLink {
             let topOnlyClip = fill & .bothTop == .clipTop
             let botOnlyClip = fill & .bothBottom == .clipBottom
             
-            skip[i] = !(topOnlyClip || botOnlyClip) || clipInner
-        }
-        
-        return skip
+            return !(topOnlyClip || botOnlyClip) || clipInner
+        })
     }
     
     private func filterXOR() -> [Bool] {
-        let n = self.count
-        var skip = [Bool](repeating: false, count: n)
-
-        for i in 0..<n {
-            let fill = self[i].fill
+        self.map({
+            let fill = $0.fill
             
             // One side must belong only to one polygon
             // No inner sides
@@ -155,9 +122,7 @@ extension Array where Element == OverlayLink {
             let diagonal_0 = fill == .clipTop | .subjBottom
             let diagonal_1 = fill == .clipBottom | .subjTop
             
-            skip[i] = subjectInner || clipInner || bothInner || onlyTop || onlyBottom || diagonal_0 || diagonal_1
-        }
-        
-        return skip
+            return subjectInner || clipInner || bothInner || onlyTop || onlyBottom || diagonal_0 || diagonal_1
+        })
     }
 }

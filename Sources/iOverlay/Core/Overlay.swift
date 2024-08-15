@@ -243,28 +243,31 @@ private extension Path {
 private extension Array where Element == Segment {
     
     mutating func filter() {
-        var modified = false
+        let n = self.count
         var i = 0
-        while i < self.count {
+        
+        while i < n {
             let fill = self[i].fill
             if fill == 0 || fill == .subjBoth || fill == .clipBoth {
-                modified = true
-                self.swapRemove(i)
-            } else {
-                i += 1
+                break
             }
+            i += 1
         }
         
-        if modified {
-            self.sort(by: { $0.seg < $1.seg })
+        guard i < n else { return }
+        var j = i + 1
+
+        while j < n {
+            let fill = self[j].fill
+            if !(fill == 0 || fill == .subjBoth || fill == .clipBoth) {
+                self[i] = self[j]
+                i += 1
+            }
+            j += 1
         }
-    }
-    
-    mutating func swapRemove(_ index: Int) {
-        if index < self.count - 1 {
-            self[index] = self.removeLast()
-        } else {
-            self.removeLast()
+
+        if i < n {
+            self.removeLast(n - i)
         }
     }
 }
