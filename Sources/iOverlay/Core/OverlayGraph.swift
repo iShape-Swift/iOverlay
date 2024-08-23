@@ -8,11 +8,6 @@
 import iFixFloat
 import iShape
 
-private struct End {
-    let segIndex: Int
-    let point: Point
-}
-
 /// A representation of geometric shapes organized for efficient boolean operations.
 ///
 /// `OverlayGraph` is a core structure designed to facilitate the execution of boolean operations on shapes, such as union, intersection, and difference. It organizes and preprocesses geometric data, making it optimized for these operations. This struct is the result of compiling shape data into a form where boolean operations can be applied directly, efficiently managing the complex relationships between different geometric entities.
@@ -23,7 +18,7 @@ public struct OverlayGraph {
     let nodes: [OverlayNode]
     let links: [OverlayLink]
     
-    init(segments: [Segment]) {
+    init(segments: [Segment], fills: [SegmentFill]) {
         let n = segments.count
         
         guard n > 0 else {
@@ -31,92 +26,80 @@ public struct OverlayGraph {
             links = []
             return
         }
+
+        var links = [OverlayLink]()
+        links.reserveCapacity(n)
+        for index in 0..<n {
+            let fill = fills[index]
+            let segm = segments[index].xSegment
+            let a = IdPoint(id: 0, point: segm.a)
+            let b = IdPoint(id: 0, point: segm.b)
+            links.append(OverlayLink(a: a, b: b, fill: fill))
+        }
         
         var endBs = [End]()
         endBs.reserveCapacity(n)
-        for segIndex in 0..<n {
-            endBs.append(End(segIndex: segIndex, point: segments[segIndex].seg.b))
+        for index in 0..<n {
+            endBs.append(End(index: index, point: segments[index].xSegment.b))
         }
         
         endBs.sort(by: { $0.point < $1.point })
         
         var nodes = [OverlayNode]()
-        nodes.reserveCapacity(2 * n)
-        
-        var links = segments.map({ OverlayLink(a: .zero, b: .zero, fill: $0.fill) })
+        nodes.reserveCapacity(n)
         
         var ai = 0
         var bi = 0
-        var a = segments[0].seg.a
+        var a = links[0].a.point
         var b = endBs[0].point
-        
-        while ai < n || bi < n {
-            var cnt = 0
+        var nextAcnt = links.size(point: a, index: ai)
+        var nextBcnt = endBs.size(point: b, index: bi)
+        while nextAcnt > 0 || nextBcnt > 0 {
+            let aCnt: Int
+            let bCnt: Int
             if a == b {
-                cnt += segments.size(point: a, index: ai)
-                cnt += endBs.size(point: b, index: bi)
-            } else if ai < n && a < b {
-                cnt += segments.size(point: a, index: ai)
+                aCnt = nextAcnt
+                bCnt = nextBcnt
+            } else if nextAcnt > 0 && a < b {
+                aCnt = nextAcnt
+                bCnt = 0
             } else {
-                cnt += endBs.size(point: b, index: bi)
+                aCnt = 0
+                bCnt = nextBcnt
             }
-            
+
+            let nodeId = nodes.count
             var indices = [Int]()
-            indices.reserveCapacity(cnt)
+            indices.reserveCapacity(aCnt + bCnt)
             
-            if a == b {
-                let ip = IdPoint(id: nodes.count, point: a)
-                while ai < n {
-                    let aa = segments[ai].seg.a
-                    guard aa == a else {
-                        a = aa
-                        break
-                    }
-                    links[ai].a = ip
+            if aCnt > 0 {
+                nextAcnt = 0
+                for _ in 0..<aCnt {
+                    links[ai].a.id = nodeId
                     indices.append(ai)
-                    
                     ai += 1
+                }
+                if ai < n {
+                    a = links[ai].a.point
+                    nextAcnt = links.size(point: a, index: ai)
+                }
+            }
+
+            if bCnt > 0 {
+                nextBcnt = 0
+                for _ in 0..<bCnt {
+                    let e = endBs[bi]
+                    indices.append(e.index)
+                    links[e.index].b.id = nodeId
+                    bi += 1
                 }
 
-                while bi < n {
-                    let e = endBs[bi]
-                    guard e.point == b else {
-                        b = e.point
-                        break
-                    }
-                    links[e.segIndex].b = ip
-                    indices.append(e.segIndex)
-                    
-                    bi += 1
-                }
-            } else if ai < n && a < b {
-                let ip = IdPoint(id: nodes.count, point: a)
-                while ai < n {
-                    let aa = segments[ai].seg.a
-                    guard aa == a else {
-                        a = aa
-                        break
-                    }
-                    links[ai].a = ip
-                    indices.append(ai)
-                    
-                    ai += 1
-                }
-            } else {
-                let ip = IdPoint(id: nodes.count, point: b)
-                while bi < n {
-                    let e = endBs[bi]
-                    guard e.point == b else {
-                        b = e.point
-                        break
-                    }
-                    links[e.segIndex].b = ip
-                    indices.append(e.segIndex)
-                    
-                    bi += 1
+                if bi < n {
+                    b = endBs[bi].point
+                    nextBcnt = endBs.size(point: b, index: bi)
                 }
             }
-            
+
             assert(indices.count > 1)
             nodes.append(OverlayNode(indices: indices))
         }
@@ -221,11 +204,11 @@ private extension FixVec {
 
 }
 
-private extension Array where Element == Segment {
+private extension Array where Element == OverlayLink {
     
     func size(point: Point, index: Int) -> Int {
-        var i = index
-        while i < self.count && self[i].seg.a == point {
+        var i = index + 1
+        while i < self.count && self[i].a.point == point {
             i += 1
         }
         return i - index
@@ -235,7 +218,7 @@ private extension Array where Element == Segment {
 private extension Array where Element == End {
     
     func size(point: Point, index: Int) -> Int {
-        var i = index
+        var i = index + 1
         while i < self.count && self[i].point == point {
             i += 1
         }

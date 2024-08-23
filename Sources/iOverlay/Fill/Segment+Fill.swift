@@ -24,7 +24,7 @@ protocol ScanFillStore {
 
 extension Array where Element == Segment {
     
-    mutating func fill(fillRule: FillRule, isList: Bool) {
+    mutating func fill(fillRule: FillRule, isList: Bool) -> [SegmentFill] {
         if isList {
             var store = ScanFillList(count: self.count)
             return self.solve(scanStore: &store, fillRule: fillRule)
@@ -34,51 +34,54 @@ extension Array where Element == Segment {
         }
     }
     
-    private mutating func solve<S: ScanFillStore>(scanStore: inout S, fillRule: FillRule) {
+    private mutating func solve<S: ScanFillStore>(scanStore: inout S, fillRule: FillRule) -> [SegmentFill] {
         var buf = [Handler]()
         buf.reserveCapacity(4)
         
         let n = self.count
         var i = 0
+        var fills = [SegmentFill](repeating: 0, count: n)
         
         while i < n {
-            let p = self[i].seg.a
-            buf.append(Handler(id: i, b: self[i].seg.b))
+            let p = self[i].xSegment.a
+            buf.append(Handler(id: i, b: self[i].xSegment.b))
             i += 1
 
-            while i < n && self[i].seg.a == p {
-                buf.append(Handler(id: i, b: self[i].seg.b))
+            while i < n && self[i].xSegment.a == p {
+                buf.append(Handler(id: i, b: self[i].xSegment.b))
                 i += 1
             }
             
             buf.sort(by: { Triangle.isClockwise(p0: p, p1: $1.b, p2: $0.b) })
 
             var sumCount = scanStore.underAndNearest(point: p) ?? ShapeCount(subj: 0, clip: 0)
+            var fill: SegmentFill
             
             for se in buf {
-                let seg = self[se.id].seg
-                if seg.isVertical {
-                    _ = self[se.id].addAndFill(sumCount: sumCount, fillRule: fillRule)
-                } else {
-                    sumCount = self[se.id].addAndFill(sumCount: sumCount, fillRule: fillRule)
-                    scanStore.insert(segment: CountSegment(count: sumCount, xSegment: seg))
+                let seg = self[se.id]
+                (sumCount, fill) = seg.addAndFill(sumCount: sumCount, fillRule: fillRule)
+                fills[se.id] = fill
+                if seg.xSegment.isNotVertical {
+                    scanStore.insert(segment: CountSegment(count: sumCount, xSegment: seg.xSegment))
                 }
             }
             
             buf.removeAll(keepingCapacity: true)
         }
+        
+        return fills
     }
 }
 
 private extension Segment {
 
-    mutating func addAndFill(sumCount: ShapeCount, fillRule: FillRule) -> ShapeCount {
+    func addAndFill(sumCount: ShapeCount, fillRule: FillRule) -> (ShapeCount, SegmentFill) {
         let newCount = sumCount.add(count)
-        self.fill(sumCount: sumCount, newCount: newCount, fillRule: fillRule)
-        return newCount
+        let fill = Segment.fill(sumCount: sumCount, newCount: newCount, fillRule: fillRule)
+        return (newCount, fill)
     }
     
-    private mutating func fill(sumCount: ShapeCount, newCount: ShapeCount, fillRule: FillRule) {
+    private static func fill(sumCount: ShapeCount, newCount: ShapeCount, fillRule: FillRule) -> SegmentFill {
         let isSubjTop: Bool
         let isSubjBottom: Bool
         let isClipTop: Bool
@@ -104,7 +107,7 @@ private extension Segment {
         let clipTop = isClipTop ? SegmentFill.clipTop : 0
         let clipBottom = isClipBottom ? SegmentFill.clipBottom : 0
         
-        fill = subjTop | subjBottom | clipTop | clipBottom
+        return subjTop | subjBottom | clipTop | clipBottom
     }
     
 }

@@ -33,7 +33,7 @@ public struct Solver {
         self.strategy = strategy
     }
     
-    func isList(edges: [ShapeEdge]) -> Bool {
+    func isList(edges: [Segment]) -> Bool {
         switch self.strategy {
         case .list:
             return true

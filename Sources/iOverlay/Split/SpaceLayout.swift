@@ -122,14 +122,14 @@ extension SpaceLayout {
         return dx > self.minSize && dy > self.minSize
     }
     
-    func isFragmentationRequired(edges: [ShapeEdge]) -> Bool {
+    func isFragmentationRequired(edges: [Segment]) -> Bool {
         var i = 0
         for edge in edges {
             if self.isFragmentationRequired(xSegment: edge.xSegment) {
                 i += 1
             }
         }
-        // must be at least 20%
+        // must be at least 5%
         return i * 20 > edges.count
     }
     

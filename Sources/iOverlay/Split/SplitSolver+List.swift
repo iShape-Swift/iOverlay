@@ -9,7 +9,7 @@ import iFixFloat
 
 extension SplitSolver {
     
-    func listSplit(edges: inout [ShapeEdge]) -> Bool {
+    func listSplit(edges: inout [Segment]) -> Bool {
         var marks = [LineMark]()
         var needToFix = true
         

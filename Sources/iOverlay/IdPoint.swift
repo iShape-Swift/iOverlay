@@ -11,7 +11,7 @@ struct IdPoint {
     
     static let zero = IdPoint(id: 0, point: .zero)
     
-    let id: Int
+    var id: Int
     let point: Point
     
     init(id: Int, point: Point) {

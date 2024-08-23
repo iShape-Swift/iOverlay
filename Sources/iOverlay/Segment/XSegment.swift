@@ -31,6 +31,11 @@ public struct XSegment {
     var isVertical: Bool {
         a.x == b.x
     }
+    
+    @inline(__always)
+    var isNotVertical: Bool {
+        a.x != b.x
+    }
 
     @inline(__always)
     init(a: Point, b: Point) {

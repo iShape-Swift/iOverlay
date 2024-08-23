@@ -27,7 +27,7 @@ public enum ShapeType {
 /// This struct is crucial for preparing and uploading geometry data required by boolean operations. It serves as a container for edge data derived from shapes and paths, supporting various initializations and modifications.
 public struct Overlay {
 
-    public internal (set) var edges: [ShapeEdge]
+    public internal (set) var edges: [Segment]
     
     
     
@@ -42,7 +42,7 @@ public struct Overlay {
     /// let overlay = Overlay(capacity: 120) // Optimizes for up to 120 edges
     /// ```
     public init(capacity: Int = 64) {
-        edges = [ShapeEdge]()
+        edges = [Segment]()
         edges.reserveCapacity(capacity)
     }
     
@@ -56,8 +56,8 @@ public struct Overlay {
     ///   - subjectPaths: The paths defining the subject shape.
     ///   - clipPaths: The paths defining the clip shape.
     public init(subjectPaths: [Path], clipPaths: [Path]) {
-        edges = [ShapeEdge]()
-        edges.reserveCapacity(subjectPaths.count)
+        edges = [Segment]()
+        edges.reserveCapacity(subjectPaths.pointsCount + clipPaths.pointsCount)
         self.add(paths: subjectPaths, type: .subject)
         self.add(paths: clipPaths, type: .clip)
     }
@@ -69,7 +69,7 @@ public struct Overlay {
     ///   - subjShapes: An array of shapes to be used as the subject in the overlay operation.
     ///   - clipShapes: An array of shapes to be used as the clip in the overlay operation.
     public init(subjShapes: [Shape], clipShapes: [Shape]) {
-        edges = [ShapeEdge]()
+        edges = [Segment]()
         edges.reserveCapacity(subjShapes.pointsCount + clipShapes.pointsCount)
         for shape in subjShapes {
             self.add(shape: shape, type: .subject)
@@ -86,7 +86,7 @@ public struct Overlay {
     ///   - subjShape: A  shape to be used as the subject in the overlay operation.
     ///   - clipShape: A  shape to be used as the clip in the overlay operation.
     public init(subjShape: Shape, clipShape: Shape) {
-        edges = [ShapeEdge]()
+        edges = [Segment]()
         edges.reserveCapacity(subjShape.pointsCount + clipShape.pointsCount)
         self.add(shape: subjShape, type: .subject)
         self.add(shape: clipShape, type: .clip)
@@ -133,12 +133,8 @@ public struct Overlay {
     ///   - path: A reference to a `Path` instance to be added.
     ///   - type: Specifies the role of the added path in the overlay operation, either as `Subject` or `Clip`.
     public mutating func add(path: Path, type: ShapeType) {
-        guard let pathEdges = path.removedDegenerates().createEdges(type: type) else {
-            return
-        }
-        edges.append(contentsOf: pathEdges)
+        edges.append(path: path, shapeType: type)
     }
-
     
     
     
@@ -147,16 +143,16 @@ public struct Overlay {
     ///   - fillRule: The fill rule to use when determining the inside of shapes.
     ///   - solver: Type of solver to use.
     /// - Returns: Array of segments.
-    public func buildSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
+    public func buildSegments(fillRule: FillRule, solver: Solver) -> ([Segment], [SegmentFill]) {
         guard !edges.isEmpty else {
-            return []
+            return ([], [])
         }
         
-        var segments = self.prepareSegments(fillRule: fillRule, solver: solver)
+        var (segments, fills) = self.prepareSegmentsAndFills(fillRule: fillRule, solver: solver)
         
-        segments.filter()
+        Self.cleanIfNeeded(segments: &segments, fills: &fills)
         
-        return segments
+        return (segments, fills)
     }
     
     
@@ -172,7 +168,9 @@ public struct Overlay {
             return []
         }
 
-        let graph = OverlayGraph(segments: self.prepareSegments(fillRule: fillRule, solver: solver))
+        let (segments, fills) = self.prepareSegmentsAndFills(fillRule: fillRule, solver: solver)
+        
+        let graph = OverlayGraph(segments: segments, fills: fills)
         let vectors = graph.extractVectors(overlayRule: overlayRule)
         
         return vectors
@@ -186,115 +184,101 @@ public struct Overlay {
     ///   - solver: Type of solver to use.
     /// - Returns: An `OverlayGraph` prepared for boolean operations.
     public func buildGraph(fillRule: FillRule = .nonZero, solver: Solver = .auto) -> OverlayGraph {
-        OverlayGraph(segments: self.buildSegments(fillRule: fillRule, solver: solver))
+        let (segments, fills) = self.buildSegments(fillRule: fillRule, solver: solver)
+        return OverlayGraph(segments: segments, fills: fills)
     }
     
-    private func prepareSegments(fillRule: FillRule, solver: Solver) -> [Segment] {
-        var sortedEdges = edges.sorted(by: { $0.xSegment < $1.xSegment })
+    private func prepareSegmentsAndFills(fillRule: FillRule, solver: Solver) -> ([Segment], [SegmentFill]) {
+        var segments = edges.sorted(by: { $0.xSegment < $1.xSegment })
         
-        sortedEdges.mergeIfNeeded()
+        segments.mergeIfNeeded()
         
-        let isList = SplitSolver(solver: solver).split(edges: &sortedEdges)
+        let isList = SplitSolver(solver: solver).split(edges: &segments)
         
-        var segments = sortedEdges.segments()
-        
-        segments.fill(fillRule: fillRule, isList: isList)
+        let fills = segments.fill(fillRule: fillRule, isList: isList)
 
-        return segments
+        return (segments, fills)
+    }
+    
+    
+    
+    static private func cleanIfNeeded(segments: inout [Segment], fills: inout [SegmentFill]) {
+        if let index = fills.firstIndex(where: { $0.isEmpty }) {
+            Self.clean(segments: &segments, fills: &fills, after: index)
+        }
+    }
+
+    static private func clean(segments: inout [Segment], fills: inout [SegmentFill], after: Int) {
+        var j = after
+
+        for i in (after + 1)..<fills.count {
+            if !fills[i].isEmpty {
+                fills[j] = fills[i]
+                segments[j] = segments[i]
+                j += 1
+            }
+        }
+
+        let m = fills.count - j
+        fills.removeLast(m)
+        segments.removeLast(m)
     }
 }
 
-private extension Path {
+private extension SegmentFill {
+    var isEmpty: Bool {
+        self == 0 || self == .subjBoth || self == .clipBoth
+    }
+}
+
+private extension [Segment] {
     
-    func createEdges(type: ShapeType) -> [ShapeEdge]? {
-        let n = count
+    mutating func append(path: [Point], shapeType: ShapeType) {
+        var path = path
+        path.removeDegenerates()
+        
+        let n = path.count
         guard n > 2 else {
-            return nil
-        }
-        
-        var edges = [ShapeEdge]()
-        edges.reserveCapacity(n)
-        
-        let i0 = n - 1
-        var p0 = self[i0]
-        
-        for i in 0..<n {
-            let p1 = self[i]
-            
-            let value: Int32 = p0 < p1 ? 1 : -1
-            
-            let edge: ShapeEdge
-            switch type {
-            case .subject:
-                edge = ShapeEdge(a: p0, b: p1, count: ShapeCount(subj: value, clip: 0))
-            case .clip:
-                edge = ShapeEdge(a: p0, b: p1, count: ShapeCount(subj: 0, clip: value))
-            }
-            
-            edges.append(edge)
-            
-            p0 = p1
-        }
-        
-        return edges
-    }
-}
-
-private extension Array where Element == Segment {
-    
-    mutating func filter() {
-        let n = self.count
-        var i = 0
-        
-        while i < n {
-            let fill = self[i].fill
-            if fill == 0 || fill == .subjBoth || fill == .clipBoth {
-                break
-            }
-            i += 1
-        }
-        
-        guard i < n else { return }
-        var j = i + 1
-
-        while j < n {
-            let fill = self[j].fill
-            if !(fill == 0 || fill == .subjBoth || fill == .clipBoth) {
-                self[i] = self[j]
-                i += 1
-            }
-            j += 1
+            return
         }
 
-        if i < n {
-            self.removeLast(n - i)
-        }
-    }
-}
-
-private extension Array where Element == ShapeEdge {
-    
-    func segments() -> [Segment] {
-        var segments = [Segment]()
-        segments.reserveCapacity(self.count)
+        var p0 = path[n - 1]
         
-        var prev = ShapeEdge(a: .zero, b: .zero, count: .init(subj: 0, clip: 0))
-        
-        for next in self {
-            if prev.xSegment == next.xSegment {
-                prev.count = prev.count.add(next.count)
-            } else {
-                if !prev.count.isEmpty {
-                    segments.append(Segment(edge: prev))
+        switch shapeType {
+        case .subject:
+            for p1 in path {
+                let segment: Segment
+                
+                if p0 < p1 {
+                    let xSegment = XSegment(a: p0, b: p1)
+                    let count = ShapeCount(subj: 1, clip: 0)
+                    segment = Segment(xSegment: xSegment, count: count)
+                } else {
+                    let xSegment = XSegment(a: p1, b: p0)
+                    let count = ShapeCount(subj: -1, clip: 0)
+                    segment = Segment(xSegment: xSegment, count: count)
                 }
-                prev = next
+                self.append(segment)
+
+                p0 = p1
+            }
+        case .clip:
+            for p1 in path {
+                let segment: Segment
+                
+                if p0 < p1 {
+                    let xSegment = XSegment(a: p0, b: p1)
+                    let count = ShapeCount(subj: 0, clip: 1)
+                    segment = Segment(xSegment: xSegment, count: count)
+                } else {
+                    let xSegment = XSegment(a: p1, b: p0)
+                    let count = ShapeCount(subj: 0, clip: -1)
+                    segment = Segment(xSegment: xSegment, count: count)
+                }
+                self.append(segment)
+                
+                p0 = p1
             }
         }
-
-        if !prev.count.isEmpty {
-            segments.append(Segment(edge: prev))
-        }
-        
-        return segments
     }
 }

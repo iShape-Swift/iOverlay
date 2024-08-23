@@ -7,12 +7,12 @@
 
 extension SplitSolver {
     
-    func treeSplit(edges: inout [ShapeEdge]) -> Bool {
+    func treeSplit(edges: inout [Segment]) -> Bool {
         let verRange = edges.verRange()
         let height = Int(verRange.width)
         
         if height < SpaceLayout.minHeight {
-            return self.listSplit(edges: &edges);
+            return self.listSplit(edges: &edges)
         }
         
         let layout = SpaceLayout(height: height, count: edges.count)
@@ -26,7 +26,7 @@ extension SplitSolver {
         return false
     }
     
-    private func simple(verRange: LineRange, layout: SpaceLayout, edges: inout [ShapeEdge]) {
+    private func simple(verRange: LineRange, layout: SpaceLayout, edges: inout [Segment]) {
         var tree = SegmentTree(range: verRange, power: layout.power)
         
         var marks = [LineMark]()
@@ -56,7 +56,7 @@ extension SplitSolver {
         }
     }
 
-    private func complex(verRange: LineRange, layout: SpaceLayout, edges: inout [ShapeEdge]) {
+    private func complex(verRange: LineRange, layout: SpaceLayout, edges: inout [Segment]) {
         var tree = SegmentTree(range: verRange, power: layout.power)
         
         var marks = [LineMark]()
@@ -99,7 +99,7 @@ extension SplitSolver {
     }
 }
 
-private extension Array where Element == ShapeEdge {
+private extension Array where Element == Segment {
     func verRange() -> LineRange {
         var minY: Int32 = self[0].xSegment.a.y
         var maxY: Int32 = minY
