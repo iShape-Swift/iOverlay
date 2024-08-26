@@ -20,6 +20,12 @@ public enum Strategy {
     case auto
 }
 
+public enum Precision {
+    case absolute
+    case average
+    case auto
+}
+
 public struct Solver {
 
     public static let list = Solver(strategy: .list)
@@ -27,10 +33,12 @@ public struct Solver {
     public static let auto = Solver(strategy: .auto)
     
     public let strategy: Strategy
-    private static let maxListCount: Int = 1024
+    public let precision: Precision
+    private static let maxListCount: Int = 2048
     
-    init(strategy: Strategy) {
+    init(strategy: Strategy, precision: Precision = .auto) {
         self.strategy = strategy
+        self.precision = precision
     }
     
     func isList(edges: [Segment]) -> Bool {
@@ -41,6 +49,17 @@ public struct Solver {
             return false
         case .auto:
             return edges.count < Self.maxListCount
+        }
+    }
+    
+    func radius(iteration: Int) -> Int64 {
+        switch self.precision {
+        case .absolute:
+            return 0
+        case .average:
+            return 2
+        case .auto:
+            return Int64(1 << min(2, iteration))
         }
     }
     

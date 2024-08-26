@@ -27,16 +27,17 @@ extension SplitSolver {
     }
     
     private func simple(verRange: LineRange, layout: SpaceLayout, edges: inout [Segment]) {
-        var tree = SegmentTree(range: verRange, power: layout.power)
+        var tree = SegmentTree(range: verRange, power: layout.power, radius: 0)
         
         var marks = [LineMark]()
         
         var needToFix = true
+        var iter = 0
 
-        while needToFix {
+        while needToFix && edges.count > 2 {
             needToFix = false
-
-            marks.removeAll(keepingCapacity: true)
+            
+            tree.radius = self.solver.radius(iteration: iter)
             
             for i in 0..<edges.count {
                 let fragment = Fragment(index: i, xSegment: edges[i].xSegment)
@@ -53,22 +54,25 @@ extension SplitSolver {
             tree.clear()
             
             SplitSolver.apply(marks: &marks, edges: &edges)
+
+            marks.removeAll(keepingCapacity: true)
+            
+            iter += 1
         }
     }
 
     private func complex(verRange: LineRange, layout: SpaceLayout, edges: inout [Segment]) {
-        var tree = SegmentTree(range: verRange, power: layout.power)
+        var tree = SegmentTree(range: verRange, power: layout.power, radius: 0)
         
         var marks = [LineMark]()
         var needToFix = true
         var fragments = [Fragment]()
         fragments.reserveCapacity(2 * edges.count)
-
-        while needToFix {
+        
+        var iter = 0
+        
+        while needToFix && edges.count > 2 {
             needToFix = false
-
-            marks.removeAll(keepingCapacity: true)
-            fragments.removeAll(keepingCapacity: true)
             
             for i in 0..<edges.count {
                 layout.breakIntoFragments(index: i, xSegment: edges[i].xSegment, buffer: &fragments)
@@ -80,6 +84,7 @@ extension SplitSolver {
                 return
             }
 
+            tree.radius = self.solver.radius(iteration: iter)
             
             for fragment in fragments {
                 let anyRound = tree.intersect(this: fragment, marks: &marks)
@@ -91,10 +96,15 @@ extension SplitSolver {
             guard !marks.isEmpty else {
                 return
             }
-
+            
+            fragments.removeAll(keepingCapacity: true)
             tree.clear()
             
             SplitSolver.apply(marks: &marks, edges: &edges)
+            
+            marks.removeAll(keepingCapacity: true)
+            
+            iter += 1
         }
     }
 }

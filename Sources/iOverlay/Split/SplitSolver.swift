@@ -23,8 +23,8 @@ struct SplitSolver {
         }
     }
 
-    static func cross(i: Int, j: Int, ei: XSegment, ej: XSegment, marks: inout[LineMark]) -> Bool {
-        guard let cross = CrossSolver.cross(target: ei, other: ej) else {
+    static func cross(i: Int, j: Int, ei: XSegment, ej: XSegment, marks: inout[LineMark], radius: Int64) -> Bool {
+        guard let cross = CrossSolver.cross(target: ei, other: ej, radius: radius) else {
             return false
         }
         

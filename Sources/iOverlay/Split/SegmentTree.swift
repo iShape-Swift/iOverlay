@@ -31,6 +31,7 @@ struct SegmentTree {
 
     private let power: Int
     fileprivate var nodes: [IntervalNode]
+    var radius: Int64
 
     private static func createNodes(range: LineRange, power: Int) -> [IntervalNode] {
         let n = 1 << power
@@ -76,9 +77,10 @@ struct SegmentTree {
         return nodes
     }
     
-    init(range: LineRange, power: Int) {
+    init(range: LineRange, power: Int, radius: Int64) {
         self.power = power
         self.nodes = Self.createNodes(range: range, power: power)
+        self.radius = radius
     }
     
     mutating func insert(fragment: Fragment) {
@@ -307,7 +309,8 @@ struct SegmentTree {
                     j: scan.index,
                     ei: this.xSegment,
                     ej: scan.xSegment,
-                    marks: &marks
+                    marks: &marks,
+                    radius: self.radius
                 )
             } else {
                 isRound = SplitSolver.cross(
@@ -315,7 +318,8 @@ struct SegmentTree {
                     j: this.index,
                     ei: scan.xSegment,
                     ej: this.xSegment,
-                    marks: &marks
+                    marks: &marks,
+                    radius: self.radius
                 )
             }
             

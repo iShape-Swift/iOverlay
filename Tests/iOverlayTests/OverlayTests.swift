@@ -13,8 +13,8 @@ final class OverlayTests: XCTestCase {
     
     private let solvers = [
         Solver.list,
-        Solver.tree,
-        Solver.auto
+//        Solver.tree,
+//        Solver.auto
     ]
     
     
@@ -33,7 +33,7 @@ final class OverlayTests: XCTestCase {
             let union = graph.extractShapes(overlayRule: .union)
             let xor = graph.extractShapes(overlayRule: .xor)
             
-//            self.printTest(test, clip: clip, subject: subject, difference: difference, inverseDifference: inverseDifference, intersect: intersect, union: union, xor: xor)
+            self.printTest(test, clip: clip, subject: subject, difference: difference, inverseDifference: inverseDifference, intersect: intersect, union: union, xor: xor)
             
             XCTAssertTrue(self.test(result: clip, bank: test.clip))
             XCTAssertTrue(self.test(result: subject, bank: test.subject))

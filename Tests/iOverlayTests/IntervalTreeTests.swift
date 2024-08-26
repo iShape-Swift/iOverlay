@@ -23,7 +23,7 @@ final class IntervalTreeTests: XCTestCase {
     }
     
     func test_02() throws {
-        var tree = SegmentTree(range: LineRange(min: 0, max: 128), power: 3)
+        var tree = SegmentTree(range: LineRange(min: 0, max: 128), power: 3, radius: 2)
         let xSeg = XSegment(a: Point(0, 1), b: Point(0, 127))
         tree.insert(fragment: Fragment(index: 0, xSegment: xSeg))
         
@@ -52,7 +52,7 @@ final class IntervalTreeTests: XCTestCase {
     }
     
     func test_03() throws {
-        var tree = SegmentTree(range: LineRange(min: 0, max: 128), power: 3)
+        var tree = SegmentTree(range: LineRange(min: 0, max: 128), power: 3, radius: 2)
         let xSeg = XSegment(a: Point(0, 16), b: Point(0, 112))
         tree.insert(fragment: Fragment(index: 0, xSegment: xSeg))
         
@@ -81,7 +81,7 @@ final class IntervalTreeTests: XCTestCase {
     }
     
     func test_04() throws {
-        var tree = SegmentTree(range: LineRange(min: 0, max: 128), power: 3)
+        var tree = SegmentTree(range: LineRange(min: 0, max: 128), power: 3, radius: 2)
         let xSeg = XSegment(a: Point(0, 17), b: Point(0, 111))
         tree.insert(fragment: Fragment(index: 0, xSegment: xSeg))
         
@@ -110,7 +110,7 @@ final class IntervalTreeTests: XCTestCase {
     }
     
     func test_05() throws {
-        var tree = SegmentTree(range: LineRange(min: 0, max: 128), power: 3)
+        var tree = SegmentTree(range: LineRange(min: 0, max: 128), power: 3, radius: 2)
         let xSeg = XSegment(a: Point(0, 32), b: Point(0, 96))
         tree.insert(fragment: Fragment(index: 0, xSegment: xSeg))
         
@@ -139,7 +139,7 @@ final class IntervalTreeTests: XCTestCase {
     }
     
     func test_06() throws {
-        var tree = SegmentTree(range: LineRange(min: 0, max: 128), power: 3)
+        var tree = SegmentTree(range: LineRange(min: 0, max: 128), power: 3, radius: 2)
         let xSeg = XSegment(a: Point(0, 33), b: Point(0, 95))
         tree.insert(fragment: Fragment(index: 0, xSegment: xSeg))
         
@@ -167,7 +167,7 @@ final class IntervalTreeTests: XCTestCase {
     }
     
     func test_07() throws {
-        var tree = SegmentTree(range: LineRange(min: -8, max: 9), power: 3)
+        var tree = SegmentTree(range: LineRange(min: -8, max: 9), power: 3, radius: 2)
         let a0 = Point(0, -6)
         let b0 = Point(8,  0)
         let a1 = Point(0,  3)
@@ -189,14 +189,14 @@ final class IntervalTreeTests: XCTestCase {
 
         let range = LineRange(min: -28, max: 28)
         let layout = SpaceLayout(height: Int(range.width), count: 16)
-        var tree = SegmentTree(range: range, power: layout.power)
+        var tree = SegmentTree(range: range, power: layout.power, radius: 2)
         tree.insert(fragment: Fragment(index: 0, xSegment: s0))
 
         var marks = [LineMark]()
         
         _ = tree.intersect(this: Fragment(index: 0, xSegment: s1), marks: &marks)
         
-        let r1 = CrossSolver.cross(target: s0, other: s1)
+        let r1 = CrossSolver.cross(target: s0, other: s1, radius: 2)
         
         XCTAssertFalse(marks.isEmpty)
         XCTAssertNotNil(r1)

@@ -53,7 +53,7 @@ enum CrossType {
 
 struct CrossSolver {
 
-    static func cross(target: XSegment, other: XSegment) -> CrossResult? {
+    static func cross(target: XSegment, other: XSegment, radius: Int64) -> CrossResult? {
 
         // by this time segments already at intersection range by x
 
@@ -76,7 +76,7 @@ struct CrossSolver {
         }
         
         if s == 0 {
-            return Self.middleCross(target: target, other: other)
+            return Self.middleCross(target: target, other: other, radius: radius)
         }
         
         // end cross
@@ -129,7 +129,7 @@ struct CrossSolver {
         return OverlayMask(isTargetA: isTargetA, isTargetB: isTargetB, isOtherA: isOtherA, isOtherB: isOtherB)
     }
     
-    private static func middleCross(target: XSegment, other: XSegment) -> CrossResult {
+    private static func middleCross(target: XSegment, other: XSegment, radius: Int64) -> CrossResult {
         let p = Self.crossPoint(target: target, other: other)
         
         if Triangle.isLine(p0: target.a, p1: p, p2: target.b) && Triangle.isLine(p0: other.a, p1: p, p2: other.b) {
@@ -145,7 +145,7 @@ struct CrossSolver {
         let ra1 = other.a.sqrDistance(p)
         let rb1 = other.b.sqrDistance(p)
         
-        if ra0 <= 2 || ra1 <= 2 || rb0 <= 2 || rb1 <= 2 {
+        if ra0 <= radius || ra1 <= radius || rb0 <= radius || rb1 <= radius {
             let r0 = min(ra0, rb0)
             let r1 = min(ra1, rb1)
             
