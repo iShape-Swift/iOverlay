@@ -5,7 +5,7 @@
 </p>
 
 The iOverlay is a fast poly-bool library supporting main operations like union, intersection, difference, and xor, governed by either the even-odd or non-zero rule.  
-This library is optimized for different scenarios, ensuring high performance across various use cases. For detailed performance benchmarks, check out the [Performance Comparison](https://ishape-rust.github.io/iShape-js/overlay/performance.html)
+This library is optimized for different scenarios, ensuring high performance across various use cases. For detailed performance benchmarks, check out the [Performance Comparison](https://ishape-rust.github.io/iShape-js/overlay/performance/performance.html)
 
 ## [Documentation](https://ishape-rust.github.io/iShape-js/overlay/stars_demo.html)
 Try out iOverlay with an interactive demo. The demo covers operations like union, intersection, difference and exclusion
