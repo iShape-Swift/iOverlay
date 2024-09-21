@@ -33,7 +33,7 @@ final class OverlayTests: XCTestCase {
             let union = graph.extractShapes(overlayRule: .union)
             let xor = graph.extractShapes(overlayRule: .xor)
             
-            self.printTest(test, clip: clip, subject: subject, difference: difference, inverseDifference: inverseDifference, intersect: intersect, union: union, xor: xor)
+//            self.printTest(test, clip: clip, subject: subject, difference: difference, inverseDifference: inverseDifference, intersect: intersect, union: union, xor: xor)
             
             XCTAssertTrue(self.test(result: clip, bank: test.clip))
             XCTAssertTrue(self.test(result: subject, bank: test.subject))
@@ -92,7 +92,7 @@ final class OverlayTests: XCTestCase {
     
     func test(result: [Shape], bank: [[Shape]]) -> Bool {
         for item in bank {
-            if item == result {
+            guard !item.areEqual(other: result) else {
                 return true
             }
         }
@@ -637,5 +637,57 @@ final class OverlayTests: XCTestCase {
 
     func test_debug() throws {
         self.debugExecute(index: 3, overlayRule: .difference, solver: .list)
+    }
+}
+
+extension [Point] {
+    func areEqual(other: Self) -> Bool {
+        guard self.count == other.count else {
+            return false
+        }
+
+        let len = other.count
+
+        for shift in 0..<len {
+            var isEqual = true
+            for i in 0..<len {
+                if self[(i + shift) % len] != other[i] {
+                    isEqual = false
+                    break
+                }
+            }
+            if isEqual {
+                return true
+            }
+        }
+
+        return false
+    }
+}
+
+extension [Shape] {
+    func areEqual(other: Self) -> Bool {
+        guard self.count == other.count else {
+            return false
+        }
+
+
+        for i in 0..<self.count {
+            let shape0 = self[i]
+            let shape1 = other[i]
+            guard shape0.count == shape1.count else {
+                return false
+            }
+
+            for j in 0..<shape0.count {
+                let path0 = shape0[j]
+                let path1 = shape1[j]
+                guard path0.areEqual(other: path1) else {
+                    return false
+                }
+            }
+        }
+
+        return true
     }
 }
