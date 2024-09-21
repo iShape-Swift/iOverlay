@@ -37,13 +37,30 @@ final class VectorTests: XCTestCase {
         XCTAssertEqual(shapes[0].count, 1)
         
         let vectors = shapes[0][0]
+        let template = [
+            VectorEdge(
+                2,
+                Point(-10240, -10240),
+                Point(-10240,  10240)
+            ),
+            VectorEdge(
+                2,
+                Point(-10240,  10240),
+                Point(10240,  10240)
+            ),
+            VectorEdge(
+                2,
+                Point( 10240,  10240),
+                Point( 10240, -10240)
+            ),
+            VectorEdge(
+                2,
+                Point( 10240, -10240),
+                Point(-10240, -10240)
+            )
+        ]
         
-        XCTAssertEqual(vectors, [
-            VectorEdge(fill: 2, a: Point(-10240, -10240), b: Point(-10240,  10240)),
-            VectorEdge(fill: 2, a: Point(-10240,  10240), b: Point( 10240,  10240)),
-            VectorEdge(fill: 2, a: Point( 10240,  10240), b: Point( 10240, -10240)),
-            VectorEdge(fill: 2, a: Point( 10240, -10240), b: Point(-10240, -10240))
-        ])
+        XCTAssertEqual(vectors, template)
     }
     
     func test_01() throws {
@@ -74,13 +91,13 @@ final class VectorTests: XCTestCase {
         let vectors = shapes[0][0]
         
         XCTAssertEqual(vectors, [
-            VectorEdge(fill: 2, a: Point(-10240, -10240), b: Point(-10240,  10240)),
-            VectorEdge(fill: 2, a: Point(-10240,  10240), b: Point( -5120,  10240)),
-            VectorEdge(fill:14, a: Point( -5120,  10240), b: Point( 10240,  10240)),
+            VectorEdge(2, Point(-10240, -10240), Point(-10240,  10240)),
+            VectorEdge(2, Point(-10240,  10240), Point( -5120,  10240)),
+            VectorEdge(14,Point( -5120,  10240), Point( 10240,  10240)),
             
-            VectorEdge(fill:14, a: Point( 10240,  10240), b: Point( 10240, -5120)),
-            VectorEdge(fill: 2, a: Point( 10240,  -5120), b: Point( 10240, -10240)),
-            VectorEdge(fill: 2, a: Point( 10240, -10240), b: Point(-10240, -10240)),
+            VectorEdge(14,Point( 10240,  10240), Point( 10240, -5120)),
+            VectorEdge(2, Point( 10240,  -5120), Point( 10240, -10240)),
+            VectorEdge(2, Point( 10240, -10240), Point(-10240, -10240)),
         ])
     }
 

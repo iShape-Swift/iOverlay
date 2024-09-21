@@ -44,6 +44,22 @@ public struct VectorEdge: Equatable {
     public private(set) var a: Point
     public private(set) var b: Point
     
+    init(_ fill: SideFill, _ a: Point, _ b: Point) {
+        self.fill = fill
+        self.a = a
+        self.b = b
+    }
+    
+    init(fill: SideFill, a: Point, b: Point) {
+        if a < b {
+            self.fill = fill
+        } else {
+            self.fill = fill.reverse()
+        }
+        self.a = a
+        self.b = b
+    }
+    
     mutating func reverse() {
         let c = self.a
         self.a = self.b
