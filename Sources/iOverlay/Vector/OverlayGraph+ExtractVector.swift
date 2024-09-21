@@ -7,6 +7,15 @@
 
 import iFixFloat
 
+struct StartVectorPathData {
+    let a: Point
+    let b: Point
+    let nodeId: Int
+    let linkId: Int
+    let lastNodeId: Int
+    let fill: SegmentFill
+}
+
 // similar as for extract shapes but for vectors
 public extension OverlayGraph {
     
@@ -15,24 +24,44 @@ public extension OverlayGraph {
         
         var holes = [VectorPath]()
         var shapes = [VectorShape]()
-        
-        var j = 0
-        while j < self.nodes.count {
-            let i = self.findFirstLink(nodeIndex: j, visited: visited)
-            guard i != .max else {
-                j += 1
+
+        var linkIndex = 0
+        while linkIndex < visited.count {
+            if visited[linkIndex] {
+                linkIndex += 1
                 continue
             }
-            
-            let isHole = overlayRule.isFillTop(fill: self.links[i].fill)
-            var path = self.getPath(overlayRule: overlayRule, index: i, visited: &visited)
-            path.validate(isHole: isHole)
-            
+
+            let leftTopLink = self.findLeftTopLink(linkIndex: linkIndex, visited: visited)
+            let link = self.links[leftTopLink]
+            let isHole = overlayRule.isFillTop(fill: link.fill)
+
+            let startData: StartVectorPathData
             if isHole {
+                startData = StartVectorPathData(
+                    a: link.b.point,
+                    b: link.a.point,
+                    nodeId: link.a.id,
+                    linkId: leftTopLink,
+                    lastNodeId: link.b.id,
+                    fill: link.fill
+                )
+                let path = self.getVectorPath(startData: startData, visited: &visited)
                 holes.append(path)
             } else {
+                startData = StartVectorPathData(
+                    a: link.a.point,
+                    b: link.b.point,
+                    nodeId: link.b.id,
+                    linkId: leftTopLink,
+                    lastNodeId: link.a.id,
+                    fill: link.fill
+                )
+                let path = self.getVectorPath(startData: startData, visited: &visited)
                 shapes.append([path])
             }
+
+            linkIndex += 1
         }
         
         shapes.join(holes: holes)
@@ -40,35 +69,37 @@ public extension OverlayGraph {
         return shapes
     }
     
-    private func getPath(overlayRule: OverlayRule, index: Int, visited: inout [Bool]) -> VectorPath {
+    private func getVectorPath(startData: StartVectorPathData, visited: inout [Bool]) -> VectorPath {
+        var linkId = startData.linkId
+        var nodeId = startData.nodeId
+        let lastNodeId = startData.lastNodeId
+
+        visited[linkId] = true
+
         var path = VectorPath()
-        var next = index
+        path.append(VectorEdge(fill: startData.fill, a: startData.a, b: startData.b))
 
-        var link = links[index]
-        
-        var a = link.a
-        var b = link.b
-
-        // find a closed tour
-        repeat {
-            let fill = SideFill(fill: link.fill, a: a.point, b: b.point)
-            path.append(VectorEdge(fill: fill, a: a.point, b: b.point))
-            let node = nodes[b.id]
-            
+        // Find a closed tour
+        while nodeId != lastNodeId {
+            let node = self.nodes[nodeId]
             if node.indices.count == 2 {
-                next = node.other(index: next)
+                linkId = node.other(index: linkId)
             } else {
-                let isFillTop = overlayRule.isFillTop(fill: link.fill)
-                let isCW = OverlayGraph.isClockwise(a: a.point, b: b.point, isTopInside: isFillTop)
-                next = self.findNearestLinkTo(target: a, center: b, ignore: next, inClockWise: isCW, visited: visited)
+                linkId = self.findNearestCounterWiseLinkTo(targetIndex: linkId, nodeId: nodeId, visited: visited)
             }
-            link = links[next]
-            a = b
-            b = link.other(b)
-            visited[next] = true
-        } while next != index
-        
-        visited[index] = true
+            
+            let link = self.links[linkId]
+            
+            if link.a.id == nodeId {
+                path.append(VectorEdge(fill: link.fill, a: link.a.point, b: link.b.point))
+                nodeId = link.b.id
+            } else {
+                path.append(VectorEdge(fill: link.fill, a: link.b.point, b: link.a.point))
+                nodeId = link.a.id
+            }
+
+            visited[linkId] = true
+        }
 
         return path
     }

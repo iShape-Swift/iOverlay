@@ -40,9 +40,9 @@ public extension SideFill {
 
 public struct VectorEdge: Equatable {
 
-    public private (set) var fill: SideFill
-    public private (set) var a: Point
-    public private (set) var b: Point
+    public private(set) var fill: SideFill
+    public private(set) var a: Point
+    public private(set) var b: Point
     
     mutating func reverse() {
         let c = self.a

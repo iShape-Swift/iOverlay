@@ -14,7 +14,12 @@ struct OverlayLink {
     let fill: SegmentFill
 
     @inline(__always)
-    func other(_ point: IdPoint) -> IdPoint {
-        a.id == point.id ? b : a
+    var isDirect: Bool {
+        self.a.point < self.b.point
+    }
+
+    @inline(__always)
+    func other(_ nodeId: Int) -> IdPoint {
+        a.id == nodeId ? b : a
     }
 }

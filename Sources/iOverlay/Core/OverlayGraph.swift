@@ -26,7 +26,7 @@ public struct OverlayGraph {
             links = []
             return
         }
-
+        
         var links = [OverlayLink]()
         links.reserveCapacity(n)
         for index in 0..<n {
@@ -67,7 +67,7 @@ public struct OverlayGraph {
                 aCnt = 0
                 bCnt = nextBcnt
             }
-
+            
             let nodeId = nodes.count
             var indices = [Int]()
             indices.reserveCapacity(aCnt + bCnt)
@@ -84,7 +84,7 @@ public struct OverlayGraph {
                     nextAcnt = links.size(point: a, index: ai)
                 }
             }
-
+            
             if bCnt > 0 {
                 nextBcnt = 0
                 for _ in 0..<bCnt {
@@ -93,13 +93,13 @@ public struct OverlayGraph {
                     links[e.index].b.id = nodeId
                     bi += 1
                 }
-
+                
                 if bi < n {
                     b = endBs[bi].point
                     nextBcnt = endBs.size(point: b, index: bi)
                 }
             }
-
+            
             assert(indices.count > 1)
             nodes.append(OverlayNode(indices: indices))
         }
@@ -107,6 +107,63 @@ public struct OverlayGraph {
         self.links = links
         self.nodes = nodes
     }
+    
+    func findNearestCounterWiseLinkTo(targetIndex: Int, nodeId: Int, visited: [Bool]) -> Int {
+        let target = self.links[targetIndex]
+        
+        let a, c: Point
+        if target.a.id == nodeId {
+            c = target.a.point
+            a = target.b.point
+        } else {
+            c = target.b.point
+            a = target.a.point
+        }
+
+        let node = self.nodes[nodeId]
+
+        var (itIndex, bestIndex) = node.firstNotVisited(visited: visited)
+
+        var linkIndex = node.nextLink(itIndex: &itIndex, visited: visited)
+
+        if linkIndex >= self.links.count {
+            // no more links
+            return bestIndex
+        }
+
+        let va = a.subtract(c)
+        let b = self.links[bestIndex].other(nodeId).point
+        var vb = b.subtract(c)
+        var more180 = va.crossProduct(vb) <= 0
+
+        while linkIndex < self.links.count {
+            let link = self.links[linkIndex]
+            let p = link.other(nodeId).point
+            let vp = p.subtract(c)
+            let newMore180 = va.crossProduct(vp) <= 0
+
+            if newMore180 == more180 {
+                // both more 180 or both less 180
+                let isClockWise = vp.crossProduct(vb) > 0
+                if isClockWise {
+                    bestIndex = linkIndex
+                    vb = vp
+                }
+            } else if more180 {
+                // new less 180
+                more180 = false
+                bestIndex = linkIndex
+                vb = vp
+            }
+
+            linkIndex = node.nextLink(itIndex: &itIndex, visited: visited)
+        }
+
+        return bestIndex
+    }
+    
+}
+    /*
 
     // Finds the nearest link to a given target point.
     func findNearestLinkTo(target: IdPoint, center: IdPoint, ignore: Int, inClockWise: Bool, visited: [Bool]) -> Int {
@@ -203,7 +260,7 @@ private extension FixVec {
     }
 
 }
-
+*/
 private extension Array where Element == OverlayLink {
     
     func size(point: Point, index: Int) -> Int {

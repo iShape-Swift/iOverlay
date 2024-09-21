@@ -33,23 +33,35 @@ public extension OverlayGraph {
         var holes = [Path]()
         var shapes = [Shape]()
         
-        var j = 0
-        while j < self.nodes.count {
-            let i = self.findFirstLink(nodeIndex: j, visited: visited)
-            guard i != .max else {
-                j += 1
+        var linkIndex = 0
+        while linkIndex < visited.count {
+            if visited[linkIndex] {
+                linkIndex += 1
                 continue
             }
 
-            let isHole = overlayRule.isFillTop(fill: self.links[i].fill)
-            var path = self.getPath(overlayRule: overlayRule, index: i, visited: &visited)
-            if path.validate(minArea: minArea, isHole: isHole) {
+            let leftTopLink = self.findLeftTopLink(linkIndex: linkIndex, visited: visited)
+            let link = self.links[leftTopLink]
+            let isHole = overlayRule.isFillTop(fill: link.fill)
+
+            let startData: StartPathData
+            if isHole {
+                startData = StartPathData(begin: link.b.point, nodeId: link.a.id, linkId: leftTopLink, lastNodeId: link.b.id)
+            } else {
+                startData = StartPathData(begin: link.a.point, nodeId: link.b.id, linkId: leftTopLink, lastNodeId: link.a.id)
+            }
+
+            var path = self.getPath(startData: startData, visited: &visited)
+
+            if path.validate(minArea: minArea) {
                 if isHole {
                     holes.append(path)
                 } else {
                     shapes.append([path])
                 }
             }
+
+            linkIndex += 1
         }
 
         shapes.join(holes: holes)
@@ -57,60 +69,96 @@ public extension OverlayGraph {
         return shapes
     }
     
-    private func getPath(overlayRule: OverlayRule, index: Int, visited: inout [Bool]) -> Path {
+    private func getPath(startData: StartPathData, visited: inout [Bool]) -> Path {
+        var linkId = startData.linkId
+        var nodeId = startData.nodeId
+        let lastNodeId = startData.lastNodeId
+
+        visited[linkId] = true
+
         var path = Path()
-        var next = index
+        path.append(startData.begin)
 
-        var link = links[index]
-        
-        var a = link.a
-        var b = link.b
-
-        // find a closed tour
-        repeat {
-            path.append(a.point)
-            let node = nodes[b.id]
-            
+        // Find a closed tour
+        while nodeId != lastNodeId {
+            let node = self.nodes[nodeId]
             if node.indices.count == 2 {
-                next = node.other(index: next)
+                linkId = node.other(index: linkId)
             } else {
-                let isFillTop = overlayRule.isFillTop(fill: link.fill)
-                let isCW = OverlayGraph.isClockwise(a: a.point, b: b.point, isTopInside: isFillTop)
-                next = self.findNearestLinkTo(target: a, center: b, ignore: next, inClockWise: isCW, visited: visited)
+                linkId = self.findNearestCounterWiseLinkTo(targetIndex: linkId, nodeId: nodeId, visited: visited)
             }
-            link = links[next]
-            a = b
-            b = link.other(b)
-            visited[next] = true
-        } while next != index
-        
-        visited[index] = true
+            let link = self.links[linkId]
+            if link.a.id == nodeId {
+                path.append(link.a.point)
+                nodeId = link.b.id
+            } else {
+                path.append(link.b.point)
+                nodeId = link.a.id
+            }
+
+            visited[linkId] = true
+        }
 
         return path
     }
+    
+    @inline(__always)
+    func findLeftTopLink(linkIndex: Int, visited: [Bool]) -> Int {
+        var topIndex = linkIndex
+        var top = self.links[linkIndex]
+        assert(top.isDirect)
+
+        let node = self.nodes[top.a.id]
+
+        // find most top link
+
+        for i in node.indices {
+            if i == linkIndex {
+                continue
+            }
+            let link = self.links[i]
+            if !link.isDirect || Triangle.isClockwise(p0: top.a.point, p1: top.b.point, p2: link.b.point) {
+                continue
+            }
+
+            if visited[i] {
+                continue
+            }
+
+            topIndex = i
+            top = link
+        }
+
+        return topIndex
+    }
+}
+
+struct StartPathData {
+    let begin: Point
+    let nodeId: Int
+    let linkId: Int
+    let lastNodeId: Int
 }
 
 private extension Path {
     
     // remove a short path and make cw if needed
-    mutating func validate(minArea: Int64, isHole: Bool) -> Bool {
+    mutating func validate(minArea: Int64) -> Bool {
         self.removeDegenerates()
         
         guard count > 2 else {
             return false
         }
-
-        let uArea = self.unsafeArea
-        let absArea = abs(uArea) >> 1
-
-        if absArea < minArea {
-            return false
-        } else if isHole && uArea > 0 || !isHole && uArea < 0 {
-            // for holes must be negative and for contour must be positive
-            self.reverse()
+        
+        guard minArea > 0 else {
+            return true
         }
         
-        return true
+        
+        let uArea = self.unsafeArea
+        let absArea = abs(uArea) >> 1
+        
+        return absArea < minArea
     }
 }
 
