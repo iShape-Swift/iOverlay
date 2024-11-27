@@ -60,8 +60,6 @@ public extension OverlayGraph {
                     shapes.append([path])
                 }
             }
-
-            linkIndex += 1
         }
 
         shapes.join(holes: holes)

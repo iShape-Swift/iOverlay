@@ -77,14 +77,13 @@ final class OverlayTests: XCTestCase {
         } catch {
             print("Error converting to JSON: \(error)")
         }
-        
     }
     
     
-    private func debugExecute(index: Int, overlayRule: OverlayRule, solver: Solver) {
+    private func debugExecute(index: Int, overlayRule: OverlayRule, fillRule: FillRule, solver: Solver) {
         let test = OverlayTestBank.load(index: index)
         let overlay = Overlay(subjectPaths: test.subjPaths, clipPaths: test.clipPaths)
-        let graph = overlay.buildGraph(fillRule: test.fillRule, solver: solver)
+        let graph = overlay.buildGraph(fillRule: fillRule, solver: solver)
         let result = graph.extractShapes(overlayRule: overlayRule)
         
         print("result: \(result)")
@@ -636,7 +635,48 @@ final class OverlayTests: XCTestCase {
     }
 
     func test_debug() throws {
-        self.debugExecute(index: 3, overlayRule: .difference, solver: .list)
+        self.debugExecute(index: 134, overlayRule: .subject, fillRule: .nonZero, solver: .list)
+    }
+    
+    func test_exp_0() throws {
+        var overlay = Overlay()
+        overlay.add(path: [
+            Point(0, 0),
+            Point(5, 10),
+            Point(15, 10),
+            Point(10, 0),
+        ], type: ShapeType.subject)
+        let graph = overlay.buildGraph(fillRule: .nonZero)
+        let result = graph.extractShapes(overlayRule: .subject)
+        
+        XCTAssertEqual(result.count, 1)
+        XCTAssertEqual(result[0].count, 1)
+        XCTAssertEqual(result[0][0].count, 4)
+    }
+    
+    func test_exp_1() throws {
+        var overlay = Overlay()
+        overlay.add(path: [
+            Point(0, 0),
+            Point(0, 4),
+            Point(4, 4),
+            Point(4, 0),
+        ], type: ShapeType.subject)
+        overlay.add(path: [
+            Point(3, -3),
+            Point(3, 1),
+            Point(7, 1),
+            Point(7, -3),
+        ], type: ShapeType.clip)
+        
+        let graph = overlay.buildGraph(fillRule: .nonZero)
+        let result = graph.extractShapes(overlayRule: .xor)
+        
+        XCTAssertEqual(result.count, 2)
+        XCTAssertEqual(result[0].count, 1)
+        XCTAssertEqual(result[0][0].count, 6)
+        XCTAssertEqual(result[1].count, 1)
+        XCTAssertEqual(result[1][0].count, 6)
     }
 }
 
