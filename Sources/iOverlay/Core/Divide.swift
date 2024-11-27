@@ -116,3 +116,28 @@ public extension Path {
     }
     
 }
+
+public extension Shape {
+    
+    mutating func decomposeContours() {
+        let n = self.count
+        for i in 0..<n {
+            let path = self[i]
+            guard let contours = path.decomposeContours() else { continue }
+            self[i] = contours[0]
+            for j in 1..<contours.count {
+                self.append(contours[j])
+            }
+        }
+    }
+}
+
+public extension Shapes {
+    
+    mutating func decomposeContours() {
+        let n = self.count
+        for i in 0..<n {
+            self[i].decomposeContours()
+        }
+    }
+}
